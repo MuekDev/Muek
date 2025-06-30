@@ -14,8 +14,15 @@ public partial class MainWindow : Window
     public void SyncTimeline(object type)
     {
         if (type is not TimeRulerBar)
-            TimeRulerBarControl.ScaleFactor = UiStateService.GlobalTimeLineScale;
+        {
+            TimeRulerBarControl.ScaleFactor = UiStateService.GlobalTimelineScale;
+            TimeRulerBarControl.OffsetX = UiStateService.GlobalTimelineOffsetX;
+        }
+
         if (type is not TrackView)
-            TrackViewControl.ScaleFactor = UiStateService.GlobalTimeLineScale;
+        {
+            TrackViewControl.ScaleFactor = UiStateService.GlobalTimelineScale;
+            TrackViewControl.OffsetX =  UiStateService.GlobalTimelineOffsetX;
+        }
     }
 }

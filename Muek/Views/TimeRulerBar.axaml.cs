@@ -18,9 +18,24 @@ public partial class TimeRulerBar : UserControl
         InitializeComponent();
         Focusable = true;
     }
-    
+
     public new IBrush? Background { get; set; } = Brushes.Transparent;
     private int _scaleFactor = 100;
+    private double _offsetX = 0;
+    
+    public double OffsetX
+    {
+        get => _offsetX;
+        set
+        {
+            if (Math.Abs(_scaleFactor - value) < 0.01) return;
+            // if (_scaleFactor < 0) return;
+            
+            _offsetX = value;
+            
+            InvalidateVisual();
+        }
+    }
 
     public int ScaleFactor
     {
@@ -58,10 +73,11 @@ public partial class TimeRulerBar : UserControl
 
         var beats = 1;
 
-        for (double x = 0; x < renderSize.Width; x += subStep)
+        // TODO: `renderSize.Width + OffsetX` 可能会导致当OffsetX过大时溢出
+        for (double x = 0; x < renderSize.Width + OffsetX; x += subStep)
         {
-            var drawX = Math.Round(x); // 防止抗锯齿导致线丢失
-            var isMainLine = Math.Abs(drawX % step) < 0.1;
+            var drawX = Math.Round(x - OffsetX); // 防止抗锯齿导致线丢失
+            var isMainLine = Math.Abs(x % step) < 0.1;
 
             if (!isMainLine && ScaleFactor < 33)
             {
@@ -72,14 +88,14 @@ public partial class TimeRulerBar : UserControl
             double height = isMainLine ? 15 : 20;
 
             context.DrawLine(pen, new Point(drawX, height), new Point(drawX, 30));
-            
+
             // 标签这一块
-            if (isMainLine&&ScaleFactor>22)
+            if (isMainLine && ScaleFactor > 22)
             {
                 context.DrawText(
                     new FormattedText(beats.ToString(), CultureInfo.CurrentCulture, FlowDirection.LeftToRight,
                         Typeface.Default, 10, brushWhite)
-                    , new Point(drawX+4, height));
+                    , new Point(drawX + 4, height));
                 beats++;
             }
         }
@@ -92,12 +108,28 @@ public partial class TimeRulerBar : UserControl
     {
         base.OnPointerWheelChanged(e);
 
+        if (e.KeyModifiers.HasFlag(KeyModifiers.Shift))
+        {
+            OffsetX -= e.Delta.Y * 20;
+            OffsetX = Math.Max(0, OffsetX); // 不允许左滚超过0
+            InvalidateVisual();
+            e.Handled = true;
+            
+            UiStateService.GlobalTimelineScale = ScaleFactor;
+            UiStateService.GlobalTimelineOffsetX = OffsetX;
+            var parent = this.GetVisualAncestors().OfType<MainWindow>().FirstOrDefault();
+            parent?.SyncTimeline(this);
+            
+            return;
+        }
+
         var delta = e.Delta.Y;
         if (delta != 0)
         {
             var factor = delta > 0 ? 1.1 : 0.9; // 放大10%，缩小10%
             ScaleFactor = (int)Math.Clamp(ScaleFactor * factor, 1, 1000);
-            UiStateService.GlobalTimeLineScale = ScaleFactor;
+            UiStateService.GlobalTimelineScale = ScaleFactor;
+            UiStateService.GlobalTimelineOffsetX = OffsetX;
             var parent = this.GetVisualAncestors().OfType<MainWindow>().FirstOrDefault();
             parent?.SyncTimeline(this);
         }
