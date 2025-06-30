@@ -1,0 +1,90 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Muek.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:i="https://github.com/projektanker/icons.avalonia"
+        xmlns:views="clr-namespace:Muek.Views"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="Muek.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Icon="/Assets/avalonia-logo.ico"
+        Background="#232323"
+        Title="Muek">
+
+    <Design.DataContext>
+        <!-- This only sets the DataContext for the previewer in an IDE,
+             to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+        <vm:MainWindowViewModel />
+    </Design.DataContext>
+
+    <Grid ColumnDefinitions="*,Auto">
+        <Grid Background="#232323" RowDefinitions="40,40,*,24" Margin="8">
+            <StackPanel Orientation="Horizontal">
+                <Button Background="Transparent">
+                    <i:Icon Value="fa-bars" Foreground="White"></i:Icon>
+                </Button>
+                <Panel Width="40"></Panel>
+                <Button Background="Transparent">
+                    <i:Icon Value="fa-play" Foreground="White"></i:Icon>
+                </Button>
+                <Button Background="Transparent">
+                    <i:Icon Value="fa-stop" Foreground="White"></i:Icon>
+                </Button>
+                <Button Background="Transparent">
+                    <i:Icon Value="fa-circle" FontSize="12" Foreground="White"></i:Icon>
+                </Button>
+                <Panel Width="40"></Panel>
+                <Border Background="#1B1B1B" VerticalAlignment="Center" CornerRadius="12,0,0,12" Padding="8,0">
+                    <Label Foreground="#FFFFFF" Content="1.2.00 / 0:00.244"></Label>
+                </Border>
+                <Border Background="#852221" VerticalAlignment="Center" CornerRadius="0,12,12,0" Padding="8,0">
+                    <Label Foreground="#F9DEDC" Content="已停止"></Label>
+                </Border>
+                <Panel Width="20"></Panel>
+                <Border Background="#1B1B1B" VerticalAlignment="Center" CornerRadius="12,0,0,12" Padding="8,0">
+                    <Label Foreground="#FFFFFF" Content="120"></Label>
+                </Border>
+                <Border Background="#4F378A" VerticalAlignment="Center" CornerRadius="0,12,12,0" Padding="8,0">
+                    <Label Foreground="#EADDFF" Content="TAP"></Label>
+                </Border>
+            </StackPanel>
+
+            <Grid Grid.Row="1" ColumnDefinitions="200,*">
+                <!-- 左侧轨道头 -->
+                <StackPanel Grid.Column="0" Background="Transparent" HorizontalAlignment="Right"
+                            Orientation="Horizontal">
+                    <Button Background="Transparent">
+                        <i:Icon Value="fa-pen" Foreground="White"></i:Icon>
+                    </Button>
+                    <Button Background="Transparent">
+                        <i:Icon Value="fa-grip" Foreground="White"></i:Icon>
+                    </Button>
+                </StackPanel>
+                <!-- 右(顶部)刻度尺 -->
+                <Border Grid.Column="1" Background="#313131" Height="30" Margin="0" CornerRadius="8">
+                    <views:TimeRulerBar x:Name="TimeRulerBarControl"
+                                        HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                    </views:TimeRulerBar>
+                </Border>
+            </Grid>
+            <Grid Grid.Row="2" ColumnDefinitions="200,*">
+                <!-- 左侧轨道头 -->
+                <Grid Grid.Column="0" VerticalAlignment="Top">
+                    <Border Background="#D0BCFF" Height="100" Margin="0,0,0,0" CornerRadius="12,0,0,12" Padding="8">
+                        <StackPanel>
+                            <Label Foreground="#232323" FontWeight="Bold" FontSize="18">Kick</Label>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+                <Grid Grid.Column="1" Background="#313131">
+                    <views:TrackView x:Name="TrackViewControl"
+                                     HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                    </views:TrackView>
+                </Grid>
+            </Grid>
+        </Grid>
+        <Grid Grid.Column="1" Width="300">
+        </Grid>
+    </Grid>
+</Window>
