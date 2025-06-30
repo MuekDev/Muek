@@ -4,7 +4,5 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Muek.Views.ClipItem">
-    <Grid Height="100" Width="200" Background="Red">
-        
-    </Grid>
+    <Grid Height="100" Width="200" Background="Red" />
 </UserControl>

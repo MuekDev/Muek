@@ -4,7 +4,6 @@ using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
-using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.VisualTree;
 using Muek.Services;
@@ -13,6 +12,9 @@ namespace Muek.Views;
 
 public partial class TimeRulerBar : UserControl
 {
+    private double _offsetX;
+    private int _scaleFactor = 100;
+
     public TimeRulerBar()
     {
         InitializeComponent();
@@ -20,9 +22,7 @@ public partial class TimeRulerBar : UserControl
     }
 
     public new IBrush? Background { get; set; } = Brushes.Transparent;
-    private int _scaleFactor = 100;
-    private double _offsetX = 0;
-    
+
     public double OffsetX
     {
         get => _offsetX;
@@ -81,10 +81,7 @@ public partial class TimeRulerBar : UserControl
             var drawX = Math.Round(x - OffsetX); // 防止抗锯齿导致线丢失
             var isMainLine = Math.Abs(x % step) < 0.1;
 
-            if (!isMainLine && ScaleFactor < 33)
-            {
-                continue;
-            }
+            if (!isMainLine && ScaleFactor < 33) continue;
 
             var pen = isMainLine ? penWhite : penGray;
             double height = isMainLine ? 15 : 20;
@@ -116,12 +113,12 @@ public partial class TimeRulerBar : UserControl
             OffsetX = Math.Max(0, OffsetX); // 不允许左滚超过0
             InvalidateVisual();
             e.Handled = true;
-            
+
             UiStateService.GlobalTimelineScale = ScaleFactor;
             UiStateService.GlobalTimelineOffsetX = OffsetX;
             var parent = this.GetVisualAncestors().OfType<MainWindow>().FirstOrDefault();
             parent?.SyncTimeline(this);
-            
+
             return;
         }
 

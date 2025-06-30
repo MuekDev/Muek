@@ -1,30 +1,50 @@
 using System;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
-using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.VisualTree;
+using Muek.Models;
 using Muek.Services;
 
 namespace Muek.Views;
 
 public partial class TrackView : UserControl
 {
+    private bool _isDraggingPlayhead;
+    private double _offsetX;
+    private double _playHeadPosX;
+    private int _scaleFactor = 100;
+    private double _timeRulerPosX;
+    private bool _isDropping =false;
+    private Point _mousePosition =new();
+    public int TrackHeight = 100;
+
     public TrackView()
     {
         InitializeComponent();
+        Focusable = true;
+        AddHandler(DragDrop.DropEvent, OnDrop);
+        AddHandler(DragDrop.DragEnterEvent, OnDropEnter);
+        AddHandler(DragDrop.DragLeaveEvent, OnDropLeave);
+        AddHandler(DragDrop.DragOverEvent,OnDragOver);
+    }
+
+    private void OnDragOver(object? sender, DragEventArgs e)
+    {
+        _mousePosition = e.GetPosition(this);      
+        InvalidateVisual();
+    }
+
+    private void OnDropLeave(object? sender, DragEventArgs e)
+    {
+        _isDropping = false;
     }
 
     public new IBrush? Background { get; set; } = Brushes.Transparent;
-
-    private bool _isDraggingPlayhead = false;
-    private int _scaleFactor = 100;
-    private double _offsetX = 0;
-    private double _playHeadPosX = 0;
-    private double _timeRulerPosX = 0;
 
     public double TimeRulerPosX
     {
@@ -86,6 +106,59 @@ public partial class TrackView : UserControl
 
     public int Subdivisions { get; set; } = 4;
 
+
+    private void OnDropEnter(object? sender, DragEventArgs e)
+    {
+        _isDropping = true;
+    }
+
+    [Obsolete("老子就用GetFileNames能怎么滴")]
+    private void OnDrop(object? sender, DragEventArgs e)
+    {
+        if (e.Data.Contains(DataFormats.Files))
+        {
+            var files = e.Data.GetFileNames()?.ToList();
+            if (files == null) return;
+            Console.WriteLine($"[TrackView] Dropped: {files.Count}");
+
+            var (x, y) = e.GetPosition(this);
+
+            // var beat = (int)Math.Floor(x / ScaleFactor);
+            x = e.GetPosition(this).X + OffsetX;
+            var beat = x / ScaleFactor;
+
+            var trackIndex = (int)Math.Floor(y / TrackHeight);
+
+            Console.WriteLine($"Dropped at beat: {beat}, track: {trackIndex}");
+
+            foreach (var file in files)
+            {
+                if (!Path.Exists(file)) continue;
+
+                var ext = Path.GetExtension(file).ToLower();
+                if (ext != ".wav" && ext != ".mp3" && ext != ".ogg")
+                    continue;
+
+                var newClip = new Clip
+                {
+                    Name = Path.GetFileNameWithoutExtension(file),
+                    StartBeat = beat,
+                    Duration = 4
+                };
+
+                // 确保轨道存在
+                if (trackIndex >= 0 && trackIndex < DataStateService.Tracks.Count)
+                {
+                    DataStateService.Tracks[trackIndex].Clips.Add(newClip);
+                }
+            }
+
+            _isDropping = false;
+            InvalidateVisual();
+        }
+    }
+
+
     public override void Render(DrawingContext context)
     {
         var renderSize = Bounds.Size;
@@ -104,7 +177,7 @@ public partial class TrackView : UserControl
 
         for (var beat = beatStart; beat < beatEnd; beat++)
         {
-            var groupIndex = (beat / Subdivisions) % 2; // 0 or 1，看拍数是奇数还是偶数了
+            var groupIndex = beat / Subdivisions % 2; // 0 or 1，看拍数是奇数还是偶数了
 
             var color = groupIndex == 0 ? Color.Parse("#353535") : Color.Parse("#2A2A2A");
             var brush = new SolidColorBrush(color);
@@ -118,7 +191,7 @@ public partial class TrackView : UserControl
 
             context.FillRectangle(brush, new Rect(x1, 0, x2 - x1, renderSize.Height));
         }
-        
+
         //// 绘制片段
         for (var i = 0; i < DataStateService.Tracks.Count; i++)
         {
@@ -131,16 +204,31 @@ public partial class TrackView : UserControl
                 if (x + width < 0 || x > renderSize.Width)
                     continue; // 跳过可视区域外的片段
 
-                var rect = new Rect(x, i*100, width, 100);
+                var rect = new Rect(x, i * TrackHeight, width, TrackHeight);
                 var background = new SolidColorBrush(track.Color);
 
                 context.FillRectangle(background, rect);
-                context.DrawRectangle(new Pen(Brushes.Black, 1), rect);
+                context.DrawRectangle(new Pen(Brushes.Black), rect);
                 context.DrawText(
                     new FormattedText(clip.Name, CultureInfo.CurrentCulture, FlowDirection.LeftToRight,
                         Typeface.Default, 10, Brushes.Black),
-                    new Point(x,i* 100));
+                    new Point(x, i * TrackHeight));
             }
+        }
+        
+        //// 绘制Dropping的临时对象
+        if (_isDropping)
+        {
+            var x = _mousePosition.X;
+            var y = Math.Floor(_mousePosition.Y / TrackHeight) * TrackHeight;
+            var rect = new Rect(x, y, 100, TrackHeight);
+            var background = new LinearGradientBrush();
+            background.StartPoint = new RelativePoint(0.0, 0.5, RelativeUnit.Relative);
+            background.EndPoint = new RelativePoint(1.0, 0.5, RelativeUnit.Relative);
+            background.GradientStops.Add(new GradientStop(Colors.YellowGreen, 0.0));
+            background.GradientStops.Add(new GradientStop(Colors.Transparent, 1.0));
+
+            context.FillRectangle(background, rect);
         }
 
 
@@ -154,10 +242,7 @@ public partial class TrackView : UserControl
             var drawX = Math.Round(x - OffsetX); // 防止抗锯齿导致线丢失
             var isMainLine = Math.Abs(x % step) < 0.1;
 
-            if (!isMainLine && ScaleFactor < 33)
-            {
-                continue;
-            }
+            if (!isMainLine && ScaleFactor < 33) continue;
 
             var pen = isMainLine ? penWhite : penGray;
 
@@ -170,7 +255,7 @@ public partial class TrackView : UserControl
 
         if (playheadX >= 0 && playheadX <= renderSize.Width)
         {
-            var playheadPen = new Pen(Brushes.White, 1);
+            var playheadPen = new Pen(Brushes.White);
 
             context.DrawLine(playheadPen,
                 new Point(playheadX, 0),
@@ -189,7 +274,7 @@ public partial class TrackView : UserControl
     private void UpdatePlayHeadFromPointer(Point point)
     {
         // pointer.X 是当前控件内部位置，+ OffsetX 得到全局位置
-        var globalX = Math.Max(0,point.X + OffsetX);
+        var globalX = Math.Max(0, point.X + OffsetX);
         PlayHeadPosX = globalX / ScaleFactor;
 
         // TODO: 同步节拍
@@ -225,6 +310,8 @@ public partial class TrackView : UserControl
             UpdatePlayHeadFromPointer(point);
             e.Handled = true;
         }
+
+        _mousePosition = e.GetPosition(this);
     }
 
     protected override void OnPointerReleased(PointerReleasedEventArgs e)

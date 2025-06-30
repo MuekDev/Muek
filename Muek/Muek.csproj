@@ -23,8 +23,8 @@
             <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
         </PackageReference>
         <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.1"/>
-        <PackageReference Include="Projektanker.Icons.Avalonia" Version="9.6.2" />
-        <PackageReference Include="Projektanker.Icons.Avalonia.FontAwesome" Version="9.6.2" />
-        <PackageReference Include="System.Reactive" Version="6.0.1" />
+        <PackageReference Include="Projektanker.Icons.Avalonia" Version="9.6.2"/>
+        <PackageReference Include="Projektanker.Icons.Avalonia.FontAwesome" Version="9.6.2"/>
+        <PackageReference Include="System.Reactive" Version="6.0.1"/>
     </ItemGroup>
 </Project>

@@ -1,4 +1,3 @@
-using System;
 using Avalonia.Controls;
 using Muek.Services;
 
@@ -22,7 +21,7 @@ public partial class MainWindow : Window
         if (type is not TrackView)
         {
             TrackViewControl.ScaleFactor = UiStateService.GlobalTimelineScale;
-            TrackViewControl.OffsetX =  UiStateService.GlobalTimelineOffsetX;
+            TrackViewControl.OffsetX = UiStateService.GlobalTimelineOffsetX;
         }
     }
 }
