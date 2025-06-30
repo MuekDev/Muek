@@ -24,6 +24,19 @@ public partial class TrackView : UserControl
     private int _scaleFactor = 100;
     private double _offsetX = 0;
     private double _playHeadPosX = 0;
+    private double _timeRulerPosX = 0;
+
+    public double TimeRulerPosX
+    {
+        get => _timeRulerPosX;
+        set
+        {
+            if (Math.Abs(_timeRulerPosX - value) < 0.01) return;
+            if (value < 0) return;
+            _timeRulerPosX = value;
+            InvalidateVisual();
+        }
+    }
 
     public double PlayHeadPosX
     {
@@ -42,14 +55,17 @@ public partial class TrackView : UserControl
         get => _offsetX;
         set
         {
-            if (Math.Abs(_scaleFactor - value) < 0.01) return;
-            if (value < 0) return;
+            if (Math.Abs(_offsetX - value) < 0.01)
+                return;
+
+            if (value < 0)
+                value = 0;
 
             _offsetX = value;
-
             InvalidateVisual();
         }
     }
+
 
     public int ScaleFactor
     {
@@ -80,9 +96,9 @@ public partial class TrackView : UserControl
 
         if (Background != null)
             context.FillRectangle(Background, new Rect(renderSize));
-        
+
         //// 绘制交替色的背景
-        
+
         var beatStart = (int)(OffsetX / ScaleFactor);
         var beatEnd = (int)((OffsetX + renderSize.Width) / ScaleFactor) + 1;
 
@@ -101,6 +117,30 @@ public partial class TrackView : UserControl
                 continue;
 
             context.FillRectangle(brush, new Rect(x1, 0, x2 - x1, renderSize.Height));
+        }
+        
+        //// 绘制片段
+        for (var i = 0; i < DataStateService.Tracks.Count; i++)
+        {
+            var track = DataStateService.Tracks[i];
+            foreach (var clip in track.Clips)
+            {
+                var x = clip.StartBeat * ScaleFactor - OffsetX;
+                var width = clip.Duration * ScaleFactor;
+
+                if (x + width < 0 || x > renderSize.Width)
+                    continue; // 跳过可视区域外的片段
+
+                var rect = new Rect(x, i*100, width, 100);
+                var background = new SolidColorBrush(track.Color);
+
+                context.FillRectangle(background, rect);
+                context.DrawRectangle(new Pen(Brushes.Black, 1), rect);
+                context.DrawText(
+                    new FormattedText(clip.Name, CultureInfo.CurrentCulture, FlowDirection.LeftToRight,
+                        Typeface.Default, 10, Brushes.Black),
+                    new Point(x,i* 100));
+            }
         }
 
 
@@ -124,13 +164,13 @@ public partial class TrackView : UserControl
             context.DrawLine(pen, new Point(drawX, 0), new Point(drawX, renderSize.Height));
         }
 
-        
+
         //// 绘制播放线
         var playheadX = PlayHeadPosX * ScaleFactor - OffsetX;
 
         if (playheadX >= 0 && playheadX <= renderSize.Width)
         {
-            var playheadPen = new Pen(Brushes.DarkOrange, 1);
+            var playheadPen = new Pen(Brushes.White, 1);
 
             context.DrawLine(playheadPen,
                 new Point(playheadX, 0),
@@ -143,14 +183,13 @@ public partial class TrackView : UserControl
                 new Point(playheadX + 4, 4));
         }
 
-
         base.Render(context);
     }
 
     private void UpdatePlayHeadFromPointer(Point point)
     {
         // pointer.X 是当前控件内部位置，+ OffsetX 得到全局位置
-        var globalX = point.X + OffsetX;
+        var globalX = Math.Max(0,point.X + OffsetX);
         PlayHeadPosX = globalX / ScaleFactor;
 
         // TODO: 同步节拍
@@ -201,7 +240,7 @@ public partial class TrackView : UserControl
 
         if (e.KeyModifiers.HasFlag(KeyModifiers.Shift))
         {
-            OffsetX -= e.Delta.Y * 20;
+            OffsetX -= e.Delta.Y * 44;
             OffsetX = Math.Max(0, OffsetX); // 不允许左滚超过0
             InvalidateVisual();
             e.Handled = true;
@@ -218,11 +257,32 @@ public partial class TrackView : UserControl
         if (delta != 0)
         {
             var factor = delta > 0 ? 1.1 : 0.9; // 放大10%，缩小10%
-            ScaleFactor = (int)Math.Clamp(ScaleFactor * factor, 1, 1000);
+            var pointerX = e.GetPosition(this).X;
+
+            ZoomAt(pointerX, factor);
+
             UiStateService.GlobalTimelineScale = ScaleFactor;
             UiStateService.GlobalTimelineOffsetX = OffsetX;
             var parent = this.GetVisualAncestors().OfType<MainWindow>().FirstOrDefault();
             parent?.SyncTimeline(this);
         }
+    }
+
+    private void ZoomAt(double pointerX, double zoomFactor)
+    {
+        var oldScale = ScaleFactor;
+        var newScale = (int)Math.Clamp(oldScale * zoomFactor, 10, 1000);
+
+        if (newScale == oldScale)
+            return;
+
+        // 鼠标所对应的节拍位置
+        var beatAtPointer = (pointerX + OffsetX) / oldScale;
+
+        // 更新缩放
+        ScaleFactor = newScale;
+
+        // 调整 OffsetX，使 beatAtPointer 依然出现在原位置
+        OffsetX = beatAtPointer * newScale - pointerX;
     }
 }

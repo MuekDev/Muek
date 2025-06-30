@@ -28,11 +28,13 @@ public partial class TimeRulerBar : UserControl
         get => _offsetX;
         set
         {
-            if (Math.Abs(_scaleFactor - value) < 0.01) return;
-            if (value < 0) return;
-            
+            if (Math.Abs(_offsetX - value) < 0.01)
+                return;
+
+            if (value < 0)
+                value = 0;
+
             _offsetX = value;
-            
             InvalidateVisual();
         }
     }

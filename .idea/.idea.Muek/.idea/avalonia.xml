@@ -4,8 +4,10 @@
     <option name="projectPerEditor">
       <map>
         <entry key="Muek/App.axaml" value="Muek/Muek.csproj" />
+        <entry key="Muek/Views/ClipItem.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/Views/MainWindow.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/Views/TimeRulerBar.axaml" value="Muek/Muek.csproj" />
+        <entry key="Muek/Views/TrackView.axaml" value="Muek/Muek.csproj" />
       </map>
     </option>
   </component>
