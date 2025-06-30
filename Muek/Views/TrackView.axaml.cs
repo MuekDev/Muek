@@ -29,7 +29,7 @@ public partial class TrackView : UserControl
         set
         {
             if (Math.Abs(_scaleFactor - value) < 0.01) return;
-            // if (_scaleFactor < 0) return;
+            if (_scaleFactor < 0) return;
             
             _offsetX = value;
             
