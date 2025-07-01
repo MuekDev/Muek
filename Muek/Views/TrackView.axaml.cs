@@ -2,13 +2,15 @@ using System;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using Audio;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.VisualTree;
-using Muek.Models;
 using Muek.Services;
+using Muek.ViewModels;
+using NAudio.Wave;
 
 namespace Muek.Views;
 
@@ -19,8 +21,8 @@ public partial class TrackView : UserControl
     private double _playHeadPosX;
     private int _scaleFactor = 100;
     private double _timeRulerPosX;
-    private bool _isDropping =false;
-    private Point _mousePosition =new();
+    private bool _isDropping = false;
+    private Point _mousePosition = new();
     public int TrackHeight = 100;
 
     public TrackView()
@@ -30,12 +32,22 @@ public partial class TrackView : UserControl
         AddHandler(DragDrop.DropEvent, OnDrop);
         AddHandler(DragDrop.DragEnterEvent, OnDropEnter);
         AddHandler(DragDrop.DragLeaveEvent, OnDropLeave);
-        AddHandler(DragDrop.DragOverEvent,OnDragOver);
+        AddHandler(DragDrop.DragOverEvent, OnDragOver);
+        
+        UiStateService.GlobalPlayHeadPosXUpdated += UiStateServiceOnGlobalPlayHeadPosXUpdated;
+    }
+
+    private void UiStateServiceOnGlobalPlayHeadPosXUpdated(object? sender, double e)
+    {
+        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+        {
+        PlayHeadPosX = e;
+        });
     }
 
     private void OnDragOver(object? sender, DragEventArgs e)
     {
-        _mousePosition = e.GetPosition(this);      
+        _mousePosition = e.GetPosition(this);
         InvalidateVisual();
     }
 
@@ -104,7 +116,7 @@ public partial class TrackView : UserControl
         }
     }
 
-    public int Subdivisions { get; set; } = 4;
+    public static int Subdivisions { get; set; } = 4;
 
 
     private void OnDropEnter(object? sender, DragEventArgs e)
@@ -139,22 +151,40 @@ public partial class TrackView : UserControl
                 if (ext != ".wav" && ext != ".mp3" && ext != ".ogg")
                     continue;
 
+                var durationSec = GetAudioDurationInSeconds(file);
+                var durationBeats = (durationSec / 60f) * DataStateService.Bpm / Subdivisions;
+
                 var newClip = new Clip
                 {
                     Name = Path.GetFileNameWithoutExtension(file),
                     StartBeat = beat,
-                    Duration = 4
+                    Duration = durationBeats,
+                    Path = file,
                 };
 
                 // 确保轨道存在
                 if (trackIndex >= 0 && trackIndex < DataStateService.Tracks.Count)
                 {
-                    DataStateService.Tracks[trackIndex].Clips.Add(newClip);
+                    DataStateService.Tracks[trackIndex].AddClip(newClip);
                 }
             }
 
             _isDropping = false;
             InvalidateVisual();
+        }
+    }
+    
+    private float GetAudioDurationInSeconds(string path)
+    {
+        try
+        {
+            using var audio = new AudioFileReader(path);
+            return (float)audio.TotalTime.TotalSeconds;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Failed to get duration: {ex.Message}");
+            return 0f;
         }
     }
 
@@ -205,17 +235,59 @@ public partial class TrackView : UserControl
                     continue; // 跳过可视区域外的片段
 
                 var rect = new Rect(x, i * TrackHeight, width, TrackHeight);
-                var background = new SolidColorBrush(track.Color);
+                _ = Color.TryParse(track.Color, out var color) ? color : Colors.YellowGreen;
+                var background = new SolidColorBrush(color);
 
                 context.FillRectangle(background, rect);
                 context.DrawRectangle(new Pen(Brushes.Black), rect);
+                
+                // 绘制波形
+                if (clip.CachedWaveform is { Count: > 1 })
+                {
+                    var waveform = clip.CachedWaveform;
+                    var centerY = i * TrackHeight + TrackHeight / 2;
+                    var scaleY = (TrackHeight / 2.0) * 0.95;
+
+                    var pointCount = waveform.Count;
+                    var stepX = width / (pointCount - 1);
+                    var geometry = new StreamGeometry();
+
+                    using (var ctx = geometry.Open())
+                    {
+                        // 上半边
+                        ctx.BeginFigure(new Point(x, centerY - waveform[0] * scaleY), isFilled: true);
+
+                        for (var w = 1; w < pointCount; w++)
+                        {
+                            var px = x + w * stepX;
+                            var py = centerY - waveform[w] * scaleY;
+                            ctx.LineTo(new Point(px, py));
+                        }
+
+                        // 下半边（逆序闭合）
+                        for (var w = pointCount - 1; w >= 0; w--)
+                        {
+                            var px = x + w * stepX;
+                            var py = centerY + waveform[w] * scaleY;
+                            ctx.LineTo(new Point(px, py));
+                        }
+
+                        // 闭合路径
+                        ctx.EndFigure(true);
+                    }
+
+                    var blackFill = new SolidColorBrush(Colors.Black);
+                    context.DrawGeometry(blackFill, null, geometry);
+                }
+
+                
                 context.DrawText(
                     new FormattedText(clip.Name, CultureInfo.CurrentCulture, FlowDirection.LeftToRight,
                         Typeface.Default, 10, Brushes.Black),
                     new Point(x, i * TrackHeight));
             }
         }
-        
+
         //// 绘制Dropping的临时对象
         if (_isDropping)
         {
@@ -276,6 +348,7 @@ public partial class TrackView : UserControl
         // pointer.X 是当前控件内部位置，+ OffsetX 得到全局位置
         var globalX = Math.Max(0, point.X + OffsetX);
         PlayHeadPosX = globalX / ScaleFactor;
+        UiStateService.GlobalPlayHeadPosX = PlayHeadPosX;
 
         // TODO: 同步节拍
         var currentBeat = PlayHeadPosX / ScaleFactor;

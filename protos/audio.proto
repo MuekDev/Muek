@@ -1,0 +1,45 @@
+syntax = "proto3";
+
+package audio;
+
+// 音频片段
+message Clip {
+  string path = 1;
+  double start_beat = 2;
+  double duration = 3;
+  string name = 4;
+}
+
+// 轨道
+message Track {
+  repeated Clip clips = 1;
+  string color = 2;
+}
+
+// 播放请求
+message PlayRequest {
+  repeated Track tracks = 1;
+  double bpm = 2;
+  double offset = 3; // 起始位置，单位 beat
+}
+
+// 控制指令
+message Empty {}
+message Ack {}
+message DecodeResponse {
+  repeated float samples = 1;
+  uint32 sample_rate = 2;
+  uint32 channels = 3;
+}
+message PlayheadPos {
+  float time = 1;
+}
+
+// 音频服务
+service AudioProxyProto {
+  rpc Play (PlayRequest) returns (DecodeResponse);
+  rpc Pause (Empty) returns (Ack);
+  rpc Stop (Empty) returns (Ack);
+  rpc GetPlayheadPos (Empty) returns (PlayheadPos);
+}
+

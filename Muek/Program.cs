@@ -1,5 +1,9 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Avalonia;
+using Grpc.Net.Client;
+using Muek.Commands;
+using Muek.Services;
 using Projektanker.Icons.Avalonia;
 using Projektanker.Icons.Avalonia.FontAwesome;
 
@@ -13,6 +17,10 @@ internal sealed class Program
     [STAThread]
     public static void Main(string[] args)
     {
+        RpcService.Init();
+        _ = RpcService.SendCommand(new GreetCommand());
+        TimeSyncService.Start();
+        
         BuildAvaloniaApp()
             .StartWithClassicDesktopLifetime(args);
     }

@@ -25,10 +25,10 @@
                     <i:Icon Value="fa-bars" Foreground="White" />
                 </Button>
                 <Panel Width="40" />
-                <Button Background="Transparent">
+                <Button Background="Transparent" Command="{Binding OnPlayButtonClick}">
                     <i:Icon Value="fa-play" Foreground="White" />
                 </Button>
-                <Button Background="Transparent">
+                <Button Background="Transparent" Command="{Binding OnStopButtonClick}">
                     <i:Icon Value="fa-stop" Foreground="White" />
                 </Button>
                 <Button Background="Transparent">
