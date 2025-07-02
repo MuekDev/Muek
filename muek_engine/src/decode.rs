@@ -1,5 +1,6 @@
-use std::fs::File;
+use std::{fs::File, io::Read};
 
+use infer::audio::is_mp3;
 use symphonia::core::sample::u24;
 
 /// samples, channels, sample_rate
@@ -219,4 +220,23 @@ pub fn minimp3_decode(path: &str) -> Option<(Vec<f32>, usize, u32)> {
         channels.unwrap_or(1),
         sample_rate.unwrap_or(44100).try_into().unwrap(),
     ))
+}
+
+/// Returns (samples: Vec<f32>, channels, sample_rate)
+pub fn auto_decode(path: &str) -> Option<(Vec<f32>, usize, u32)> {
+    let mut buf = [0u8; 8192];
+    let mut file = match File::open(path) {
+        Ok(f) => f,
+        Err(_) => return None,
+    };
+
+    if file.read(&mut buf).is_err() {
+        return None;
+    }
+
+    if is_mp3(&buf) {
+        minimp3_decode(path)
+    } else {
+        symphonia_decode(path)
+    }
 }

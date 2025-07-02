@@ -58,7 +58,7 @@ impl AudioPlayer {
     }
 
     pub fn load_and_play(&self, path: &str) -> (Vec<f32>, usize, u32) {
-        let (samples, channels, sample_rate) = decode::symphonia_decode(path).unwrap();
+        let (samples, channels, sample_rate) = decode::auto_decode(path).unwrap();
 
         self.sample_rate.lock().unwrap().clone_from(&sample_rate);
         *self.samples.lock().unwrap() = Arc::new(samples.clone());
