@@ -176,6 +176,8 @@ pub fn minimp3_decode(path: &str) -> Option<(Vec<f32>, usize, u32)> {
     use minimp3::{Decoder, Error, Frame};
     use std::fs::File;
 
+    println!("[minimp3] 开始解码");
+
     let mut decoder = Decoder::new(File::open(path).ok()?);
 
     let mut all_samples = Vec::new();
@@ -214,6 +216,8 @@ pub fn minimp3_decode(path: &str) -> Option<(Vec<f32>, usize, u32)> {
             }
         }
     }
+
+    println!("[minimp3] 解码完成");
 
     Some((
         all_samples,

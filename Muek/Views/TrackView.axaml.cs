@@ -8,6 +8,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.VisualTree;
+using Muek.Commands;
 using Muek.Services;
 using Muek.ViewModels;
 using NAudio.Wave;
@@ -33,16 +34,13 @@ public partial class TrackView : UserControl
         AddHandler(DragDrop.DragEnterEvent, OnDropEnter);
         AddHandler(DragDrop.DragLeaveEvent, OnDropLeave);
         AddHandler(DragDrop.DragOverEvent, OnDragOver);
-        
+
         UiStateService.GlobalPlayHeadPosXUpdated += UiStateServiceOnGlobalPlayHeadPosXUpdated;
     }
 
     private void UiStateServiceOnGlobalPlayHeadPosXUpdated(object? sender, double e)
     {
-        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
-        {
-        PlayHeadPosX = e;
-        });
+        Avalonia.Threading.Dispatcher.UIThread.Post(() => { PlayHeadPosX = e; });
     }
 
     private void OnDragOver(object? sender, DragEventArgs e)
@@ -104,13 +102,6 @@ public partial class TrackView : UserControl
         get => _scaleFactor;
         set
         {
-            if (_scaleFactor == value) return;
-            if (value < 10)
-            {
-                _scaleFactor = 10;
-                return;
-            }
-
             _scaleFactor = value;
             InvalidateVisual(); // 重新调用 Render
         }
@@ -167,13 +158,17 @@ public partial class TrackView : UserControl
                 {
                     DataStateService.Tracks[trackIndex].AddClip(newClip);
                 }
+                
+                var track = DataStateService.Tracks[trackIndex].Proto;
+                var command = new UpdateTrackCommand();
+                command.ExecuteX(track);
             }
 
             _isDropping = false;
             InvalidateVisual();
         }
     }
-    
+
     private float GetAudioDurationInSeconds(string path)
     {
         try
@@ -240,47 +235,87 @@ public partial class TrackView : UserControl
 
                 context.FillRectangle(background, rect);
                 context.DrawRectangle(new Pen(Brushes.Black), rect);
-                
-                // 绘制波形
+
+                // 渲染波形
                 if (clip.CachedWaveform is { Count: > 1 })
                 {
                     var waveform = clip.CachedWaveform;
                     var centerY = i * TrackHeight + TrackHeight / 2;
                     var scaleY = (TrackHeight / 2.0) * 0.95;
 
-                    var pointCount = waveform.Count;
-                    var stepX = width / (pointCount - 1);
-                    var geometry = new StreamGeometry();
+                    var pixelWidth = (int)Math.Ceiling(width);
+                    if (pixelWidth <= 1) return;
 
+                    var samplesPerPixel = waveform.Count / pixelWidth;
+                    samplesPerPixel = Math.Max(1, samplesPerPixel);
+
+                    var geometry = new StreamGeometry();
                     using (var ctx = geometry.Open())
                     {
-                        // 上半边
-                        ctx.BeginFigure(new Point(x, centerY - waveform[0] * scaleY), isFilled: true);
-
-                        for (var w = 1; w < pointCount; w++)
+                        if (samplesPerPixel <= 50)
                         {
-                            var px = x + w * stepX;
-                            var py = centerY - waveform[w] * scaleY;
-                            ctx.LineTo(new Point(px, py));
-                        }
+                            // 高分辨率精细一点，用折线图（此乃盗窃reaper之秘术
+                            var waveformCount = waveform.Count;
 
-                        // 下半边（逆序闭合）
-                        for (var w = pointCount - 1; w >= 0; w--)
+                            var visibleStartX = Math.Max(0, -x); // 视口左边相对波形起点的偏移，单位像素
+                            var visibleEndX = Math.Min(width, renderSize.Width - x);
+
+                            var visibleStartSample = (int)(visibleStartX / width * waveformCount);
+                            var visibleEndSample = (int)(visibleEndX / width * waveformCount);
+
+                            visibleStartSample = Math.Clamp(visibleStartSample, 0, waveformCount - 1);
+                            visibleEndSample = Math.Clamp(visibleEndSample, 0, waveformCount - 1);
+
+                            var visibleSampleCount = visibleEndSample - visibleStartSample + 1;
+                            if (visibleSampleCount <= 1) return;
+
+                            var stepX = width / (waveformCount - 1);
+
+                            ctx.BeginFigure(
+                                new Point(x + visibleStartSample * stepX,
+                                    centerY - waveform[visibleStartSample] * scaleY), false);
+
+                            for (var s = visibleStartSample + 1; s <= visibleEndSample; s++)
+                            {
+                                var px = x + s * stepX;
+                                var py = centerY - waveform[s] * scaleY;
+                                ctx.LineTo(new Point(px, py));
+                            }
+                        }
+                        else
                         {
-                            var px = x + w * stepX;
-                            var py = centerY + waveform[w] * scaleY;
-                            ctx.LineTo(new Point(px, py));
-                        }
+                            // 低分辨率乃Min-Max 模式，压缩采样段（TODO: 有时候会一闪一闪的
+                            var renderStartPx = Math.Max(0, (int)Math.Floor(-x));
+                            var renderEndPx = Math.Min(pixelWidth, (int)Math.Ceiling(renderSize.Width - x));
+                            if (renderStartPx >= renderEndPx) return;
 
-                        // 闭合路径
-                        ctx.EndFigure(true);
+                            for (var px = renderStartPx; px < renderEndPx; px++)
+                            {
+                                var start = px * samplesPerPixel;
+                                var end = Math.Min(start + samplesPerPixel, waveform.Count);
+
+                                float min = 0, max = 0;
+                                for (var j = start; j < end; j++)
+                                {
+                                    var s = waveform[j];
+                                    if (j == start || s > max) max = s;
+                                    if (j == start || s < min) min = s;
+                                }
+
+                                var drawX = x + px;
+                                var y1 = centerY - max * scaleY;
+                                var y2 = centerY - min * scaleY;
+
+                                ctx.BeginFigure(new Point(drawX, y1), false);
+                                ctx.LineTo(new Point(drawX, y2));
+                            }
+                        }
                     }
 
-                    var blackFill = new SolidColorBrush(Colors.Black);
-                    context.DrawGeometry(blackFill, null, geometry);
+                    context.DrawGeometry(null, new Pen(Brushes.Black, 0.8), geometry);
                 }
 
-                
+
                 context.DrawText(
                     new FormattedText(clip.Name, CultureInfo.CurrentCulture, FlowDirection.LeftToRight,
                         Typeface.Default, 10, Brushes.Black),
@@ -431,7 +466,7 @@ public partial class TrackView : UserControl
     private void ZoomAt(double pointerX, double zoomFactor)
     {
         var oldScale = ScaleFactor;
-        var newScale = (int)Math.Clamp(oldScale * zoomFactor, 10, 1000);
+        var newScale = (int)Math.Clamp(oldScale * zoomFactor, 10, 100000);
 
         if (newScale == oldScale)
             return;

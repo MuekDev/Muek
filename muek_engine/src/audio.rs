@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::result::Result;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::{Duration, Instant};
@@ -8,7 +9,7 @@ use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 use tonic::Response;
 
 use crate::audio::audio_proto::audio_proxy_proto_server::AudioProxyProto;
-use crate::audio::audio_proto::{Ack, Empty, PlayRequest};
+use crate::audio::audio_proto::{Ack, Empty, PlayRequest, Track};
 use crate::audio::audio_proto::{DecodeResponse, PlayheadPos};
 use crate::decode;
 
@@ -17,9 +18,11 @@ pub mod audio_proto {
 }
 
 use once_cell::sync::Lazy;
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, RwLock};
 
 static AUDIO_ENGINE: Lazy<Arc<AudioPlayer>> = Lazy::new(|| Arc::new(AudioPlayer::new()));
+static CLIP_CACHES: Lazy<Arc<RwLock<HashMap<String, Vec<f32>>>>> =
+    Lazy::new(|| Arc::new(RwLock::new(HashMap::new())));
 
 pub fn get_audio_engine() -> Arc<AudioPlayer> {
     AUDIO_ENGINE.clone()
@@ -27,6 +30,7 @@ pub fn get_audio_engine() -> Arc<AudioPlayer> {
 
 pub struct AudioPlayer {
     pub stream: Mutex<Option<Stream>>,
+    pub tracks: Mutex<Vec<Track>>,
     pub samples: Mutex<Arc<Vec<f32>>>, // 解码后所有样本
     pub position: Arc<AtomicUsize>,    // 当前样本索引
     pub sample_rate: Mutex<u32>,       // 采样率（用于时间计算）
@@ -37,6 +41,7 @@ impl AudioPlayer {
     pub fn new() -> Self {
         Self {
             stream: Mutex::new(None),
+            tracks: Mutex::new(vec![]),
             samples: Mutex::new(Arc::new(vec![])),
             position: Arc::new(AtomicUsize::new(0)),
             sample_rate: Mutex::new(44100),
@@ -57,6 +62,7 @@ impl AudioPlayer {
         }
     }
 
+    #[deprecated]
     pub fn load_and_play(&self, path: &str) -> (Vec<f32>, usize, u32) {
         let (samples, channels, sample_rate) = decode::auto_decode(path).unwrap();
 
@@ -74,6 +80,29 @@ impl AudioPlayer {
         (samples, channels, sample_rate)
     }
 
+    pub fn play(&self) {
+        let mut samples: Vec<f32> = vec![         /*啥也没有*/           ];
+        let lock = self.tracks.lock().unwrap();
+        for track in lock.iter() {
+            let clips = &track.clips;
+            for clip in clips {
+                let binding = CLIP_CACHES.read().unwrap();
+                let e = &Vec::<f32>::new();
+                let sss = binding.get(&clip.id).unwrap_or(e);
+                samples.extend(sss.iter().cloned());
+            }
+        }
+
+        *self.samples.lock().unwrap() = Arc::new(samples);
+
+        println!("[play] 缓存带入终了。");
+
+        self.position.store(0, Ordering::Relaxed);
+        *self.start_time.lock().unwrap() = Some(Instant::now());
+
+        self.start_output();
+    }
+
     fn start_output(&self) {
         let host = cpal::default_host();
         let device = host.default_output_device().unwrap();
@@ -85,6 +114,7 @@ impl AudioPlayer {
 
         let samples = self.samples.lock().unwrap().clone();
         let position = self.position.clone();
+        println!("[start_output] samples len: {:?}", samples.len());
 
         let err_fn = |err| eprintln!("stream error: {}", err);
 
@@ -122,7 +152,7 @@ impl AudioPlayer {
         });
     }
 
-    pub fn get_time_seconds(&self) -> f32 {
+    pub fn _get_time_seconds(&self) -> f32 {
         // self.position.load(Ordering::Relaxed) as f32 / sample_rate as f32
         let sample_rate = *self.sample_rate.lock().unwrap(); // 先解引用得到 u32
         let pos = self.position.load(Ordering::Relaxed);
@@ -147,14 +177,14 @@ impl AudioProxyProto for AudioProxy {
 
     async fn pause(
         &self,
-        request: tonic::Request<Empty>,
+        _request: tonic::Request<Empty>,
     ) -> Result<tonic::Response<Ack>, tonic::Status> {
         Ok(Response::new(Ack {}))
     }
 
     async fn stop(
         &self,
-        request: tonic::Request<Empty>,
+        _request: tonic::Request<Empty>,
     ) -> Result<tonic::Response<Ack>, tonic::Status> {
         let engine = get_audio_engine();
         engine.clear();
@@ -163,12 +193,49 @@ impl AudioProxyProto for AudioProxy {
 
     async fn get_playhead_pos(
         &self,
-        request: tonic::Request<Empty>,
+        _request: tonic::Request<Empty>,
     ) -> Result<tonic::Response<PlayheadPos>, tonic::Status> {
         let engine = get_audio_engine();
         let guard = engine.start_time.lock().unwrap();
         let time = guard.map(|s| s.elapsed().as_secs_f32()).unwrap_or(0.0);
         Ok(Response::new(PlayheadPos { time }))
+    }
+
+    async fn update_track(
+        &self,
+        request: tonic::Request<Track>,
+    ) -> std::result::Result<tonic::Response<Ack>, tonic::Status> {
+        let engine: Arc<AudioPlayer> = get_audio_engine();
+        let track = request.get_ref();
+        let id = &request.get_ref().id;
+        let clips = &request.get_ref().clips;
+        let mut result: Vec<f32> = vec![];
+
+        for clip in clips {
+            let path = &clip.path;
+            let (mut s, _c, sr) = decode::auto_decode(path).unwrap();
+
+            // TODO: 它不应在此
+            engine.sample_rate.lock().unwrap().clone_from(&sr);
+
+            result.append(&mut s);
+        }
+
+        CLIP_CACHES.write().unwrap().insert(id.to_string(), result);
+
+        let mut tracks = engine.tracks.lock().unwrap();
+
+        for t in tracks.iter_mut() {
+            if t.id == *id {
+                t.clips = track.clips.clone();
+                t.color = track.color.clone();
+                return Ok(Response::new(Ack {}));
+            }
+        }
+
+        tracks.push(track.clone());
+
+        Ok(Response::new(Ack {}))
     }
 }
 
@@ -180,11 +247,19 @@ fn render(req: PlayRequest) -> DecodeResponse {
 
     let engine = get_audio_engine().clone();
     engine.clear();
-    let (samples, channels, sample_rate) = engine.load_and_play(path);
+    // let (_samples, channels, sample_rate) = engine.load_and_play(path);
+    engine.play();
 
     DecodeResponse {
         samples: vec![],
-        sample_rate: sample_rate,
-        channels: channels as u32,
+        sample_rate: 0,
+        channels: 0,
     }
+
+    // 由于波形渲染解码改为在前端处理，这里传回空的samples
+    // DecodeResponse {
+    //     samples: vec![],
+    //     sample_rate: sample_rate,
+    //     channels: channels as u32,
+    // }
 }

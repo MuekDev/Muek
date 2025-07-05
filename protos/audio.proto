@@ -8,12 +8,14 @@ message Clip {
   double start_beat = 2;
   double duration = 3;
   string name = 4;
+  string id = 5;
 }
 
 // 轨道
 message Track {
   repeated Clip clips = 1;
   string color = 2;
+  string id = 3;
 }
 
 // 播放请求
@@ -41,5 +43,6 @@ service AudioProxyProto {
   rpc Pause (Empty) returns (Ack);
   rpc Stop (Empty) returns (Ack);
   rpc GetPlayheadPos (Empty) returns (PlayheadPos);
+  rpc UpdateTrack (Track) returns (Ack);
 }
 

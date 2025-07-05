@@ -29,7 +29,7 @@ public class TrackViewModel
         var vm = new ClipViewModel(clip);
         Proto.Clips.Add(clip);
         Clips.Add(vm);
-        vm.GenerateWaveformPreview();
+        vm.GenerateWaveformPreviewPure();
 
         return vm;
     }

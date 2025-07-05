@@ -75,6 +75,25 @@ public class StopCommand : IRpcCommand
 
         DataStateService.IsPlaying = false;
 
-        return Task.CompletedTask; 
+        return Task.CompletedTask;
+    }
+}
+
+public class UpdateTrackCommand : IRpcCommand
+{
+    public Task ExecuteX(Track track)
+    {
+        Console.WriteLine("[UpdateTrackCommand] Execute");
+        using var channel = GrpcChannel.ForAddress(RpcService.Host);
+        var client = new AudioProxyProto.AudioProxyProtoClient(channel);
+        var reply = client.UpdateTrack(track);
+        Console.WriteLine($"RESPONSE: {reply}");
+        DataStateService.IsPlaying = false;
+        return Task.CompletedTask;
+    }
+
+    public Task Execute()
+    {
+        throw new NotImplementedException();
     }
 }
