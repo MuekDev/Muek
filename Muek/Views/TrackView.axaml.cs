@@ -151,6 +151,7 @@ public partial class TrackView : UserControl
                     StartBeat = beat,
                     Duration = durationBeats,
                     Path = file,
+                    Id = file,
                 };
 
                 // 确保轨道存在
@@ -160,8 +161,7 @@ public partial class TrackView : UserControl
                 }
                 
                 var track = DataStateService.Tracks[trackIndex].Proto;
-                var command = new UpdateTrackCommand();
-                command.ExecuteX(track);
+                HandleNewClipCommand.Execute(track, newClip);
             }
 
             _isDropping = false;

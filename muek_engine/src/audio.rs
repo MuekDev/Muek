@@ -8,6 +8,7 @@ use cpal::Stream;
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 use tonic::Response;
 
+use crate::audio::audio_proto::NewAudioClipRequest;
 use crate::audio::audio_proto::audio_proxy_proto_server::AudioProxyProto;
 use crate::audio::audio_proto::{Ack, Empty, PlayRequest, Track};
 use crate::audio::audio_proto::{DecodeResponse, PlayheadPos};
@@ -83,9 +84,11 @@ impl AudioPlayer {
     pub fn play(&self) {
         let mut samples: Vec<f32> = vec![         /*啥也没有*/           ];
         let lock = self.tracks.lock().unwrap();
+        println!("tracks len: {}", lock.len());
         for track in lock.iter() {
             let clips = &track.clips;
             for clip in clips {
+                println!("clip id: {}", &clip.id);
                 let binding = CLIP_CACHES.read().unwrap();
                 let e = &Vec::<f32>::new();
                 let sss = binding.get(&clip.id).unwrap_or(e);
@@ -201,49 +204,81 @@ impl AudioProxyProto for AudioProxy {
         Ok(Response::new(PlayheadPos { time }))
     }
 
-    async fn update_track(
-        &self,
-        request: tonic::Request<Track>,
-    ) -> std::result::Result<tonic::Response<Ack>, tonic::Status> {
-        let engine: Arc<AudioPlayer> = get_audio_engine();
-        let track = request.get_ref();
-        let id = &request.get_ref().id;
-        let clips = &request.get_ref().clips;
-        let mut result: Vec<f32> = vec![];
+    // async fn update_track(
+    //     &self,
+    //     request: tonic::Request<Track>,
+    // ) -> std::result::Result<tonic::Response<Ack>, tonic::Status> {
+    //     let engine: Arc<AudioPlayer> = get_audio_engine();
+    //     let track = request.get_ref();
+    //     // let id = &request.get_ref().id;
+    //     let clips = &request.get_ref().clips;
+    //     let mut result: Vec<f32> = vec![];
 
-        for clip in clips {
+    //     for clip in clips {
+    //         let path = &clip.path;
+    //         let (mut s, _c, sr) = decode::auto_decode(path).unwrap();
+    //         let id = clip.id;
+
+    //         // TODO: 它不应在此
+    //         engine.sample_rate.lock().unwrap().clone_from(&sr);
+
+    //         result.append(&mut s);
+    //     }
+
+    //     CLIP_CACHES.write().unwrap().insert(id.to_string(), result);
+
+    //     let mut tracks = engine.tracks.lock().unwrap();
+
+    //     for t in tracks.iter_mut() {
+    //         if t.id == *id {
+    //             t.clips = track.clips.clone();
+    //             t.color = track.color.clone();
+    //             return Ok(Response::new(Ack {}));
+    //         }
+    //     }
+
+    //     tracks.push(track.clone());
+
+    //     Ok(Response::new(Ack {}))
+    // }
+
+    async fn handle_new_audio_clip(
+        &self,
+        request: tonic::Request<NewAudioClipRequest>,
+    ) -> Result<tonic::Response<Ack>, tonic::Status> {
+        let track = &request.get_ref().track;
+
+        if let Some(clip) = &request.get_ref().clip {
+            let id = &clip.id;
             let path = &clip.path;
             let (mut s, _c, sr) = decode::auto_decode(path).unwrap();
+            CLIP_CACHES.write().unwrap().insert(id.to_string(), s);
 
-            // TODO: 它不应在此
-            engine.sample_rate.lock().unwrap().clone_from(&sr);
+            let engine = get_audio_engine();
 
-            result.append(&mut s);
-        }
+            if let Some(track) = track {
+                let mut tracks = engine.tracks.lock().unwrap();
 
-        CLIP_CACHES.write().unwrap().insert(id.to_string(), result);
+                for t in tracks.iter_mut() {
+                    if t.id == *track.id {
+                        t.clips.push(clip.clone());
+                        return Ok(Response::new(Ack {}));
+                    }
+                }
 
-        let mut tracks = engine.tracks.lock().unwrap();
-
-        for t in tracks.iter_mut() {
-            if t.id == *id {
-                t.clips = track.clips.clone();
-                t.color = track.color.clone();
-                return Ok(Response::new(Ack {}));
+                tracks.push(track.clone());
             }
         }
-
-        tracks.push(track.clone());
 
         Ok(Response::new(Ack {}))
     }
 }
 
-fn render(req: PlayRequest) -> DecodeResponse {
-    let track = req.tracks.get(0).unwrap();
-    let clip = track.clips.get(0).unwrap();
-    let path = &clip.path;
-    println!("[render](A): {}", path);
+fn render(_req: PlayRequest) -> DecodeResponse {
+    // let track = req.tracks.get(0).unwrap();
+    // let clip = track.clips.get(0).unwrap();
+    // let path = &clip.path;
+    // println!("[render](A): {}", path);
 
     let engine = get_audio_engine().clone();
     engine.clear();

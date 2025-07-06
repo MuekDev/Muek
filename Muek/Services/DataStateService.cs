@@ -14,7 +14,7 @@ public static class DataStateService
     // ];
     //
     public static List<TrackViewModel> Tracks { get; set; } = [
-        new TrackViewModel(new Track { Color = Colors.YellowGreen.ToString() })
+        new TrackViewModel(new Track { Color = Colors.YellowGreen.ToString(),Id = "114514" })
     ];
 
     public static float Bpm { get; set; } = 140f;

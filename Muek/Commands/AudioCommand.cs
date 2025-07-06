@@ -79,21 +79,38 @@ public class StopCommand : IRpcCommand
     }
 }
 
-public class UpdateTrackCommand : IRpcCommand
+// public class UpdateTrackCommand : IRpcCommand
+// {
+//     public Task ExecuteX(Track track)
+//     {
+//         Console.WriteLine("[UpdateTrackCommand] Execute");
+//         using var channel = GrpcChannel.ForAddress(RpcService.Host);
+//         var client = new AudioProxyProto.AudioProxyProtoClient(channel);
+//         var reply = client.UpdateTrack(track);
+//         Console.WriteLine($"RESPONSE: {reply}");
+//         DataStateService.IsPlaying = false;
+//         return Task.CompletedTask;
+//     }
+//
+//     public Task Execute()
+//     {
+//         throw new NotImplementedException();
+//     }
+// }
+
+public static class HandleNewClipCommand
 {
-    public Task ExecuteX(Track track)
+    public static void Execute(Track track, Clip clip)
     {
-        Console.WriteLine("[UpdateTrackCommand] Execute");
+        Console.WriteLine("[HandleNewClip] Execute");
         using var channel = GrpcChannel.ForAddress(RpcService.Host);
         var client = new AudioProxyProto.AudioProxyProtoClient(channel);
-        var reply = client.UpdateTrack(track);
+        var reply = client.HandleNewAudioClip(new NewAudioClipRequest()
+        {
+            Clip = clip,
+            Track = track
+        });
         Console.WriteLine($"RESPONSE: {reply}");
         DataStateService.IsPlaying = false;
-        return Task.CompletedTask;
-    }
-
-    public Task Execute()
-    {
-        throw new NotImplementedException();
     }
 }
