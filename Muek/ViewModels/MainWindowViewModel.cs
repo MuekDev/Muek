@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.Input;
@@ -39,6 +41,23 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         Tracks.Add(new PlaylistTrack(Tracks.Count));
     }
+
+    public void selectTrack(long trackId)
+    {
+        //Console.WriteLine(trackId);
+        foreach (var track in Tracks)
+        {
+            if (track.trackId == trackId)
+            {
+                track.selected = true;
+            }
+            else
+            {
+                track.selected = false;
+            }
+        }
+        
+    }
 }
 
 public class PlaylistTrack
@@ -46,6 +65,7 @@ public class PlaylistTrack
     public long trackId {get; set;}
     public string trackName {get; set;}
     public IBrush trackColor {get; set;}
+    public bool selected {get; set;} = false;
 
     public PlaylistTrack(long trackId)
     {
@@ -67,4 +87,5 @@ public class PlaylistTrack
         this.trackName = trackName;
         this.trackColor = trackColor;
     }
+
 }

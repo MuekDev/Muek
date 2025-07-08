@@ -1,9 +1,11 @@
+using System;
 using System.Collections.ObjectModel;
 using System.Reactive.Linq;
 using System.Runtime.InteropServices.JavaScript;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Threading;
 using Muek.Services;
 using Muek.ViewModels;
 
@@ -39,10 +41,14 @@ public partial class MainWindow : Window
 
     public void SelectTrack(object sender, RoutedEventArgs args)
     {
-        
+        var button = sender as Button;
+        MainWindowViewModel mvm = DataContext as MainWindowViewModel;
+        mvm.selectTrack((long)button.Tag);
+        InvalidateVisual();
     }
     public void RemoveTrack(object sender, RoutedEventArgs args)
     {
         
     }
+    
 }
