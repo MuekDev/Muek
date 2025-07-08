@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using Audio;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -16,15 +17,12 @@ namespace Muek.ViewModels;
 
 public partial class MainWindowViewModel : ViewModelBase
 {
-    public ObservableCollection<PlaylistTrack> Tracks { get; set; } = new ObservableCollection<PlaylistTrack>();
+    public ObservableCollection<TrackViewModel> Tracks => DataStateService.Tracks;
     [ObservableProperty] private int _count = 0;
 
     public MainWindowViewModel()
     {
-        Tracks = new ObservableCollection<PlaylistTrack>
-        {
-            new PlaylistTrack(0, "Master", Brush.Parse("#51cc8c"))
-        };
+        // Tracks = [new TrackViewModel("Master", Brush.Parse("#51cc8c"))];
     }
 
     [RelayCommand]
@@ -50,10 +48,10 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public void addTrack()
     {
-        Tracks.Add(new PlaylistTrack(Tracks.Count));
+        DataStateService.AddTrack();
     }
 
-    public void selectTrack(long trackId)
+    public void selectTrack(string trackId)
     {
         //Console.WriteLine(trackId);
         foreach (var track in Tracks)
@@ -66,61 +64,6 @@ public partial class MainWindowViewModel : ViewModelBase
             // {
             //     track.Selected = false;
             // }
-        }
-    }
-}
-
-public partial class PlaylistTrack : ViewModelBase
-{
-    [ObservableProperty] private long _trackId;
-    [ObservableProperty] private string _trackName;
-    [ObservableProperty] private IBrush _trackColor;
-
-    [ObservableProperty] private bool _selected = true;
-    [ObservableProperty] private bool _byPassed = false;
-    [ObservableProperty] private IBrush _byPassBtnColor = Brush.Parse("#D0FFE5");
-
-    partial void OnByPassedChanged(bool value)
-    {
-        if (value)
-        {
-            ByPassBtnColor = Brush.Parse("#313131");
-        }
-        else
-        {
-            ByPassBtnColor = Brush.Parse("#D0FFE5");
-        }
-    }
-
-    public PlaylistTrack(long trackId, string? trackName = null, IBrush? trackColor = null)
-    {
-        TrackId = trackId;
-        TrackName = trackName ?? "New Track" + trackId;
-        TrackColor = trackColor ?? Brush.Parse("#666666");
-    }
-
-    [RelayCommand]
-    public void OnByPassButtonClick()
-    {
-        ByPassed = !ByPassed;
-    }
-
-    [RelayCommand]
-    public void ShowRenameWindow()
-    {
-        if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
-        {
-            var mainWindow = desktop.MainWindow;
-            if (mainWindow != null)
-            {
-                var window = new RenameWindow();
-                window.ShowDialog(mainWindow);
-                window.NameBox.Text = TrackName;
-                window.Submit += (sender, s) =>
-                {
-                    TrackName = s;
-                };
-            }
         }
     }
 }

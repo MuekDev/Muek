@@ -43,7 +43,7 @@ public partial class MainWindow : Window
     {
         var button = sender as Button;
         MainWindowViewModel mvm = DataContext as MainWindowViewModel;
-        mvm.selectTrack((long)button.Tag);
+        mvm.selectTrack((string)button.Tag);
         InvalidateVisual();
     }
     public void RemoveTrack(object sender, RoutedEventArgs args)

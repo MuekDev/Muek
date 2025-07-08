@@ -1,12 +1,41 @@
 using System.Collections.Generic;
 using Audio;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Media;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using Muek.Views;
 
 namespace Muek.ViewModels;
 
-public class TrackViewModel
+public partial class TrackViewModel : ViewModelBase
 {
     public Track Proto { get; }
     public string Color => Proto.Color;
+    public string Id => Proto.Id;
+    public string Index => Proto.Index.ToString();
+
+    [ObservableProperty] private string _name;
+    [ObservableProperty] private bool _selected = true;
+    [ObservableProperty] private bool _byPassed = false;
+    [ObservableProperty] private IBrush _byPassBtnColor = Brush.Parse("#D0FFE5");
+
+    partial void OnNameChanged(string value)
+    {
+        Proto.Name = value;
+    }
+    
+    partial void OnByPassedChanged(bool value)
+    {
+        if (value)
+        {
+            ByPassBtnColor = Brush.Parse("#313131");
+        }
+        else
+        {
+            ByPassBtnColor = Brush.Parse("#D0FFE5");
+        }
+    }
 
     public List<ClipViewModel> Clips { get; } = new();
 
@@ -19,6 +48,9 @@ public class TrackViewModel
         {
             Clips.Add(new ClipViewModel(clip));
         }
+        
+        // 同步proto属性
+        Name = proto.Name;
     }
 
     /// <summary>
@@ -32,5 +64,28 @@ public class TrackViewModel
         vm.GenerateWaveformPreviewPure();
 
         return vm;
+    }
+
+
+    [RelayCommand]
+    public void OnByPassButtonClick()
+    {
+        ByPassed = !ByPassed;
+    }
+
+    [RelayCommand]
+    public void ShowRenameWindow()
+    {
+        if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        {
+            var mainWindow = desktop.MainWindow;
+            if (mainWindow != null)
+            {
+                var window = new RenameWindow();
+                window.ShowDialog(mainWindow);
+                window.NameBox.Text = Name;
+                window.Submit += (sender, s) => { Name = s; };
+            }
+        }
     }
 }

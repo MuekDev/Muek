@@ -151,7 +151,7 @@ public partial class TrackView : UserControl
                     StartBeat = beat,
                     Duration = durationBeats,
                     Path = file,
-                    Id = file,
+                    Id = Guid.NewGuid().ToString(),
                 };
 
                 // 确保轨道存在
