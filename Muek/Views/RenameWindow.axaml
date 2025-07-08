@@ -1,0 +1,19 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Width="400"
+        Height="140"
+        x:Class="Muek.Views.RenameWindow"
+        WindowStartupLocation="CenterOwner"
+        Title="重命名轨道">
+    <StackPanel Margin="12" Spacing="10">
+        <Label>重命名轨道</Label>
+        <TextBox x:Name="NameBox"></TextBox>
+        <StackPanel Orientation="Horizontal" Margin="0,8,0,0" Spacing="10" HorizontalAlignment="Right">
+            <Button x:Name="SubmitBtn" VerticalAlignment="Bottom" Click="SubmitBtn_OnClick">终了</Button>
+            <Button x:Name="CancelBtn" VerticalAlignment="Bottom" Click="CancelBtn_OnClick">取消</Button>
+        </StackPanel>
+    </StackPanel>
+</Window>

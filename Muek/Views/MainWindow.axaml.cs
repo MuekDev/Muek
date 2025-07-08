@@ -1,5 +1,13 @@
+using System;
+using System.Collections.ObjectModel;
+using System.Reactive.Linq;
+using System.Runtime.InteropServices.JavaScript;
 using Avalonia.Controls;
+using Avalonia.Input;
+using Avalonia.Interactivity;
+using Avalonia.Threading;
 using Muek.Services;
+using Muek.ViewModels;
 
 namespace Muek.Views;
 
@@ -23,5 +31,23 @@ public partial class MainWindow : Window
             TrackViewControl.ScaleFactor = UiStateService.GlobalTimelineScale;
             TrackViewControl.OffsetX = UiStateService.GlobalTimelineOffsetX;
         }
+    }
+
+    public void AddNewTrack(object sender, RoutedEventArgs args)
+    {
+        MainWindowViewModel mvm = DataContext as MainWindowViewModel;
+        mvm.addTrack();
+    }
+
+    public void SelectTrack(object sender, RoutedEventArgs args)
+    {
+        var button = sender as Button;
+        MainWindowViewModel mvm = DataContext as MainWindowViewModel;
+        mvm.selectTrack((long)button.Tag);
+        InvalidateVisual();
+    }
+    public void RemoveTrack(object sender, RoutedEventArgs args)
+    {
+        
     }
 }
