@@ -30,7 +30,7 @@
                 <Button Background="Transparent" Command="{Binding OnStopButtonClick}">
                     <i:Icon Value="fa-stop" Foreground="White" />
                 </Button>
-                <Button Background="Transparent">
+                <Button Background="Transparent" Command="{Binding OnRecordButtonClick}">
                     <i:Icon Value="fa-circle" FontSize="12" Foreground="White" />
                 </Button>
                 <Panel Width="40" />
@@ -67,114 +67,127 @@
                                         HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
                 </Border>
             </Grid>
-            
-            
+
+
             <Grid Grid.Row="2" ColumnDefinitions="200,*">
                 <!-- 左侧轨道头 -->
                 <Grid Grid.Column="0" VerticalAlignment="Top">
                     <StackPanel>
-                        
-                        
+
+
                         <!-- 轨道 -->
                         <!-- 轨道是可以拖动的，没写，类似IDE里面拖动直接切换位置 -->
-                    <ItemsControl ItemsSource="{Binding Tracks}"
-                                  Background="Transparent" CornerRadius="12,0,0,12" Padding="0"
-                                  >
-                        <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                        <Button Background="{Binding trackColor}" Height="100" Width="200" Margin="0"
-                                CornerRadius="12,0,0,12" Padding="10"
-                                Click="SelectTrack" Tag="{Binding trackId}"
-                                >
-                            <!-- 按下去选中 -->
-                            <Button.Styles>
-                                <Style Selector="Button:pointerover/template/ContentPresenter">
-                                    <Setter Property="BorderBrush" Value="{Binding trackColor}"></Setter>
-                                </Style>
-                            </Button.Styles>
-                            
-                            
-                            <!-- 右键菜单 -->
-                            <Button.ContextFlyout>
-                                <MenuFlyout ShowMode="Transient">
-                                    <MenuItem Header="Rename">
-                                        <TextBox Text="{Binding #TrackName.Text}" Width="100"></TextBox>
-                                    </MenuItem>
-                                    <MenuItem Header="Change Color(并不会成功)">
-                                    </MenuItem>
-                                </MenuFlyout>
-                            </Button.ContextFlyout>
-                            <!-- TODO -->
-                            
-                            
-                            <StackPanel>
-                                    <StackPanel>
-                                        <StackPanel Orientation="Horizontal">
-                                        <!-- 左键选中 写完的话选中会亮，右边Mixer显示这个轨道上挂的所有效果器 -->
-                                        <!-- 我操为什么Selected不会生效 -->
-                                        <!-- 我操为什么Selected不会生效 -->
-                                        <!-- 我操为什么Selected不会生效 -->
-                                        <!-- 我操为什么Selected不会生效 -->
-                                        <!-- 这Avalonia的MVVM是不是有点大病啊我操 -->
-                                        <Grid>
-                                        <Border BoxShadow="0 0 50 1 #00ff00" CornerRadius="100" Height="15" Width="15" Padding="0" Opacity="{Binding selected}">
-                                        </Border><Button CornerRadius="100" Height="15" Width="15" IsEnabled="{Binding !selected}" Background="#313131">
-                                                <Button.Styles>
-                                                    <Style Selector="Button:pointerover/template/ContentPresenter">
-                                                        <Setter Property="Background" Value="#232323"></Setter>
-                                                    </Style>
-                                                </Button.Styles>
-                                                <Button.ContextFlyout>
-                                                    <!-- 对这个我也没写 -->
-                                                    <MenuFlyout>
-                                                        <Label>这个地方是通道连接逻辑（左键一键连满，右键设置L2L、L2R之类的更详细的声道设置，用正负来表示相位</Label>
-                                                    </MenuFlyout>
-                                                </Button.ContextFlyout>
-                                            </Button>
-                                        </Grid>
-                                        <!-- 右侧Mixer可以写一个动态可视化（类似压缩器里面的东西）代替电平，但是不代表会删除电平表 -->
-                                        
-                                        <!-- 轨道名称 -->
-                                        <TextBlock FontWeight="Bold" FontSize="18" Text="{Binding trackName}" 
-                                                   Background="Transparent" Margin="10,0,0,0" Name="TrackName">
-                                        </TextBlock>
-                                        
+                        <ItemsControl ItemsSource="{Binding Tracks}"
+                                      Background="Transparent" CornerRadius="12,0,0,12" Padding="0">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Background="{Binding TrackColor}" Height="100" Width="200" Margin="0"
+                                            CornerRadius="12,0,0,12" Padding="10"
+                                            Click="SelectTrack" Tag="{Binding TrackId}">
+                                        <!-- 按下去选中 -->
+                                        <Button.Styles>
+                                            <Style Selector="Button:pointerover/template/ContentPresenter">
+                                                <Setter Property="BorderBrush" Value="{Binding TrackColor}"></Setter>
+                                            </Style>
+                                        </Button.Styles>
+
+
+                                        <!-- 右键菜单 -->
+                                        <Button.ContextFlyout>
+                                            <MenuFlyout ShowMode="Transient">
+                                                <MenuItem Header="Rename" Command="{Binding ShowRenameWindow}">
+                                                    <!-- <TextBox Text="{Binding #TrackName.Text}" Width="100"></TextBox> -->
+                                                </MenuItem>
+                                                <MenuItem Header="Change Color(并不会成功)">
+                                                </MenuItem>
+                                            </MenuFlyout>
+                                        </Button.ContextFlyout>
+                                        <!-- TODO -->
+
+
+                                        <StackPanel>
+                                            <StackPanel>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <!-- 左键选中 写完的话选中会亮，右边Mixer显示这个轨道上挂的所有效果器 -->
+                                                    <!-- 我操为什么Selected不会生效 -->
+                                                    <!-- 我操为什么Selected不会生效 -->
+                                                    <!-- 我操为什么Selected不会生效 -->
+                                                    <!-- 我操为什么Selected不会生效 -->
+                                                    <!-- 这Avalonia的MVVM是不是有点大病啊我操 -->
+                                                    <Grid>
+                                                        <Border BoxShadow="0 0 50 1 #00ff00" CornerRadius="100"
+                                                                Height="15" Width="15" Padding="0"
+                                                                Opacity="{Binding !ByPassed}">
+                                                        </Border>
+                                                        <Button CornerRadius="100" Height="15" Width="15"
+                                                                Background="{Binding ByPassBtnColor}"
+                                                                Command="{Binding OnByPassButtonClick}">
+                                                            <Button.Styles>
+                                                                <Style
+                                                                    Selector="Button:pointerover/template/ContentPresenter">
+                                                                    <Setter Property="Background" Value="#fff"></Setter>
+                                                                </Style>
+                                                            </Button.Styles>
+                                                            <Button.ContextFlyout>
+                                                                <!-- 对这个我也没写 -->
+                                                                <MenuFlyout>
+                                                                    <Label>这个地方是通道连接逻辑（左键一键连满，右键设置L2L、L2R之类的更详细的声道设置，用正负来表示相位</Label>
+                                                                </MenuFlyout>
+                                                            </Button.ContextFlyout>
+                                                        </Button>
+                                                    </Grid>
+                                                    <!-- 右侧Mixer可以写一个动态可视化（类似压缩器里面的东西）代替电平，但是不代表会删除电平表 -->
+
+                                                    <!-- 轨道名称 -->
+                                                    <TextBlock FontWeight="Bold" FontSize="18"
+                                                               Text="{Binding TrackName}"
+                                                               Background="Transparent" Margin="10,0,0,0"
+                                                               Name="TrackName">
+                                                    </TextBlock>
+
+                                                </StackPanel>
+                                                <!-- FX -->
+                                                <Button Height="20" Width="40" FontSize="10" Background="Transparent"
+                                                        CornerRadius="10" Margin="0,0,0,0" Padding="0">
+                                                    <TextBlock Text="FX" HorizontalAlignment="Center"
+                                                               VerticalAlignment="Center">
+                                                    </TextBlock>
+                                                </Button>
+                                            </StackPanel>
+                                            <!-- ID -->
+                                            <Grid Margin="10,0,0,0">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock FontSize="10" Foreground="{Binding TrackColor}">(Track</TextBlock>
+                                                    <TextBlock Text="{Binding TrackId}" FontSize="10"
+                                                               Foreground="{Binding TrackColor}">
+                                                    </TextBlock>
+                                                    <TextBlock FontSize="10" Foreground="{Binding TrackColor}">)</TextBlock>
+                                                </StackPanel>
+                                            </Grid>
                                         </StackPanel>
-                                        <!-- FX -->
-                                        <Button Height="20" Width="40" FontSize="10" Background="Transparent" CornerRadius="10" Margin="0,0,0,0" Padding="0">
-                                            <TextBlock Text="FX" HorizontalAlignment="Center" VerticalAlignment="Center"></TextBlock>
-                                        </Button>
-                                </StackPanel>
-                                <!-- ID -->
-                                <Grid Margin="10,0,0,0">
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBlock FontSize="10" Foreground="{Binding trackColor}">(Track</TextBlock>
-                                        <TextBlock Text="{Binding trackId}" FontSize="10" Foreground="{Binding trackColor}"></TextBlock>
-                                        <TextBlock FontSize="10" Foreground="{Binding trackColor}">)</TextBlock>
-                                    </StackPanel>
-                                </Grid>
-                            </StackPanel>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <!-- 添加轨道 -->
+                        <Border Background="#b2b2b2" Height="100" Margin="0,0,0,0" CornerRadius="12,0,0,12" Padding="0">
+                            <Button VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Foreground="#232323"
+                                    FontWeight="Bold" FontSize="18" Background="Transparent" Click="AddNewTrack"
+                                    Padding="10">
+                                <i:Icon Value="fa-plus"></i:Icon>
                             </Button>
-                        </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                        
-                    <!-- 添加轨道 -->
-                    <Border Background = "#b2b2b2" Height="100" Margin="0,0,0,0" CornerRadius="12,0,0,12" Padding="0">
-                        <Button VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Foreground="#232323" FontWeight="Bold" FontSize="18" Background="Transparent" Click="AddNewTrack" Padding="10">
-                            <i:Icon Value="fa-plus"></i:Icon>
-                        </Button>
-                    </Border>
-                        
+                        </Border>
+
                     </StackPanel>
                 </Grid>
-                
+
                 <Grid Grid.Column="1" Background="#313131">
                     <views:TrackView x:Name="TrackViewControl" DragDrop.AllowDrop="True"
                                      HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
                 </Grid>
             </Grid>
-            
+
         </Grid>
         <Grid Grid.Column="1" Width="300" />
     </Grid>
