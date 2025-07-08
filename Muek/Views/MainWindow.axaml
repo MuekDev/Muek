@@ -10,16 +10,16 @@
         x:DataType="vm:MainWindowViewModel"
         Icon="/Assets/avalonia-logo.ico"
         Background="#232323"
-        Title="Muek">
+        
+        Title="MUEK">
 
     <Design.DataContext>
-        <!-- This only sets the DataContext for the previewer in an IDE,
-             to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
         <vm:MainWindowViewModel />
     </Design.DataContext>
 
     <Grid ColumnDefinitions="*,Auto">
-        <Grid Background="#232323" RowDefinitions="40,40,*,24" Margin="8">
+        <Grid Background="#232323" RowDefinitions="40,40,*,24" Margin="0">
+            <!-- 导航栏 -->
             <StackPanel Orientation="Horizontal">
                 <Button Background="Transparent">
                     <i:Icon Value="fa-bars" Foreground="White" />
@@ -50,6 +50,7 @@
                 </Border>
             </StackPanel>
 
+            <!-- 工作区 -->
             <Grid Grid.Row="1" ColumnDefinitions="200,*">
                 <!-- 左侧轨道头 -->
                 <StackPanel Grid.Column="0" Background="Transparent" HorizontalAlignment="Right"
@@ -67,20 +68,88 @@
                                         HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
                 </Border>
             </Grid>
+            
+            
             <Grid Grid.Row="2" ColumnDefinitions="200,*">
                 <!-- 左侧轨道头 -->
                 <Grid Grid.Column="0" VerticalAlignment="Top">
-                    <Border Background="#D0BCFF" Height="100" Margin="0,0,0,0" CornerRadius="12,0,0,12" Padding="8">
-                        <StackPanel>
-                            <Label Foreground="#232323" FontWeight="Bold" FontSize="18">Kick</Label>
-                        </StackPanel>
+                    <StackPanel>
+                        
+                        
+                        <!-- 轨道 -->
+                        <!-- 轨道是可以拖动的，没写，类似IDE里面拖动直接切换位置 -->
+                    <ItemsControl ItemsSource="{Binding Tracks}"
+                                  Background="Transparent" CornerRadius="12,0,0,12" Padding="0"
+                                  >
+                        <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                        <Button Background="{Binding trackColor}" Height="100" Width="200" Margin="0"
+                                CornerRadius="12,0,0,12" Padding="10"
+                                >
+                            <Button.Styles>
+                                <Style Selector="Button:pointerover/template/ContentPresenter">
+                                    <Setter Property="BorderBrush" Value="{Binding trackColor}"></Setter>
+                                </Style>
+                            </Button.Styles>
+                            
+                            
+                            <!-- 右键菜单 -->
+                            <Button.Flyout>
+                                <MenuFlyout>
+                                    <MenuItem Header="123"></MenuItem>
+                                </MenuFlyout>
+                            </Button.Flyout>
+                            <!-- 没写 -->
+                            
+                            
+                            <StackPanel>
+                                    <StackPanel>
+                                        <StackPanel Orientation="Horizontal">
+                                        <!-- 左键选中 写完的话选中会亮，右边Mixer显示这个轨道上挂的所有效果器 -->
+                                        <Ellipse Fill="#313131" Width="10" Height="10" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0,0,5,0"></Ellipse>
+                                        <!-- 右侧Mixer可以写一个动态可视化（类似压缩器里面的东西）代替电平，但是不代表会删除电平表 -->
+                                        
+                                        <!-- 轨道名称 -->
+                                        <TextBlock FontWeight="Bold" FontSize="18" Text="{Binding trackName}" Background="Transparent">
+                                        </TextBlock>
+                                        
+                                        </StackPanel>
+                                        <!-- FX -->
+                                        <Button Height="20" Width="40" FontSize="10" Background="Transparent" CornerRadius="10" Margin="0,0,0,0" Padding="0">
+                                            <TextBlock Text="FX" HorizontalAlignment="Center" VerticalAlignment="Center"></TextBlock>
+                                        </Button>
+                                </StackPanel>
+                                <!-- ID -->
+                                <Grid Margin="10,0,0,0">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock FontSize="10" Foreground="{Binding trackColor}">(Track</TextBlock>
+                                        <TextBlock Text="{Binding trackId}" FontSize="10" Foreground="{Binding trackColor}"></TextBlock>
+                                        <TextBlock FontSize="10" Foreground="{Binding trackColor}">)</TextBlock>
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+                            </Button>
+                        </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    
+                    
+                    <!-- 添加轨道 -->
+                    <Border Background = "#b2b2b2" Height="100" Margin="0,0,0,0" CornerRadius="12,0,0,12" Padding="0">
+                        <Button VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Foreground="#232323" FontWeight="Bold" FontSize="18" Background="Transparent" Click="AddNewTrack" Padding="10">
+                            <i:Icon Value="fa-plus"></i:Icon>
+                        </Button>
                     </Border>
+                    
+                    </StackPanel>
                 </Grid>
+                
                 <Grid Grid.Column="1" Background="#313131">
                     <views:TrackView x:Name="TrackViewControl" DragDrop.AllowDrop="True"
                                      HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
                 </Grid>
             </Grid>
+            
         </Grid>
         <Grid Grid.Column="1" Width="300" />
     </Grid>
