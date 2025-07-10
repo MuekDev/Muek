@@ -21,6 +21,7 @@ pub mod audio_proto {
 
 use once_cell::sync::Lazy;
 use std::sync::{Arc, Mutex, RwLock};
+use rayon::prelude::*;
 
 static AUDIO_ENGINE: Lazy<Arc<AudioPlayer>> = Lazy::new(|| Arc::new(AudioPlayer::new()));
 static CLIP_CACHES: Lazy<Arc<RwLock<HashMap<String, Vec<f32>>>>> =
@@ -117,17 +118,16 @@ impl AudioPlayer {
             samples.push(current_track);
         }
 
-        // TODO: move to library. (rayon)
         // mix tracks
-        let mut mixed: Vec<f32> = vec![];
-        for i in 0..max_length {
-            let mut point: f32 = 0.0;
-            for track in samples.clone() {
-                point += track.get(i).unwrap_or(&0.0_f32);
-                point = point.clamp(-1.0, 1.0);
-            }
-            mixed.push(point);
-        }
+        let mixed = (0..max_length).into_par_iter()
+            .map(|i| {
+                let mut point: f32 = 0.0;
+                for track in samples.clone() {
+                    point += track.get(i).unwrap_or(&0.0_f32);
+                }
+                point.clamp(-1.0, 1.0)
+            })
+            .collect();
 
         *self.samples.lock().unwrap() = Arc::new(mixed);
 
