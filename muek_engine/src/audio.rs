@@ -82,8 +82,17 @@ impl AudioPlayer {
     }
 
     pub fn play(&self) {
-        let mut samples: Vec<f32> = vec![         /*啥也没有*/           ];
-        let lock = self.tracks.lock().unwrap();
+        // Create empty buffer
+        let mut samples: Vec<f32> = vec![];
+
+        // Try to get mutex lock for tracks
+        let l = self.tracks.lock();
+        if l.is_err() {
+            todo!("failed to get mutex lock")
+        }
+        let lock = l.unwrap();
+
+        // Join into samples
         println!("tracks len: {}", lock.len());
         for track in lock.iter() {
             let clips = &track.clips;
@@ -100,9 +109,11 @@ impl AudioPlayer {
 
         println!("[play] 缓存带入终了。");
 
+        // Reset play position
         self.position.store(0, Ordering::Relaxed);
         *self.start_time.lock().unwrap() = Some(Instant::now());
 
+        // Start play audio
         self.start_output();
     }
 
