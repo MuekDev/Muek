@@ -20,8 +20,8 @@ pub mod audio_proto {
 }
 
 use once_cell::sync::Lazy;
-use std::sync::{Arc, Mutex, RwLock};
 use rayon::prelude::*;
+use std::sync::{Arc, Mutex, RwLock};
 
 static AUDIO_ENGINE: Lazy<Arc<AudioPlayer>> = Lazy::new(|| Arc::new(AudioPlayer::new()));
 static CLIP_CACHES: Lazy<Arc<RwLock<HashMap<String, Vec<f32>>>>> =
@@ -92,7 +92,7 @@ impl AudioPlayer {
         let lock = l.unwrap();
 
         // Join into samples
-        println!("tracks len: {}", lock.len());
+        println!("[play] tracks len: {}", lock.len());
 
         // TODO: 实际上这部分的逻辑应当独立，并添加进独立的预混合计算和缓存功能。在采样被导入时预计算混合。
         // Create empty buffer
@@ -107,7 +107,7 @@ impl AudioPlayer {
             let clips = &track.clips;
             // Join each clips into current track
             for clip in clips {
-                println!("clip id: {}", &clip.id);
+                println!("[play] clip id: {}", &clip.id);
                 let binding = CLIP_CACHES.read().unwrap();
                 let e = &Vec::<f32>::new();
                 let mut sss = binding.get(&clip.id).unwrap_or(e);
@@ -116,16 +116,21 @@ impl AudioPlayer {
             // Len and compare length
             max_length = max(max_length, current_track.len());
             samples.push(current_track);
+            println!("[play] processed track: {:?}", track.id);
         }
 
+        println!("[play] tracks loaded ok");
+
         // mix tracks
-        let mixed = (0..max_length).into_par_iter()
+        let mixed: Vec<f32> = (0..max_length)
+            .into_par_iter()
             .map(|i| {
-                let mut point: f32 = 0.0;
-                for track in samples.clone() {
-                    point += track.get(i).unwrap_or(&0.0_f32);
+                let mut sum = 0.0;
+                for track in &samples {
+                    sum += *track.get(i).unwrap_or(&0.0);
                 }
-                point.clamp(-1.0, 1.0)
+                // sum.clamp(-1.0, 1.0)     // TODO: clamp硬削波了，我们需要找到一个类似其他DAW的钳制方法
+                sum
             })
             .collect();
 
