@@ -1,3 +1,4 @@
+use std::cmp::max;
 use std::collections::HashMap;
 use std::result::Result;
 use std::sync::atomic::{AtomicUsize, Ordering};
@@ -82,9 +83,6 @@ impl AudioPlayer {
     }
 
     pub fn play(&self) {
-        // Create empty buffer
-        let mut samples: Vec<f32> = vec![];
-
         // Try to get mutex lock for tracks
         let l = self.tracks.lock();
         if l.is_err() {
@@ -94,18 +92,44 @@ impl AudioPlayer {
 
         // Join into samples
         println!("tracks len: {}", lock.len());
+
+        // TODO: 实际上这部分的逻辑应当独立，并添加进独立的预混合计算和缓存功能。在采样被导入时预计算混合。
+        // Create empty buffer
+        let mut samples: Vec<Vec<f32>> = vec![];
+        let mut max_length: usize = 0;
+
+        // Get tracks
         for track in lock.iter() {
+            // Create current track buffer
+            let mut current_track: Vec<f32> = vec![];
+
             let clips = &track.clips;
+            // Join each clips into current track
             for clip in clips {
                 println!("clip id: {}", &clip.id);
                 let binding = CLIP_CACHES.read().unwrap();
                 let e = &Vec::<f32>::new();
-                let sss = binding.get(&clip.id).unwrap_or(e);
-                samples.extend(sss.iter().cloned());
+                let mut sss = binding.get(&clip.id).unwrap_or(e);
+                current_track.append(&mut sss);
             }
+            // Len and compare length
+            max_length = max(max_length, current_track.len());
+            samples.push(current_track);
         }
 
-        *self.samples.lock().unwrap() = Arc::new(samples);
+        // TODO: move to library. (rayon)
+        // mix tracks
+        let mut mixed: Vec<f32> = vec![];
+        for i in 0..max_length {
+            let mut point: f32 = 0.0;
+            for track in samples.clone() {
+                point += track.get(i).unwrap_or(&0.0_f32);
+                point = point.clamp(-1.0, 1.0);
+            }
+            mixed.push(point);
+        }
+
+        *self.samples.lock().unwrap() = Arc::new(mixed);
 
         println!("[play] 缓存带入终了。");
 
