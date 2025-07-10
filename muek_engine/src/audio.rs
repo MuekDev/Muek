@@ -110,7 +110,7 @@ impl AudioPlayer {
                 let binding = CLIP_CACHES.read().unwrap();
                 let e = &Vec::<f32>::new();
                 let mut sss = binding.get(&clip.id).unwrap_or(e);
-                current_track.append(&mut sss);
+                current_track.extend(sss.iter().cloned());
             }
             // Len and compare length
             max_length = max(max_length, current_track.len());
