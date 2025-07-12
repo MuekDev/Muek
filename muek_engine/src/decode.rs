@@ -1,7 +1,6 @@
 use std::{fs::File, io::Read};
 
 use infer::audio::is_mp3;
-use symphonia::core::sample::u24;
 
 /// samples, channels, sample_rate
 pub fn symphonia_decode(path: &str) -> Option<(Vec<f32>, usize, u32)> {

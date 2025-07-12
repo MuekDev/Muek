@@ -38,6 +38,7 @@ pub struct AudioPlayer {
     pub position: Arc<AtomicUsize>,    // 当前样本索引
     pub sample_rate: Mutex<u32>,       // 采样率（用于时间计算）
     pub start_time: Mutex<Option<Instant>>,
+    pub bpm: Mutex<f64>,
 }
 
 impl AudioPlayer {
@@ -47,8 +48,9 @@ impl AudioPlayer {
             tracks: Mutex::new(vec![]),
             samples: Mutex::new(Arc::new(vec![])),
             position: Arc::new(AtomicUsize::new(0)),
-            sample_rate: Mutex::new(44100),
+            sample_rate: Mutex::new(48000),
             start_time: Mutex::new(None),
+            bpm: Mutex::new(120.0),
         }
     }
 
@@ -66,7 +68,7 @@ impl AudioPlayer {
     }
 
     #[deprecated]
-    pub fn load_and_play(&self, path: &str) -> (Vec<f32>, usize, u32) {
+    pub fn _load_and_play(&self, path: &str) -> (Vec<f32>, usize, u32) {
         let (samples, channels, sample_rate) = decode::auto_decode(path).unwrap();
 
         self.sample_rate.lock().unwrap().clone_from(&sample_rate);
@@ -91,29 +93,51 @@ impl AudioPlayer {
         }
         let lock = l.unwrap();
 
+        // Get bpm
+        let b = self.bpm.lock();
+        if b.is_err() {
+            todo!("failed to get mutex")
+        }
+        let bpm = *b.unwrap();
+
+        // Get sample rate
+        let sr = self.sample_rate.lock();
+        if sr.is_err() {
+            todo!("failed to get mutex")
+        }
+        let sample_rate = *sr.unwrap();
+
         // Join into samples
         println!("[play] tracks len: {}", lock.len());
 
         // TODO: 实际上这部分的逻辑应当独立，并添加进独立的预混合计算和缓存功能。在采样被导入时预计算混合。
-        // Create empty buffer
-        let mut samples: Vec<Vec<f32>> = vec![];
+        let mut samples: Vec<Vec<f32>> = vec![];    // empty buffer
         let mut max_length: usize = 0;
 
-        // Get tracks
         for track in lock.iter() {
-            // Create current track buffer
             let mut current_track: Vec<f32> = vec![];
 
-            let clips = &track.clips;
-            // Join each clips into current track
-            for clip in clips {
+            for clip in &track.clips {
                 println!("[play] clip id: {}", &clip.id);
+
                 let binding = CLIP_CACHES.read().unwrap();
-                let e = &Vec::<f32>::new();
-                let mut sss = binding.get(&clip.id).unwrap_or(e);
+                let empty = &Vec::<f32>::new();
+                let sss = binding.get(&clip.id).unwrap_or(empty);
+
+                let start_sample = (((clip.start_beat * 60.0) / bpm) * sample_rate as f64).round()
+                    as usize
+                    * 4     // TODO: 改为beats_per_bar变量，与前端同步，目前是4/4拍
+                    * 2;    // TODO: 双通道需要*2，因为左右会交错填充
+
+                // 判断，防止panic
+                if current_track.len() < start_sample {
+                    let pad_len = start_sample - current_track.len();
+                    current_track.extend(std::iter::repeat(0.0).take(pad_len));
+                }
+
                 current_track.extend(sss.iter().cloned());
             }
-            // Len and compare length
+
             max_length = max(max_length, current_track.len());
             samples.push(current_track);
             println!("[play] processed track: {:?}", track.id);
@@ -289,9 +313,10 @@ impl AudioProxyProto for AudioProxy {
         let track = &request.get_ref().track;
 
         if let Some(clip) = &request.get_ref().clip {
+            println!("{:#?}", clip);
             let id = &clip.id;
             let path = &clip.path;
-            let (mut s, _c, sr) = decode::auto_decode(path).unwrap();
+            let (s, _c, _sr) = decode::auto_decode(path).unwrap();
             CLIP_CACHES.write().unwrap().insert(id.to_string(), s);
 
             let engine = get_audio_engine();
