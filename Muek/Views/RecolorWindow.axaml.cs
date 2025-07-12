@@ -7,18 +7,16 @@ using Avalonia.Markup.Xaml;
 
 namespace Muek.Views;
 
-public partial class RenameWindow : Window
+public partial class RecolorWindow : Window
 {
     public event EventHandler<string>? Submit;
-    
-    public RenameWindow()
+    public RecolorWindow()
     {
         InitializeComponent();
     }
-
     private void SubmitBtn_OnClick(object? sender, RoutedEventArgs e)
     {
-        if (NameBox.Text != null) Submit?.Invoke(this, NameBox.Text);
+        
         Close();
     }
 
@@ -26,7 +24,6 @@ public partial class RenameWindow : Window
     {
         Close();
     }
-
     protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
         base.OnPointerPressed(e);
