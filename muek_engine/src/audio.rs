@@ -1,5 +1,6 @@
 use std::cmp::max;
 use std::collections::HashMap;
+use std::ops::Deref;
 use std::result::Result;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::{Duration, Instant};
@@ -22,6 +23,7 @@ pub mod audio_proto {
 use once_cell::sync::Lazy;
 use rayon::prelude::*;
 use std::sync::{Arc, Mutex, RwLock};
+use tokio::io::simplex;
 
 static AUDIO_ENGINE: Lazy<Arc<AudioPlayer>> = Lazy::new(|| Arc::new(AudioPlayer::new()));
 static CLIP_CACHES: Lazy<Arc<RwLock<HashMap<String, Vec<f32>>>>> =
@@ -38,6 +40,7 @@ pub struct AudioPlayer {
     pub position: Arc<AtomicUsize>,    // 当前样本索引
     pub sample_rate: Mutex<u32>,       // 采样率（用于时间计算）
     pub start_time: Mutex<Option<Instant>>,
+    pub bpm: Mutex<f64>,
 }
 
 impl AudioPlayer {
@@ -49,6 +52,7 @@ impl AudioPlayer {
             position: Arc::new(AtomicUsize::new(0)),
             sample_rate: Mutex::new(44100),
             start_time: Mutex::new(None),
+            bpm: Mutex::new(120.0),
         }
     }
 
@@ -91,6 +95,20 @@ impl AudioPlayer {
         }
         let lock = l.unwrap();
 
+        // Get bpm
+        let b = self.bpm.lock();
+        if b.is_err() {
+            todo!("failed to get mutex")
+        }
+        let bpm = *b.unwrap();
+
+        // Get sample rate
+        let sr = self.sample_rate.lock();
+        if sr.is_err() {
+            todo!("failed to get mutex")
+        }
+        let sample_rate = *sr.unwrap();
+
         // Join into samples
         println!("[play] tracks len: {}", lock.len());
 
@@ -111,6 +129,12 @@ impl AudioPlayer {
                 let binding = CLIP_CACHES.read().unwrap();
                 let e = &Vec::<f32>::new();
                 let mut sss = binding.get(&clip.id).unwrap_or(e);
+
+                let start_point = (((clip.start_beat * 60f64) / bpm) * sample_rate as f64).round() as usize;
+
+                let mut empty_fill = vec![0.0f32; start_point - current_track.len()];
+
+                current_track.append(&mut empty_fill);
                 current_track.extend(sss.iter().cloned());
             }
             // Len and compare length
