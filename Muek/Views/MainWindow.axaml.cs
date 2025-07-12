@@ -92,11 +92,7 @@ public partial class MainWindow : Window
             this.BeginMoveDrag(e);
         }
     }
-
-    public class ABC : Button
-    {
-        
-    }
+    
 }
 public class MuekTrack : Button
 {
