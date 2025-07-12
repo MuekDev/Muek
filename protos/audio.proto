@@ -16,6 +16,8 @@ message Track {
   repeated Clip clips = 1;
   string color = 2;
   string id = 3;
+  string name = 4;
+  uint32 index = 5;   // uint32的上限为4,294,967,295
 }
 
 // 播放请求

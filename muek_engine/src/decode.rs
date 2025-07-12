@@ -75,43 +75,52 @@ pub fn symphonia_decode(path: &str) -> Option<(Vec<f32>, usize, u32)> {
 
                 for frame_idx in 0..cow.frames() {
                     for ch in 0..channels {
-                        let sample = cow.chan(ch)[frame_idx] as f32 / u8::MAX as f32;
-                        samples.push(sample)
+                        let raw = cow.chan(ch)[frame_idx];
+                        let norm = raw as f32 / u8::MAX as f32;
+                        let sample = norm * 2.0 - 1.0;
+                        samples.push(sample);
                     }
                 }
             }
+
             AudioBufferRef::U16(cow) => {
                 sample_rate = cow.spec().rate;
                 channels = cow.spec().channels.count();
 
                 for frame_idx in 0..cow.frames() {
                     for ch in 0..channels {
-                        let sample = cow.chan(ch)[frame_idx] as f32 / u16::MAX as f32;
-                        samples.push(sample)
+                        let raw = cow.chan(ch)[frame_idx];
+                        let norm = raw as f32 / u16::MAX as f32;
+                        let sample = norm * 2.0 - 1.0;
+                        samples.push(sample);
                     }
                 }
             }
+
             AudioBufferRef::U24(cow) => {
                 sample_rate = cow.spec().rate;
                 channels = cow.spec().channels.count();
 
                 for frame_idx in 0..cow.frames() {
                     for ch in 0..channels {
-                        let omg = cow.chan(ch)[frame_idx];
-                        let omgomg = omg.0;
-                        let sample = omgomg as f32 / u32::MAX as f32;
-                        samples.push(sample)
+                        let raw = cow.chan(ch)[frame_idx].0;
+                        let norm = raw as f32 / 16_777_215.0;
+                        let sample = norm * 2.0 - 1.0;
+                        samples.push(sample);
                     }
                 }
             }
+
             AudioBufferRef::U32(cow) => {
                 sample_rate = cow.spec().rate;
                 channels = cow.spec().channels.count();
 
                 for frame_idx in 0..cow.frames() {
                     for ch in 0..channels {
-                        let sample = cow.chan(ch)[frame_idx] as f32 / u32::MAX as f32;
-                        samples.push(sample)
+                        let raw = cow.chan(ch)[frame_idx];
+                        let norm = raw as f32 / u32::MAX as f32;
+                        let sample = norm * 2.0 - 1.0;
+                        samples.push(sample);
                     }
                 }
             }
@@ -132,12 +141,13 @@ pub fn symphonia_decode(path: &str) -> Option<(Vec<f32>, usize, u32)> {
 
                 for frame_idx in 0..cow.frames() {
                     for ch in 0..channels {
-                        let omg = cow.chan(ch)[frame_idx].0;
-                        let sample = omg as f32 / i32::MAX as f32;
-                        samples.push(sample)
+                        let raw_val = cow.chan(ch)[frame_idx].0;
+                        let sample = raw_val as f32 / 8_388_608.0; // 2^23
+                        samples.push(sample);
                     }
                 }
             }
+
             AudioBufferRef::S32(cow) => {
                 sample_rate = cow.spec().rate;
                 channels = cow.spec().channels.count();
@@ -165,7 +175,7 @@ pub fn symphonia_decode(path: &str) -> Option<(Vec<f32>, usize, u32)> {
     }
 
     println!(
-        "[symphonia_decode] 采样率：{}, 通道数：{}",
+        "[symphonia_decode] DONE，采样率：{}, 通道数：{}",
         sample_rate, channels
     );
     Some((samples, channels, sample_rate))

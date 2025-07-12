@@ -1,3 +1,4 @@
+use std::cmp::max;
 use std::collections::HashMap;
 use std::result::Result;
 use std::sync::atomic::{AtomicUsize, Ordering};
@@ -19,6 +20,7 @@ pub mod audio_proto {
 }
 
 use once_cell::sync::Lazy;
+use rayon::prelude::*;
 use std::sync::{Arc, Mutex, RwLock};
 
 static AUDIO_ENGINE: Lazy<Arc<AudioPlayer>> = Lazy::new(|| Arc::new(AudioPlayer::new()));
@@ -82,27 +84,65 @@ impl AudioPlayer {
     }
 
     pub fn play(&self) {
-        let mut samples: Vec<f32> = vec![         /*啥也没有*/           ];
-        let lock = self.tracks.lock().unwrap();
-        println!("tracks len: {}", lock.len());
+        // Try to get mutex lock for tracks
+        let l = self.tracks.lock();
+        if l.is_err() {
+            todo!("failed to get mutex lock")
+        }
+        let lock = l.unwrap();
+
+        // Join into samples
+        println!("[play] tracks len: {}", lock.len());
+
+        // TODO: 实际上这部分的逻辑应当独立，并添加进独立的预混合计算和缓存功能。在采样被导入时预计算混合。
+        // Create empty buffer
+        let mut samples: Vec<Vec<f32>> = vec![];
+        let mut max_length: usize = 0;
+
+        // Get tracks
         for track in lock.iter() {
+            // Create current track buffer
+            let mut current_track: Vec<f32> = vec![];
+
             let clips = &track.clips;
+            // Join each clips into current track
             for clip in clips {
-                println!("clip id: {}", &clip.id);
+                println!("[play] clip id: {}", &clip.id);
                 let binding = CLIP_CACHES.read().unwrap();
                 let e = &Vec::<f32>::new();
-                let sss = binding.get(&clip.id).unwrap_or(e);
-                samples.extend(sss.iter().cloned());
+                let mut sss = binding.get(&clip.id).unwrap_or(e);
+                current_track.extend(sss.iter().cloned());
             }
+            // Len and compare length
+            max_length = max(max_length, current_track.len());
+            samples.push(current_track);
+            println!("[play] processed track: {:?}", track.id);
         }
 
-        *self.samples.lock().unwrap() = Arc::new(samples);
+        println!("[play] tracks loaded ok");
+
+        // mix tracks
+        let mixed: Vec<f32> = (0..max_length)
+            .into_par_iter()
+            .map(|i| {
+                let mut sum = 0.0;
+                for track in &samples {
+                    sum += *track.get(i).unwrap_or(&0.0);
+                }
+                // sum.clamp(-1.0, 1.0)     // TODO: clamp硬削波了，我们需要找到一个类似其他DAW的钳制方法
+                sum
+            })
+            .collect();
+
+        *self.samples.lock().unwrap() = Arc::new(mixed);
 
         println!("[play] 缓存带入终了。");
 
+        // Reset play position
         self.position.store(0, Ordering::Relaxed);
         *self.start_time.lock().unwrap() = Some(Instant::now());
 
+        // Start play audio
         self.start_output();
     }
 
