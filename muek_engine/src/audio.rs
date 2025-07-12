@@ -1,6 +1,5 @@
 use std::cmp::max;
 use std::collections::HashMap;
-use std::ops::Deref;
 use std::result::Result;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::{Duration, Instant};
@@ -23,7 +22,6 @@ pub mod audio_proto {
 use once_cell::sync::Lazy;
 use rayon::prelude::*;
 use std::sync::{Arc, Mutex, RwLock};
-use tokio::io::simplex;
 
 static AUDIO_ENGINE: Lazy<Arc<AudioPlayer>> = Lazy::new(|| Arc::new(AudioPlayer::new()));
 static CLIP_CACHES: Lazy<Arc<RwLock<HashMap<String, Vec<f32>>>>> =
@@ -70,7 +68,7 @@ impl AudioPlayer {
     }
 
     #[deprecated]
-    pub fn load_and_play(&self, path: &str) -> (Vec<f32>, usize, u32) {
+    pub fn _load_and_play(&self, path: &str) -> (Vec<f32>, usize, u32) {
         let (samples, channels, sample_rate) = decode::auto_decode(path).unwrap();
 
         self.sample_rate.lock().unwrap().clone_from(&sample_rate);
@@ -318,7 +316,7 @@ impl AudioProxyProto for AudioProxy {
             println!("{:#?}", clip);
             let id = &clip.id;
             let path = &clip.path;
-            let (mut s, _c, sr) = decode::auto_decode(path).unwrap();
+            let (s, _c, _sr) = decode::auto_decode(path).unwrap();
             CLIP_CACHES.write().unwrap().insert(id.to_string(), s);
 
             let engine = get_audio_engine();
