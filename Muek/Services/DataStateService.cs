@@ -15,7 +15,7 @@ public static class DataStateService
             { Color = Colors.YellowGreen.ToString(), Id = Guid.NewGuid().ToString(), Name = "Master" })
     ];
 
-    public static float Bpm { get; set; } = 140f;
+    public static float Bpm { get; set; } = 120f;
 
     public static bool IsPlaying { get; set; }
 

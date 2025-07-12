@@ -50,7 +50,7 @@ impl AudioPlayer {
             tracks: Mutex::new(vec![]),
             samples: Mutex::new(Arc::new(vec![])),
             position: Arc::new(AtomicUsize::new(0)),
-            sample_rate: Mutex::new(44100),
+            sample_rate: Mutex::new(48000),
             start_time: Mutex::new(None),
             bpm: Mutex::new(120.0),
         }
