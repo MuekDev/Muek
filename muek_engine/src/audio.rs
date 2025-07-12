@@ -113,31 +113,33 @@ impl AudioPlayer {
         println!("[play] tracks len: {}", lock.len());
 
         // TODO: 实际上这部分的逻辑应当独立，并添加进独立的预混合计算和缓存功能。在采样被导入时预计算混合。
-        // Create empty buffer
-        let mut samples: Vec<Vec<f32>> = vec![];
+        let mut samples: Vec<Vec<f32>> = vec![];    // empty buffer
         let mut max_length: usize = 0;
 
-        // Get tracks
         for track in lock.iter() {
-            // Create current track buffer
             let mut current_track: Vec<f32> = vec![];
 
-            let clips = &track.clips;
-            // Join each clips into current track
-            for clip in clips {
+            for clip in &track.clips {
                 println!("[play] clip id: {}", &clip.id);
+
                 let binding = CLIP_CACHES.read().unwrap();
-                let e = &Vec::<f32>::new();
-                let mut sss = binding.get(&clip.id).unwrap_or(e);
+                let empty = &Vec::<f32>::new();
+                let sss = binding.get(&clip.id).unwrap_or(empty);
 
-                let start_point = (((clip.start_beat * 60f64) / bpm) * sample_rate as f64).round() as usize;
+                let start_sample = (((clip.start_beat * 60.0) / bpm) * sample_rate as f64).round()
+                    as usize
+                    * 4     // TODO: 改为beats_per_bar变量，与前端同步，目前是4/4拍
+                    * 2;    // TODO: 双通道需要*2，因为左右会交错填充
 
-                let mut empty_fill = vec![0.0f32; start_point - current_track.len()];
+                // 判断，防止panic
+                if current_track.len() < start_sample {
+                    let pad_len = start_sample - current_track.len();
+                    current_track.extend(std::iter::repeat(0.0).take(pad_len));
+                }
 
-                current_track.append(&mut empty_fill);
                 current_track.extend(sss.iter().cloned());
             }
-            // Len and compare length
+
             max_length = max(max_length, current_track.len());
             samples.push(current_track);
             println!("[play] processed track: {:?}", track.id);
@@ -313,6 +315,7 @@ impl AudioProxyProto for AudioProxy {
         let track = &request.get_ref().track;
 
         if let Some(clip) = &request.get_ref().clip {
+            println!("{:#?}", clip);
             let id = &clip.id;
             let path = &clip.path;
             let (mut s, _c, sr) = decode::auto_decode(path).unwrap();
