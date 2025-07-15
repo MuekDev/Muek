@@ -4,6 +4,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Muek.Services;
 using Muek.Views;
 
 namespace Muek.ViewModels;
@@ -16,7 +17,7 @@ public partial class TrackViewModel : ViewModelBase
     public string Index => Proto.Index.ToString();
 
     [ObservableProperty] private string _name;
-    [ObservableProperty] private bool _selected = true;
+    [ObservableProperty] private bool _selected = false;
     [ObservableProperty] private bool _byPassed = false;
     [ObservableProperty] private IBrush _byPassBtnColor = Brush.Parse("#D0FFE5");
 
@@ -24,7 +25,7 @@ public partial class TrackViewModel : ViewModelBase
     {
         Proto.Name = value;
     }
-    
+
     partial void OnByPassedChanged(bool value)
     {
         if (value)
@@ -48,7 +49,7 @@ public partial class TrackViewModel : ViewModelBase
         {
             Clips.Add(new ClipViewModel(clip));
         }
-        
+
         // 同步proto属性
         Name = proto.Name;
     }
@@ -86,6 +87,21 @@ public partial class TrackViewModel : ViewModelBase
                 window.NameBox.Text = Name;
                 window.Submit += (sender, s) => { Name = s; };
             }
+        }
+    }
+
+    [RelayCommand]
+    public void Remove()
+    {
+        DataStateService.RemoveTrack(Id);
+    }
+
+    [RelayCommand]
+    public void OnTrackSelected()
+    {
+        foreach (var track in DataStateService.Tracks)
+        {
+            track.Selected = track.Id == Id;
         }
     }
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using Audio;
 using Avalonia.Media;
 using Muek.ViewModels;
@@ -25,11 +26,18 @@ public static class DataStateService
             new TrackViewModel(
                 new Track
                 {
-                    Color = color.ToString() ?? Colors.DimGray.ToString(),
+                    Color = color == null ? Colors.DimGray.ToString() : color.ToString(),
                     Id = Guid.NewGuid().ToString(),
                     Name = name ?? "New Track",
                     Index = (uint)Tracks.Count,
                 }
             ));
+    }
+    
+    public static void RemoveTrack(TRACKUID trackId)
+    {
+        var track = Tracks.FirstOrDefault(x => x.Id == trackId);
+        if (track != null)
+            Tracks.Remove(track);
     }
 }
