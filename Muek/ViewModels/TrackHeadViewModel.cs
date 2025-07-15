@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Avalonia;
 using Avalonia.Animation;
 using Avalonia.Animation.Easings;
@@ -8,6 +9,8 @@ using Avalonia.Controls.Utils;
 using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Styling;
+using Muek.Models;
+using Muek.Services;
 using Muek.Views;
 
 namespace Muek.ViewModels;
@@ -17,6 +20,7 @@ public class TrackHeadViewModel : Button
     private bool _switchable;
     private Point _pressedPosition;
     private bool _isFirstClickTrackHead;
+    private int _moveToIndexDelta;
 
     protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
@@ -28,15 +32,36 @@ public class TrackHeadViewModel : Button
 
             _switchable = true;
             _isFirstClickTrackHead = true;
+
+            var mainWindow = ViewHelper.GetMainWindow();
+            mainWindow.TrackLineDrawer.IsVisible = true;
         }
     }
 
     protected override void OnPointerReleased(PointerReleasedEventArgs e)
     {
         base.OnPointerReleased(e);
-        //_releasedPosition =  e.GetPosition(this);
+        // var releasedPosition =  e.GetPosition(this);
+
         if (_switchable)
         {
+            var track = DataStateService.Tracks.FirstOrDefault(t => t.Id == Name);
+            if (track != null)
+            {
+                var oldIndex = track.IntIndex;
+                var newIndex = oldIndex + _moveToIndexDelta;
+
+                if (newIndex >= 0 && newIndex < DataStateService.Tracks.Count)
+                {
+                    DataStateService.Tracks.Move(oldIndex, newIndex);
+
+                    for (var i = 0; i < DataStateService.Tracks.Count; i++)
+                    {
+                        DataStateService.Tracks[i].Proto.Index = (uint)i;
+                    }
+                }
+            }
+
             new Animation
             {
                 Duration = TimeSpan.FromMilliseconds(200),
@@ -62,6 +87,9 @@ public class TrackHeadViewModel : Button
         }
 
         _switchable = false;
+
+        var mainWindow = ViewHelper.GetMainWindow();
+        mainWindow.TrackLineDrawer.IsVisible = false;
     }
 
     protected override void OnPointerEntered(PointerEventArgs e)
@@ -75,15 +103,38 @@ public class TrackHeadViewModel : Button
         base.OnPointerMoved(e);
         if (_switchable)
         {
-            if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            var mainWindow = ViewHelper.GetMainWindow();
+            var cont = mainWindow.ItemsControlX;
+
+            var switchIndex = (int)e.GetPosition(cont).Y / 100 -
+                              (int)_pressedPosition.Y;
+
+            _moveToIndexDelta = switchIndex;
+
+            var track = DataStateService.Tracks.FirstOrDefault(t => t.Id == Name);
+            if (track != null)
             {
-                var mainWindow = desktop.MainWindow as MainWindow;
-                var cont = mainWindow.ItemsControlX;
-                
-                var switchIndex = (int)e.GetPosition(cont).Y / 100 -
-                                  (int)_pressedPosition.Y;
-                Console.WriteLine(switchIndex);
+                var fromIndex = track.IntIndex;
+                var toIndex = fromIndex + switchIndex;
+
+                toIndex = Math.Clamp(toIndex, 0, DataStateService.Tracks.Count);
+
+                var draggingDown = toIndex > fromIndex;
+
+                if (switchIndex != 0)
+                {
+                    var visualIndex = draggingDown ? toIndex + 1 : toIndex;
+                    visualIndex = Math.Clamp(visualIndex, 0, DataStateService.Tracks.Count);
+                    mainWindow.TrackLineDrawer.LineY = visualIndex * 100;
+                    mainWindow.TrackLineDrawer.IsVisible = true;
+                }
+                else
+                {
+                    mainWindow.TrackLineDrawer.IsVisible = false;
+                }
             }
+
+            Console.WriteLine(switchIndex);
 
             if (_isFirstClickTrackHead)
             {

@@ -51,20 +51,4 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         DataStateService.AddTrack();
     }
-
-    public void selectTrack(string trackId)
-    {
-        //Console.WriteLine(trackId);
-        foreach (var track in Tracks)
-        {
-            // if (track.trackId == trackId)
-            // {
-            //     track.Selected = true;
-            // }
-            // else
-            // {
-            //     track.Selected = false;
-            // }
-        }
-    }
 }

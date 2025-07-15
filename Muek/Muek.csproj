@@ -40,4 +40,8 @@
         <Protobuf Include="../protos/greet.proto" GrpcServices="Client"/>
         <Protobuf Include="../protos/audio.proto" GrpcServices="Client"/>
     </ItemGroup>
+    
+    <ItemGroup>
+      <Folder Include="Helpers\" />
+    </ItemGroup>
 </Project>

@@ -4,6 +4,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Muek.Models;
 using Muek.Services;
 using Muek.Views;
 
@@ -14,7 +15,9 @@ public partial class TrackViewModel : ViewModelBase
     public Track Proto { get; }
     public string Color => Proto.Color;
     public string Id => Proto.Id;
-    public string Index => Proto.Index.ToString();
+    public string StrIndex => Proto.Index.ToString();
+    public uint UIntIndex => Proto.Index;
+    public int IntIndex => (int)Proto.Index;
 
     [ObservableProperty] private string _name;
     [ObservableProperty] private bool _selected = false;
@@ -77,17 +80,11 @@ public partial class TrackViewModel : ViewModelBase
     [RelayCommand]
     public void ShowRenameWindow()
     {
-        if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
-        {
-            var mainWindow = desktop.MainWindow;
-            if (mainWindow != null)
-            {
-                var window = new RenameWindow();
-                window.ShowDialog(mainWindow);
-                window.NameBox.Text = Name;
-                window.Submit += (sender, s) => { Name = s; };
-            }
-        }
+        var mainWindow = ViewHelper.GetMainWindow();
+        var window = new RenameWindow();
+        window.ShowDialog(mainWindow);
+        window.NameBox.Text = Name;
+        window.Submit += (sender, s) => { Name = s; };
     }
 
     [RelayCommand]

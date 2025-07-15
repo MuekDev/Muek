@@ -238,6 +238,9 @@
                             </Border>
 
                         </StackPanel>
+
+                        <views:LineDrawer x:Name="TrackLineDrawer" LineBrush="White" IsVisible="False"></views:LineDrawer>
+
                     </Grid>
                 </ScrollViewer>
 
