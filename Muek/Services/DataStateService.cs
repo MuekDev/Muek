@@ -34,7 +34,7 @@ public static class DataStateService
             ));
     }
     
-    public static void RemoveTrack(TRACKUID trackId)
+    public static void RemoveTrack(String trackId)
     {
         var track = Tracks.FirstOrDefault(x => x.Id == trackId);
         if (track != null)

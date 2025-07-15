@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Threading.Tasks;
 using Avalonia;
-using Grpc.Net.Client;
 using Muek.Commands;
 using Muek.Services;
 using Projektanker.Icons.Avalonia;
