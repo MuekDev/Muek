@@ -44,5 +44,4 @@ public partial class MainWindow : Window
             this.BeginMoveDrag(e);
         }
     }
-    
 }

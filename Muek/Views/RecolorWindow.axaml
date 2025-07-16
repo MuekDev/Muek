@@ -3,19 +3,20 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
-        Width="300"
-        Height="200"
+        Width="400"
+        Height="500"
         x:Class="Muek.Views.RecolorWindow"
         WindowStartupLocation="CenterOwner"
         Title="RecolorWindow"
         Background="Transparent"
-        TransparencyLevelHint="Mica"
+        TransparencyLevelHint="AcrylicBlur"
         ExtendClientAreaToDecorationsHint="True"
         SystemDecorations="None"
         >
-        <StackPanel Margin="12" Spacing="10">
-                <Label HorizontalAlignment="Center">Track Color</Label>
-                <ColorSpectrum Height="100" Shape="Ring" Margin="0" x:Name="Color"></ColorSpectrum>
+        <StackPanel Margin="12" Spacing="10" >
+                <!-- <Label HorizontalAlignment="Center">Track Color</Label> -->
+                <!-- <ColorSpectrum Height="100" Shape="Ring" Margin="0" x:Name="Color"></ColorSpectrum> -->
+                <ColorView x:Name="MyColorView"></ColorView>
                 <StackPanel Orientation="Horizontal" Margin="0,8,0,0" Spacing="10" HorizontalAlignment="Center">
                         <Button x:Name="SubmitBtn" VerticalAlignment="Bottom" Click="SubmitBtn_OnClick">Confirm</Button>
                         <Button x:Name="CancelBtn" VerticalAlignment="Bottom" Click="CancelBtn_OnClick">Cancel</Button>

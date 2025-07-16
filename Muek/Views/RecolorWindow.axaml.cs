@@ -4,19 +4,21 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
+using Avalonia.Media;
 
 namespace Muek.Views;
 
 public partial class RecolorWindow : Window
 {
-    public event EventHandler<string>? Submit;
+    public event EventHandler<Color>? Submit;
     public RecolorWindow()
     {
         InitializeComponent();
+        MyColorView.Palette = new FlatColorPalette();
     }
     private void SubmitBtn_OnClick(object? sender, RoutedEventArgs e)
     {
-        
+        Submit?.Invoke(this,MyColorView.Color);
         Close();
     }
 

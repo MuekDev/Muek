@@ -42,10 +42,12 @@ public class TrackHeadViewModel : Button
     {
         base.OnPointerReleased(e);
         // var releasedPosition =  e.GetPosition(this);
+        var mainWindow = ViewHelper.GetMainWindow();
 
         if (_switchable)
         {
             var track = DataStateService.Tracks.FirstOrDefault(t => t.Id == Name);
+
             if (track != null)
             {
                 var oldIndex = track.IntIndex;
@@ -60,6 +62,8 @@ public class TrackHeadViewModel : Button
                         DataStateService.Tracks[i].Proto.Index = (uint)i;
                     }
                 }
+
+                mainWindow.TrackViewControl.InvalidateVisual();
             }
 
             new Animation
@@ -88,7 +92,6 @@ public class TrackHeadViewModel : Button
 
         _switchable = false;
 
-        var mainWindow = ViewHelper.GetMainWindow();
         mainWindow.TrackLineDrawer.IsVisible = false;
     }
 

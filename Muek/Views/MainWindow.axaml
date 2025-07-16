@@ -111,7 +111,7 @@
                                                                 <!-- <TextBox Text="{Binding #TrackName.Text}" Width="100"></TextBox> -->
                                                             </MenuItem>
                                                             <MenuItem Header="Change Color(并不会成功)"
-                                                                      Command="{Binding ShowRenameWindow}">
+                                                                      Command="{Binding ShowRecolorWindow}">
                                                             </MenuItem>
                                                         </MenuFlyout>
                                                     </vm:TrackHeadViewModel.ContextFlyout>

@@ -101,4 +101,18 @@ public partial class TrackViewModel : ViewModelBase
             track.Selected = track.Id == Id;
         }
     }
+    
+    [RelayCommand]
+    public void ShowRecolorWindow()
+    {
+        var recolorWindow = new RecolorWindow();
+        recolorWindow.Show();
+        recolorWindow.Submit += (sender, color) =>
+        {
+           Proto.Color = color.ToString();
+           OnPropertyChanged(nameof(Color));
+           var mainWindow =  ViewHelper.GetMainWindow();
+           mainWindow.TrackViewControl.InvalidateVisual();
+        };
+    }
 }
