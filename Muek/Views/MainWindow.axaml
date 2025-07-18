@@ -110,7 +110,7 @@
                                                                       Command="{Binding ShowRenameWindow}">
                                                                 <!-- <TextBox Text="{Binding #TrackName.Text}" Width="100"></TextBox> -->
                                                             </MenuItem>
-                                                            <MenuItem Header="Change Color(并不会成功)"
+                                                            <MenuItem Header="Change Color"
                                                                       Command="{Binding ShowRecolorWindow}">
                                                             </MenuItem>
                                                         </MenuFlyout>

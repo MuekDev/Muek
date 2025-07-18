@@ -26,6 +26,7 @@ public partial class TrackView : UserControl
     private Point _mousePosition = new();      // 鼠标指针位置
     public int TrackHeight = 100;              // 轨道高度（可变）
     private bool _isMovingClip;                // 是否在移动片段
+    private bool _isResizingClipRight;         // 是否在调整片段长度
     private ClipViewModel? _activeClip = null; // 当前被激活的片段
     private double _lastClickedBeatOfClip = 0; // 最后一次点击clip title的位置（相对于clip，单位为beat）
 
@@ -418,6 +419,13 @@ public partial class TrackView : UserControl
 
                 _isMovingClip = true;
             }
+            else if (state == ClipInteractionMode.OnRight)
+            {
+                if (_activeClip == null)
+                    return;
+
+                _isResizingClipRight = true;
+            }
 
             e.Handled = true; // 避免冒泡
         }
@@ -431,7 +439,7 @@ public partial class TrackView : UserControl
     /// </returns>
     private ClipInteractionMode GetClipInteractionMode()
     {
-        if (_isMovingClip || _isDraggingPlayhead)
+        if (_isMovingClip || _isDraggingPlayhead || _isResizingClipRight)
             return ClipInteractionMode.None;
 
         var trackIndex = (int)Math.Floor(_mousePosition.Y / TrackHeight);
@@ -456,11 +464,26 @@ public partial class TrackView : UserControl
             if (pointerBeat >= clipStart && pointerBeat <= clipEnd)
             {
                 _activeClip = clip;
+                var relativeBeat = pointerBeat - clipStart;
+                var scaledPosX = relativeBeat * ScaleFactor;
 
                 // 顶部标题区域（如用于拖动、显示名等）
                 if (relativeMouseY < 0.2)
                 {
                     return ClipInteractionMode.OnTopTitle;
+                }
+
+                // 片段左端
+                if (scaledPosX is > 0 and < 5)
+                {
+                    return ClipInteractionMode.OnLeft;
+                }
+
+                // 片段右侧
+                if (scaledPosX > clip.Duration * ScaleFactor - 5 &&
+                    scaledPosX < clip.Duration * ScaleFactor)
+                {
+                    return ClipInteractionMode.OnRight;
                 }
 
                 // 其他区域视为 clip body
@@ -490,11 +513,27 @@ public partial class TrackView : UserControl
             {
                 MoveActiveClipTo(point);
             }
+            else if (_isResizingClipRight)
+            {
+                ReDurationForActiveClip(point);
+            }
         }
 
         _mousePosition = e.GetPosition(this);
 
         CheckIfPointerInClipBounds(_mousePosition);
+    }
+
+    private void ReDurationForActiveClip(Point point)
+    {
+        var globalX = Math.Max(0, point.X + OffsetX);
+        var pointerBeat = globalX / ScaleFactor;
+
+        if (_activeClip != null && _activeClip.StartBeat < pointerBeat)
+        {
+            _activeClip.Proto.Duration = pointerBeat - _activeClip.StartBeat;
+            InvalidateVisual();
+        }
     }
 
     private void MoveActiveClipTo(Point point)
@@ -517,6 +556,8 @@ public partial class TrackView : UserControl
             ClipInteractionMode.None => new Cursor(StandardCursorType.Ibeam),
             ClipInteractionMode.OnTopTitle => new Cursor(StandardCursorType.Arrow),
             ClipInteractionMode.InClipBody => new Cursor(StandardCursorType.Cross),
+            ClipInteractionMode.OnLeft => new Cursor(StandardCursorType.LeftSide),
+            ClipInteractionMode.OnRight => new Cursor(StandardCursorType.RightSide),
             _ => Cursor
         };
     }
@@ -526,6 +567,7 @@ public partial class TrackView : UserControl
         base.OnPointerReleased(e);
         _isDraggingPlayhead = false;
         _isMovingClip = false;
+        _isResizingClipRight = false;
     }
 
     protected override void OnPointerWheelChanged(PointerWheelEventArgs e)
@@ -585,5 +627,7 @@ internal enum ClipInteractionMode
 {
     OnTopTitle,
     InClipBody,
+    OnLeft,
+    OnRight,
     None,
 }

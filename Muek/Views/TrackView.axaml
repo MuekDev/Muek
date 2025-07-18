@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Muek.Views.TrackView">
-    <!-- 仅为单条轨道的视图 -->
+    <!-- 多条轨道的视图 -->
     <Grid>
         <!-- <views:ClipItem></views:ClipItem> -->
     </Grid>

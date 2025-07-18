@@ -9,6 +9,7 @@ message Clip {
   double duration = 3;
   string name = 4;
   string id = 5;
+  double offset = 6;
 }
 
 // 轨道
