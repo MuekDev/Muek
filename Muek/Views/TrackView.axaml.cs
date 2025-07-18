@@ -17,14 +17,17 @@ namespace Muek.Views;
 
 public partial class TrackView : UserControl
 {
-    private bool _isDraggingPlayhead;
-    private double _offsetX;
-    private double _playHeadPosX;
-    private int _scaleFactor = 100;
-    private double _timeRulerPosX;
-    private bool _isDropping = false;
-    private Point _mousePosition = new();
-    public int TrackHeight = 100;
+    private bool _isDraggingPlayhead;          // 是否在拖拽播放指针 （TODO: 改成ruler
+    private double _offsetX;                   // 横向的轨道滚动距离
+    private double _playHeadPosX;              // 播放指示指针
+    private int _scaleFactor = 100;            // 横向的轨道缩放
+    private double _timeRulerPosX;             // 好像没被使用
+    private bool _isDropping = false;          // 是否正在向轨道上拖拽文件
+    private Point _mousePosition = new();      // 鼠标指针位置
+    public int TrackHeight = 100;              // 轨道高度（可变）
+    private bool _isMovingClip;                // 是否在移动片段
+    private ClipViewModel? _activeClip = null; // 当前被激活的片段
+    private double _lastClickedBeatOfClip = 0; // 最后一次点击clip title的位置（相对于clip，单位为beat）
 
     public TrackView()
     {
@@ -159,7 +162,7 @@ public partial class TrackView : UserControl
                 {
                     DataStateService.Tracks[trackIndex].AddClip(newClip);
                 }
-                
+
                 var track = DataStateService.Tracks[trackIndex].Proto;
                 HandleNewClipCommand.Execute(track, newClip);
             }
@@ -402,32 +405,128 @@ public partial class TrackView : UserControl
 
         if (props.IsLeftButtonPressed)
         {
-            _isDraggingPlayhead = true;
-            UpdatePlayHeadFromPointer(point);
+            var state = GetClipInteractionMode();
+            if (state == ClipInteractionMode.None)
+            {
+                _isDraggingPlayhead = true;
+                UpdatePlayHeadFromPointer(point);
+            }
+            else if (state == ClipInteractionMode.OnTopTitle)
+            {
+                if (_activeClip == null)
+                    return;
+
+                _isMovingClip = true;
+            }
+
             e.Handled = true; // 避免冒泡
         }
     }
+
+    /// <summary>
+    /// 用于判断鼠标指针是否在clip的特殊区域上
+    /// </summary>
+    /// <returns>
+    /// `ClipInteractionMode`: 鼠标所处状态
+    /// </returns>
+    private ClipInteractionMode GetClipInteractionMode()
+    {
+        if (_isMovingClip || _isDraggingPlayhead)
+            return ClipInteractionMode.None;
+
+        var trackIndex = (int)Math.Floor(_mousePosition.Y / TrackHeight);
+        var relativeMouseY = (_mousePosition.Y % TrackHeight) / TrackHeight; // 0~1
+
+        if (trackIndex < 0 || trackIndex >= DataStateService.Tracks.Count)
+        {
+            Cursor = new Cursor(StandardCursorType.Ibeam);
+            _activeClip = null;
+            return ClipInteractionMode.None;
+        }
+
+        var track = DataStateService.Tracks[trackIndex];
+        var globalX = Math.Max(0, _mousePosition.X + OffsetX);
+        var pointerBeat = globalX / ScaleFactor;
+
+        foreach (var clip in track.Clips)
+        {
+            var clipStart = clip.StartBeat;
+            var clipEnd = clip.StartBeat + clip.Duration;
+
+            if (pointerBeat >= clipStart && pointerBeat <= clipEnd)
+            {
+                _activeClip = clip;
+
+                // 顶部标题区域（如用于拖动、显示名等）
+                if (relativeMouseY < 0.2)
+                {
+                    return ClipInteractionMode.OnTopTitle;
+                }
+
+                // 其他区域视为 clip body
+                return ClipInteractionMode.InClipBody;
+            }
+        }
+
+        // 没找到匹配的 clip
+        _activeClip = null;
+        return ClipInteractionMode.None;
+    }
+
 
     protected override void OnPointerMoved(PointerEventArgs e)
     {
         base.OnPointerMoved(e);
 
-        if (_isDraggingPlayhead && e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+        if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
         {
             var point = e.GetPosition(this);
-            UpdatePlayHeadFromPointer(point);
-            e.Handled = true;
+            if (_isDraggingPlayhead)
+            {
+                UpdatePlayHeadFromPointer(point);
+                e.Handled = true;
+            }
+            else if (_isMovingClip)
+            {
+                MoveActiveClipTo(point);
+            }
         }
 
         _mousePosition = e.GetPosition(this);
+
+        CheckIfPointerInClipBounds(_mousePosition);
+    }
+
+    private void MoveActiveClipTo(Point point)
+    {
+        if (_activeClip == null)
+            return;
+
+        var globalX = Math.Max(0, point.X + OffsetX);
+        var pointerBeat = globalX / ScaleFactor;
+        _activeClip.Proto.StartBeat = pointerBeat;
+
+        InvalidateVisual();
+    }
+
+    private void CheckIfPointerInClipBounds(Point point)
+    {
+        var state = GetClipInteractionMode();
+        Cursor = state switch
+        {
+            ClipInteractionMode.None => new Cursor(StandardCursorType.Ibeam),
+            ClipInteractionMode.OnTopTitle => new Cursor(StandardCursorType.Arrow),
+            ClipInteractionMode.InClipBody => new Cursor(StandardCursorType.Cross),
+            _ => Cursor
+        };
     }
 
     protected override void OnPointerReleased(PointerReleasedEventArgs e)
     {
         base.OnPointerReleased(e);
         _isDraggingPlayhead = false;
+        _isMovingClip = false;
     }
-
 
     protected override void OnPointerWheelChanged(PointerWheelEventArgs e)
     {
@@ -480,4 +579,11 @@ public partial class TrackView : UserControl
         // 调整 OffsetX，使 beatAtPointer 依然出现在原位置
         OffsetX = beatAtPointer * newScale - pointerX;
     }
+}
+
+internal enum ClipInteractionMode
+{
+    OnTopTitle,
+    InClipBody,
+    None,
 }
