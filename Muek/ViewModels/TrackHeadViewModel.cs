@@ -34,7 +34,7 @@ public class TrackHeadViewModel : Button
             _isFirstClickTrackHead = true;
 
             var mainWindow = ViewHelper.GetMainWindow();
-            mainWindow.TrackLineDrawer.IsVisible = true;
+             //mainWindow.TrackLineDrawer.IsVisible = true;
         }
     }
 
@@ -46,6 +46,7 @@ public class TrackHeadViewModel : Button
 
         if (_switchable)
         {
+            
             var track = DataStateService.Tracks.FirstOrDefault(t => t.Id == Name);
 
             if (track != null)
@@ -65,31 +66,30 @@ public class TrackHeadViewModel : Button
 
                 mainWindow.TrackViewControl.InvalidateVisual();
             }
-
-            new Animation
-            {
-                Duration = TimeSpan.FromMilliseconds(200),
-                FillMode = FillMode.Forward,
-                Easing = Easing.Parse("CubicEaseOut"),
-                Delay = TimeSpan.FromMilliseconds(200),
-                Children =
-                {
-                    new KeyFrame
-                    {
-                        Cue = new Cue(1),
-                        Setters =
-                        {
-                            new Setter
-                            {
-                                Property = TranslateTransform.XProperty,
-                                Value = 0.0
-                            }
-                        }
-                    }
-                }
-            }.RunAsync(this);
+            
+            // new Animation
+            // {
+            //     Duration = TimeSpan.FromMilliseconds(200),
+            //     FillMode = FillMode.Forward,
+            //     Easing = Easing.Parse("CubicEaseOut"),
+            //     Delay = TimeSpan.FromMilliseconds(200),
+            //     Children =
+            //     {
+            //         new KeyFrame
+            //         {
+            //             Cue = new Cue(1),
+            //             Setters =
+            //             {
+            //                 new Setter
+            //                 {
+            //                     Property = TranslateTransform.XProperty,
+            //                     Value = 0.0
+            //                 }
+            //             }
+            //         }
+            //     }
+            // }.RunAsync(this);
         }
-
         _switchable = false;
 
         mainWindow.TrackLineDrawer.IsVisible = false;
@@ -111,7 +111,8 @@ public class TrackHeadViewModel : Button
 
             var switchIndex = (int)e.GetPosition(cont).Y / 100 -
                               (int)_pressedPosition.Y;
-
+            
+            
             _moveToIndexDelta = switchIndex;
 
             var track = DataStateService.Tracks.FirstOrDefault(t => t.Id == Name);
@@ -143,7 +144,7 @@ public class TrackHeadViewModel : Button
             {
                 new Animation
                 {
-                    Duration = TimeSpan.FromMilliseconds(200),
+                    Duration = TimeSpan.FromMilliseconds(200.0),
                     FillMode = FillMode.Forward,
                     Easing = Easing.Parse("CubicEaseOut"),
                     Children =

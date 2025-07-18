@@ -28,8 +28,8 @@ public static class DataStateService
                 {
                     Color = color == null ? Colors.DimGray.ToString() : color.ToString(),
                     Id = Guid.NewGuid().ToString(),
-                    Name = name ?? "New Track",
                     Index = (uint)Tracks.Count,
+                    Name = name ?? "New Track",
                 }
             ));
     }
@@ -39,5 +39,17 @@ public static class DataStateService
         var track = Tracks.FirstOrDefault(x => x.Id == trackId);
         if (track != null)
             Tracks.Remove(track);
+    }
+    
+    public static TrackViewModel GetSelectedTrack()
+    {
+        foreach (var track in Tracks)
+        {
+            if (track.Selected)
+            {
+                return track;
+            }
+        }
+        return null;
     }
 }
