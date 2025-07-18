@@ -251,6 +251,9 @@
             </Grid>
 
         </Grid>
-        <Grid Grid.Column="1" Width="300" />
-    </Grid>
+        <Grid Grid.Column="1" Width="200">
+            <views:Mixer ></views:Mixer>
+        </Grid>
+        
+        </Grid>
 </Window>
