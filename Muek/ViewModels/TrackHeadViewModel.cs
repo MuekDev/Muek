@@ -67,28 +67,28 @@ public class TrackHeadViewModel : Button
                 mainWindow.TrackViewControl.InvalidateVisual();
             }
             
-            // new Animation
-            // {
-            //     Duration = TimeSpan.FromMilliseconds(200),
-            //     FillMode = FillMode.Forward,
-            //     Easing = Easing.Parse("CubicEaseOut"),
-            //     Delay = TimeSpan.FromMilliseconds(200),
-            //     Children =
-            //     {
-            //         new KeyFrame
-            //         {
-            //             Cue = new Cue(1),
-            //             Setters =
-            //             {
-            //                 new Setter
-            //                 {
-            //                     Property = TranslateTransform.XProperty,
-            //                     Value = 0.0
-            //                 }
-            //             }
-            //         }
-            //     }
-            // }.RunAsync(this);
+            new Animation
+            {
+                Duration = TimeSpan.FromMilliseconds(200),
+                FillMode = FillMode.Forward,
+                Easing = Easing.Parse("CubicEaseOut"),
+                Delay = TimeSpan.FromMilliseconds(200),
+                Children =
+                {
+                    new KeyFrame
+                    {
+                        Cue = new Cue(1),
+                        Setters =
+                        {
+                            new Setter
+                            {
+                                Property = TranslateTransform.XProperty,
+                                Value = 0.0
+                            }
+                        }
+                    }
+                }
+            }.RunAsync(this);
         }
         _switchable = false;
 
@@ -97,7 +97,7 @@ public class TrackHeadViewModel : Button
 
     protected override void OnPointerEntered(PointerEventArgs e)
     {
-        base.OnPointerEntered(e);
+        // base.OnPointerEntered(e);
         Console.WriteLine("Entered: " + Name);
     }
 

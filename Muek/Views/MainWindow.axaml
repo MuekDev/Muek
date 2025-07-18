@@ -94,13 +94,13 @@
                                                                        ClickMode="Press" HorizontalAlignment="Left"
                                                                        Name="{Binding Id}">
                                                     <!-- 按下去选中 -->
-                                                    <vm:TrackHeadViewModel.Styles>
-                                                        <Style
-                                                            Selector="vm|TrackHeadViewModel:pointerover/template/ContentPresenter">
-                                                            <Setter Property="BorderBrush" Value="{Binding Color}"></Setter>
-                                                            <Setter Property="Background" Value="#232323"></Setter>
-                                                        </Style>
-                                                    </vm:TrackHeadViewModel.Styles>
+                                                    <!-- <vm:TrackHeadViewModel.Styles> -->
+                                                    <!--     <Style -->
+                                                    <!--         Selector="vm|TrackHeadViewModel:pointerover/template/ContentPresenter"> -->
+                                                    <!--         <Setter Property="BorderBrush" Value="{Binding Color}"></Setter> -->
+                                                    <!--         <Setter Property="Background" Value="#232323"></Setter> -->
+                                                    <!--     </Style> -->
+                                                    <!-- </vm:TrackHeadViewModel.Styles> -->
 
 
                                                     <!-- 右键菜单 -->
