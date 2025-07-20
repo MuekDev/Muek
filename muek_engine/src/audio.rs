@@ -50,7 +50,7 @@ impl AudioPlayer {
             tracks: Mutex::new(vec![]),
             samples: Mutex::new(Arc::new(vec![])),
             position: Arc::new(AtomicUsize::new(0)),
-            sample_rate: Mutex::new(48000),
+            sample_rate: Mutex::new(44100),
             start_time: Mutex::new(None),
             bpm: Mutex::new(150.0),
         }
@@ -191,7 +191,20 @@ impl AudioPlayer {
             config.sample_rate()
         );
 
+        let from_rate = 44100; // TODO: 由用户设置
+        let to_rate = config.sample_rate().0 as usize;
         let samples = self.samples.lock().unwrap().clone();
+
+        let samples = if from_rate != to_rate {
+            println!(
+                "[start_output] Resampling from {} to {}",
+                from_rate, to_rate
+            );
+            resample_stereo(&samples, from_rate, to_rate)
+        } else {
+            samples.to_vec()
+        };
+
         let position = self.position.clone();
         println!("[start_output] samples len: {:?}", samples.len());
 
@@ -450,4 +463,44 @@ fn render(_req: PlayRequest) -> DecodeResponse {
     //     sample_rate: sample_rate,
     //     channels: channels as u32,
     // }
+}
+
+// TODO: 使用rubato
+fn resample_stereo(samples: &[f32], from_rate: usize, to_rate: usize) -> Vec<f32> {
+    assert!(samples.len() % 2 == 0, "立体声数据长度应为偶数");
+
+    let (left, right): (Vec<f32>, Vec<f32>) = samples
+        .chunks(2)
+        .map(|chunk| (chunk[0], chunk[1]))
+        .unzip();
+
+    let left_resampled = resample_mono(&left, from_rate, to_rate);
+    let right_resampled = resample_mono(&right, from_rate, to_rate);
+
+    // 合并为交错立体声
+    let mut interleaved = Vec::with_capacity(left_resampled.len() * 2);
+    for (l, r) in left_resampled.into_iter().zip(right_resampled) {
+        interleaved.push(l);
+        interleaved.push(r);
+    }
+
+    interleaved
+}
+
+fn resample_mono(samples: &[f32], from_rate: usize, to_rate: usize) -> Vec<f32> {
+    let ratio = to_rate as f32 / from_rate as f32;
+    let new_len = (samples.len() as f32 * ratio).round() as usize;
+    let mut resampled = Vec::with_capacity(new_len);
+
+    for i in 0..new_len {
+        let pos = i as f32 / ratio;
+        let idx = pos.floor() as usize;
+        let frac = pos.fract();
+
+        let s0 = samples.get(idx).copied().unwrap_or(0.0);
+        let s1 = samples.get(idx + 1).copied().unwrap_or(0.0);
+        resampled.push(s0 * (1.0 - frac) + s1 * frac);
+    }
+
+    resampled
 }
