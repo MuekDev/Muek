@@ -244,11 +244,11 @@ public partial class TrackView : UserControl
                 if (clip.CachedWaveform is { Count: > 1 })
                 {
                     var waveform = clip.CachedWaveform;
-                    
+
                     // 根据 clip.Duration 和 clip.Offset 裁剪波形（单位: 样本）
                     int totalSamples = waveform.Count;
                     var durationRatio = (float)clip.Duration / clip.SourceDuration; // 片段占原始长度的比例
-                    var offsetRatio = (float)0 / clip.SourceDuration;     // 左偏移占原始长度的比例  // TODO: 把0改成clip.Offset
+                    var offsetRatio = (float)0 / clip.SourceDuration; // 左偏移占原始长度的比例  // TODO: 把0改成clip.Offset
 
                     int startSample = (int)(offsetRatio * totalSamples);
                     int endSample = (int)((offsetRatio + durationRatio) * totalSamples);
@@ -257,7 +257,7 @@ public partial class TrackView : UserControl
 
                     waveform = waveform.GetRange(startSample, endSample - startSample);
 
-                    
+
                     var centerY = i * TrackHeight + TrackHeight / 2;
                     var scaleY = (TrackHeight / 2.0) * 0.95;
 
@@ -421,7 +421,7 @@ public partial class TrackView : UserControl
         if (props.IsLeftButtonPressed)
         {
             UpdateTrackSelect();
-            
+
             var state = GetClipInteractionMode();
             if (state == ClipInteractionMode.None)
             {
@@ -575,6 +575,9 @@ public partial class TrackView : UserControl
         var globalX = Math.Max(0, point.X + OffsetX);
         var pointerBeat = globalX / ScaleFactor;
         _activeClip.Proto.StartBeat = pointerBeat;
+
+        if (DataStateService.ActiveTrack?.Proto != null)
+            MoveCommand.Execute(DataStateService.ActiveTrack.Proto, _activeClip.Proto);
 
         InvalidateVisual();
     }

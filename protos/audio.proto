@@ -48,6 +48,10 @@ message ReDurationRequest {
   Clip clip = 2;
   double new_duration = 3;
 }
+message MoveClipPosRequest {
+  Track track = 1;
+  Clip clip = 2;
+}
 
 // 音频服务
 service AudioProxyProto {
@@ -58,5 +62,6 @@ service AudioProxyProto {
   // rpc UpdateTrack (Track) returns (Ack);
   rpc HandleNewAudioClip (NewAudioClipRequest) returns (Ack);
   rpc ReDurationClip (ReDurationRequest) returns (Ack);
+  rpc MoveClip (MoveClipPosRequest) returns (Ack);
 }
 

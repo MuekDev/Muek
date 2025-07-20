@@ -134,3 +134,21 @@ public static class ReDurationCommand
         _ = RpcService.SendCommand(new StopCommand());
     }
 }
+
+public static class MoveCommand
+{
+    public static void Execute(Track track, Clip clip)
+    {
+        Console.WriteLine("[ReDurationCommand] Execute");
+        using var channel = GrpcChannel.ForAddress(RpcService.Host);
+        var client = new AudioProxyProto.AudioProxyProtoClient(channel);
+        var reply = client.MoveClip(new MoveClipPosRequest()
+        {
+            Clip = clip,
+            Track = track,
+        });
+        Console.WriteLine($"RESPONSE: {reply}");
+
+        _ = RpcService.SendCommand(new StopCommand());
+    }
+}

@@ -9,6 +9,7 @@ use cpal::Stream;
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 use tonic::{Response, Status};
 
+use crate::audio::audio_proto::MoveClipPosRequest;
 use crate::audio::audio_proto::NewAudioClipRequest;
 use crate::audio::audio_proto::ReDurationRequest;
 use crate::audio::audio_proto::audio_proxy_proto_server::AudioProxyProto;
@@ -51,7 +52,7 @@ impl AudioPlayer {
             position: Arc::new(AtomicUsize::new(0)),
             sample_rate: Mutex::new(48000),
             start_time: Mutex::new(None),
-            bpm: Mutex::new(120.0),
+            bpm: Mutex::new(150.0),
         }
     }
 
@@ -380,6 +381,42 @@ impl AudioProxyProto for AudioProxy {
             // 查找对应片段
             if let Some(clip) = track.clips.iter_mut().find(|c| c.id == req_clip.id) {
                 clip.duration = new_duration;
+                return Ok(Response::new(Ack {}));
+            } else {
+                return Err(Status::not_found("Clip not found in track"));
+            }
+        } else {
+            return Err(Status::not_found("Track not found"));
+        }
+    }
+
+    async fn move_clip(
+        &self,
+        request: tonic::Request<MoveClipPosRequest>,
+    ) -> std::result::Result<tonic::Response<Ack>, tonic::Status> {
+        let r = request.get_ref();
+        let req_track = r
+            .track
+            .as_ref()
+            .ok_or_else(|| Status::internal("Cannot find the track"))?;
+        let req_clip = r
+            .clip
+            .as_ref()
+            .ok_or_else(|| Status::internal("Cannot find the clip"))?;
+
+        println!("[move_clip] {}", req_clip.name);
+
+        let engine = get_audio_engine();
+        let mut tracks = engine
+            .tracks
+            .lock()
+            .map_err(|_| Status::internal("Failed to lock audio engine tracks"))?;
+
+        // 查找对应轨道
+        if let Some(track) = tracks.iter_mut().find(|t| t.id == req_track.id) {
+            // 查找对应片段
+            if let Some(clip) = track.clips.iter_mut().find(|c| c.id == req_clip.id) {
+                clip.start_beat = req_clip.start_beat;
                 return Ok(Response::new(Ack {}));
             } else {
                 return Err(Status::not_found("Clip not found in track"));
