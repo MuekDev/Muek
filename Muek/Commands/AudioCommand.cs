@@ -111,6 +111,26 @@ public static class HandleNewClipCommand
             Track = track
         });
         Console.WriteLine($"RESPONSE: {reply}");
-        DataStateService.IsPlaying = false;
+        
+        _ = RpcService.SendCommand(new StopCommand());
+    }
+}
+
+public static class ReDurationCommand
+{
+    public static void Execute(Track track, Clip clip, double newDuration)
+    {
+        Console.WriteLine("[ReDurationCommand] Execute");
+        using var channel = GrpcChannel.ForAddress(RpcService.Host);
+        var client = new AudioProxyProto.AudioProxyProtoClient(channel);
+        var reply = client.ReDurationClip(new ReDurationRequest()
+        {
+            Clip = clip,
+            Track = track,
+            NewDuration = newDuration
+        });
+        Console.WriteLine($"RESPONSE: {reply}");
+
+        _ = RpcService.SendCommand(new StopCommand());
     }
 }

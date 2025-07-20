@@ -19,6 +19,7 @@ public static class DataStateService
     public static float Bpm { get; set; } = 120f;
 
     public static bool IsPlaying { get; set; }
+    public static TrackViewModel? ActiveTrack { get; set; }
 
     public static void AddTrack(string? name = null, Color? color = null)
     {

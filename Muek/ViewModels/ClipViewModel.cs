@@ -17,6 +17,7 @@ public class ClipViewModel
     public double Duration => Proto.Duration;
     public string Path => Proto.Path;
     public string Name => Proto.Name;
+    public double SourceDuration { get; set; }
     // public List<float>? LOD0 { get; private set; }
     // public List<float>? LOD1 { get; private set; }
     // public List<float>? LOD2 { get; private set; }
@@ -25,6 +26,7 @@ public class ClipViewModel
     public ClipViewModel(Clip proto)
     {
         Proto = proto;
+        SourceDuration = proto.Duration;
     }
 
     [Obsolete("取绝对值不太对，弃用了吧")]

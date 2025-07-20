@@ -244,6 +244,20 @@ public partial class TrackView : UserControl
                 if (clip.CachedWaveform is { Count: > 1 })
                 {
                     var waveform = clip.CachedWaveform;
+                    
+                    // 根据 clip.Duration 和 clip.Offset 裁剪波形（单位: 样本）
+                    int totalSamples = waveform.Count;
+                    var durationRatio = (float)clip.Duration / clip.SourceDuration; // 片段占原始长度的比例
+                    var offsetRatio = (float)0 / clip.SourceDuration;     // 左偏移占原始长度的比例  // TODO: 把0改成clip.Offset
+
+                    int startSample = (int)(offsetRatio * totalSamples);
+                    int endSample = (int)((offsetRatio + durationRatio) * totalSamples);
+                    startSample = Math.Clamp(startSample, 0, totalSamples - 1);
+                    endSample = Math.Clamp(endSample, 0, totalSamples);
+
+                    waveform = waveform.GetRange(startSample, endSample - startSample);
+
+                    
                     var centerY = i * TrackHeight + TrackHeight / 2;
                     var scaleY = (TrackHeight / 2.0) * 0.95;
 
@@ -406,6 +420,8 @@ public partial class TrackView : UserControl
 
         if (props.IsLeftButtonPressed)
         {
+            UpdateTrackSelect();
+            
             var state = GetClipInteractionMode();
             if (state == ClipInteractionMode.None)
             {
@@ -429,6 +445,19 @@ public partial class TrackView : UserControl
 
             e.Handled = true; // 避免冒泡
         }
+    }
+
+    private void UpdateTrackSelect()
+    {
+        var trackIndex = (int)Math.Floor(_mousePosition.Y / TrackHeight);
+
+        if (trackIndex < 0 || trackIndex >= DataStateService.Tracks.Count)
+        {
+            return;
+        }
+
+        var track = DataStateService.Tracks[trackIndex];
+        track.HandleTrackSelected();
     }
 
     /// <summary>
@@ -532,6 +561,8 @@ public partial class TrackView : UserControl
         if (_activeClip != null && _activeClip.StartBeat < pointerBeat)
         {
             _activeClip.Proto.Duration = pointerBeat - _activeClip.StartBeat;
+            if (DataStateService.ActiveTrack?.Proto != null)
+                ReDurationCommand.Execute(DataStateService.ActiveTrack.Proto, _activeClip.Proto, _activeClip.Duration);
             InvalidateVisual();
         }
     }

@@ -24,6 +24,14 @@ public partial class TrackViewModel : ViewModelBase
     [ObservableProperty] private bool _byPassed = false;
     [ObservableProperty] private IBrush _byPassBtnColor = Brush.Parse("#D0FFE5");
 
+    partial void OnSelectedChanged(bool value)
+    {
+        if (value)
+        {
+            DataStateService.ActiveTrack = this;
+        }
+    }
+
     partial void OnNameChanged(string value)
     {
         Proto.Name = value;
@@ -94,7 +102,7 @@ public partial class TrackViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    public void OnTrackSelected()
+    public void HandleTrackSelected()
     {
         foreach (var track in DataStateService.Tracks)
         {

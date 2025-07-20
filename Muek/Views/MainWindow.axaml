@@ -89,7 +89,7 @@
                                                 <vm:TrackHeadViewModel Background="{Binding Color}" Width="200"
                                                                        Margin="2"
                                                                        CornerRadius="12,0,0,12" Padding="10"
-                                                                       Command="{Binding OnTrackSelected}"
+                                                                       Command="{Binding HandleTrackSelected}"
                                                                        Tag="{Binding Id}"
                                                                        ClickMode="Press" HorizontalAlignment="Left"
                                                                        Name="{Binding Id}">

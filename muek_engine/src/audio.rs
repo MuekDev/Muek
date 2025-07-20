@@ -7,9 +7,10 @@ use std::vec;
 
 use cpal::Stream;
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
-use tonic::Response;
+use tonic::{Response, Status};
 
 use crate::audio::audio_proto::NewAudioClipRequest;
+use crate::audio::audio_proto::ReDurationRequest;
 use crate::audio::audio_proto::audio_proxy_proto_server::AudioProxyProto;
 use crate::audio::audio_proto::{Ack, Empty, PlayRequest, Track};
 use crate::audio::audio_proto::{DecodeResponse, PlayheadPos};
@@ -111,7 +112,7 @@ impl AudioPlayer {
         println!("[play] tracks len: {}", lock.len());
 
         // TODO: 实际上这部分的逻辑应当独立，并添加进独立的预混合计算和缓存功能。在采样被导入时预计算混合。
-        let mut samples: Vec<Vec<f32>> = vec![];    // empty buffer
+        let mut samples: Vec<Vec<f32>> = vec![]; // empty buffer
         let mut max_length: usize = 0;
 
         for track in lock.iter() {
@@ -124,10 +125,20 @@ impl AudioPlayer {
                 let empty = &Vec::<f32>::new();
                 let sss = binding.get(&clip.id).unwrap_or(empty);
 
+                let duration_sample = (((clip.duration * 60.0) / bpm) * sample_rate as f64).round() as usize
+                    * 4 // 4 拍每小节
+                    * 2; // 双通道
+
+                let clip_samples = if sss.len() > duration_sample {
+                    &sss[0..duration_sample]
+                } else {
+                    sss.as_slice()
+                };
+
                 let start_sample = (((clip.start_beat * 60.0) / bpm) * sample_rate as f64).round()
                     as usize
                     * 4     // TODO: 改为beats_per_bar变量，与前端同步，目前是4/4拍
-                    * 2;    // TODO: 双通道需要*2，因为左右会交错填充
+                    * 2; // TODO: 双通道需要*2，因为左右会交错填充
 
                 // 判断，防止panic
                 if current_track.len() < start_sample {
@@ -135,7 +146,7 @@ impl AudioPlayer {
                     current_track.extend(std::iter::repeat(0.0).take(pad_len));
                 }
 
-                current_track.extend(sss.iter().cloned());
+                current_track.extend(clip_samples.into_iter());
             }
 
             max_length = max(max_length, current_track.len());
@@ -327,15 +338,55 @@ impl AudioProxyProto for AudioProxy {
                 for t in tracks.iter_mut() {
                     if t.id == *track.id {
                         t.clips.push(clip.clone());
+                        // 如果track存在就直接修改并return
                         return Ok(Response::new(Ack {}));
                     }
                 }
 
+                // 否则添加新轨道
                 tracks.push(track.clone());
             }
         }
 
         Ok(Response::new(Ack {}))
+    }
+
+    async fn re_duration_clip(
+        &self,
+        request: tonic::Request<ReDurationRequest>,
+    ) -> Result<tonic::Response<Ack>, tonic::Status> {
+        let r = request.get_ref();
+
+        let req_track = r
+            .track
+            .as_ref()
+            .ok_or_else(|| Status::internal("Cannot find the track"))?;
+        let req_clip = r
+            .clip
+            .as_ref()
+            .ok_or_else(|| Status::internal("Cannot find the clip"))?;
+
+        let new_duration = r.new_duration;
+        println!("[re_duration_clip] {}", &new_duration);
+
+        let engine = get_audio_engine();
+        let mut tracks = engine
+            .tracks
+            .lock()
+            .map_err(|_| Status::internal("Failed to lock audio engine tracks"))?;
+
+        // 查找对应轨道
+        if let Some(track) = tracks.iter_mut().find(|t| t.id == req_track.id) {
+            // 查找对应片段
+            if let Some(clip) = track.clips.iter_mut().find(|c| c.id == req_clip.id) {
+                clip.duration = new_duration;
+                return Ok(Response::new(Ack {}));
+            } else {
+                return Err(Status::not_found("Clip not found in track"));
+            }
+        } else {
+            return Err(Status::not_found("Track not found"));
+        }
     }
 }
 
