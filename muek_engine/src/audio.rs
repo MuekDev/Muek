@@ -5,8 +5,8 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::{Duration, Instant};
 use std::vec;
 
-use cpal::Stream;
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
+use cpal::{BufferSize, Stream};
 use tonic::{Response, Status};
 
 use crate::audio::audio_proto::MoveClipPosRequest;
@@ -26,6 +26,8 @@ use once_cell::sync::Lazy;
 use rayon::prelude::*;
 use std::sync::{Arc, Mutex, RwLock};
 
+const BUFFER_SIZE: usize = 4096;
+
 static AUDIO_ENGINE: Lazy<Arc<AudioPlayer>> = Lazy::new(|| Arc::new(AudioPlayer::new()));
 static CLIP_CACHES: Lazy<Arc<RwLock<HashMap<String, Vec<f32>>>>> =
     Lazy::new(|| Arc::new(RwLock::new(HashMap::new())));
@@ -42,6 +44,10 @@ pub struct AudioPlayer {
     pub sample_rate: Mutex<u32>,       // 采样率（用于时间计算）
     pub start_time: Mutex<Option<Instant>>,
     pub bpm: Mutex<f64>,
+    pub buffer_pos: Arc<AtomicUsize>,
+    pub buffer1: Arc<RwLock<Vec<f32>>>,
+    pub buffer_index: Arc<AtomicUsize>,
+    // pub buffer2: Arc<RwLock<Vec<f32>>>,
 }
 
 impl AudioPlayer {
@@ -54,6 +60,10 @@ impl AudioPlayer {
             sample_rate: Mutex::new(44100),
             start_time: Mutex::new(None),
             bpm: Mutex::new(150.0),
+            buffer_pos: Arc::new(AtomicUsize::new(0)),
+            buffer1: Arc::new(RwLock::new(vec![0.0; BUFFER_SIZE])),
+            buffer_index: Arc::new(AtomicUsize::new(1)),
+            // buffer2: Arc::new(RwLock::new(vec![0.0; BUFFER_SIZE])),
         }
     }
 
@@ -173,7 +183,23 @@ impl AudioPlayer {
             })
             .collect();
 
+        let a = &mixed[0..BUFFER_SIZE];
+
+        let mut lock = self.buffer1.write().unwrap();
+        {
+            lock.copy_from_slice(a);
+        }
+
+        // let a = &mixed[BUFFER_SIZE..BUFFER_SIZE * 2];
+
+        // let mut lock = self.buffer2.write().unwrap();
+        // {
+        //     lock.copy_from_slice(a);
+        // }
+
         *self.samples.lock().unwrap() = Arc::new(mixed);
+        let _ = &self.buffer_index.store(1, Ordering::Relaxed);
+        let _ = &self.buffer_pos.store(0, Ordering::Relaxed);
 
         println!("[play] 缓存带入终了。");
 
@@ -205,7 +231,10 @@ impl AudioPlayer {
         };
 
         let position = self.position.clone();
-        println!("[start_output] samples len: {:?}", samples.len());
+        let buffer_index = self.buffer_index.clone();
+        let buffer_pos = self.buffer_pos.clone();
+        let buffer1 = self.buffer1.clone();
+        // println!("[start_output] samples len: {:?}", samples.len());
 
         let err_fn = |err| eprintln!("stream error: {}", err);
 
@@ -214,11 +243,46 @@ impl AudioPlayer {
                 &config.into(),
                 move |output: &mut [f32], _| {
                     let mut pos = position.load(Ordering::Relaxed);
+                    let mut b_pos = buffer_pos.load(Ordering::Relaxed);
+                    let mut b_idx = buffer_index.load(Ordering::Relaxed); // 修复：这里是 `buffer_index`，不是 `buffer_pos`
+
                     for out in output {
-                        *out = *samples.get(pos).unwrap_or(&0.0);
+                        // 读取当前 buffer 的样本
+                        *out = buffer1.read().unwrap().get(b_pos).copied().unwrap_or(0.0);
+
                         pos += 1;
+                        b_pos += 1;
+
+                        // 是否需要切换 buffer
+                        // TODO: 使用buffer2
+                        if b_pos >= BUFFER_SIZE {
+                            b_idx += 1;
+                            b_pos = 0;
+
+                            let start = b_idx * BUFFER_SIZE;
+                            let end = start + BUFFER_SIZE;
+
+                            let mut next_buf = vec![0.0; BUFFER_SIZE]; // 默认填 0
+
+                            if start < samples.len() {
+                                let slice_end = end.min(samples.len()); // 不越界
+                                next_buf[..slice_end - start]
+                                    .copy_from_slice(&samples[start..slice_end]);
+                            } else {
+                                println!("[stream] End of samples reached.");
+                                // TODO: 停止播放
+                            }
+
+                            // 切换 buffer 内容
+                            let mut w = buffer1.write().unwrap();
+                            *w = next_buf;
+
+                            buffer_index.store(b_idx, Ordering::Relaxed);
+                        }
                     }
+
                     position.store(pos, Ordering::Relaxed);
+                    buffer_pos.store(b_pos, Ordering::Relaxed);
                 },
                 err_fn,
                 None,
