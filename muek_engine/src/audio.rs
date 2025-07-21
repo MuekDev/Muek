@@ -381,7 +381,6 @@ impl AudioProxyProto for AudioProxy {
             .ok_or_else(|| Status::internal("Cannot find the clip"))?;
 
         let new_duration = r.new_duration;
-        println!("[re_duration_clip] {}", &new_duration);
 
         let engine = get_audio_engine();
         let mut tracks = engine
@@ -393,6 +392,10 @@ impl AudioProxyProto for AudioProxy {
         if let Some(track) = tracks.iter_mut().find(|t| t.id == req_track.id) {
             // 查找对应片段
             if let Some(clip) = track.clips.iter_mut().find(|c| c.id == req_clip.id) {
+                println!(
+                    "[re_duration_clip] {}, {} -> {}",
+                    req_clip.name, clip.duration, &new_duration
+                );
                 clip.duration = new_duration;
                 return Ok(Response::new(Ack {}));
             } else {
@@ -417,8 +420,6 @@ impl AudioProxyProto for AudioProxy {
             .as_ref()
             .ok_or_else(|| Status::internal("Cannot find the clip"))?;
 
-        println!("[move_clip] {}", req_clip.name);
-
         let engine = get_audio_engine();
         let mut tracks = engine
             .tracks
@@ -429,6 +430,10 @@ impl AudioProxyProto for AudioProxy {
         if let Some(track) = tracks.iter_mut().find(|t| t.id == req_track.id) {
             // 查找对应片段
             if let Some(clip) = track.clips.iter_mut().find(|c| c.id == req_clip.id) {
+                println!(
+                    "[move_clip] {}, from {} -> to {}",
+                    req_clip.name, clip.start_beat, req_clip.start_beat
+                );
                 clip.start_beat = req_clip.start_beat;
                 return Ok(Response::new(Ack {}));
             } else {
@@ -469,10 +474,8 @@ fn render(_req: PlayRequest) -> DecodeResponse {
 fn resample_stereo(samples: &[f32], from_rate: usize, to_rate: usize) -> Vec<f32> {
     assert!(samples.len() % 2 == 0, "立体声数据长度应为偶数");
 
-    let (left, right): (Vec<f32>, Vec<f32>) = samples
-        .chunks(2)
-        .map(|chunk| (chunk[0], chunk[1]))
-        .unzip();
+    let (left, right): (Vec<f32>, Vec<f32>) =
+        samples.chunks(2).map(|chunk| (chunk[0], chunk[1])).unzip();
 
     let left_resampled = resample_mono(&left, from_rate, to_rate);
     let right_resampled = resample_mono(&right, from_rate, to_rate);
