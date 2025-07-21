@@ -174,10 +174,6 @@ impl AudioPlayer {
 
         println!("[play] 缓存带入终了。");
 
-        // Reset play position
-        self.position.store(0, Ordering::Relaxed);
-        *self.start_time.lock().unwrap() = Some(Instant::now());
-
         // Start play audio
         self.start_output();
     }
@@ -233,6 +229,10 @@ impl AudioPlayer {
         if let Some(old) = stream_guard.take() {
             drop(old);
         }
+
+        // Reset play position
+        self.position.store(0, Ordering::Relaxed);
+        *self.start_time.lock().unwrap() = Some(Instant::now());
 
         stream.play().unwrap();
         *stream_guard = Some(stream);
