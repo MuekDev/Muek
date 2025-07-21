@@ -424,7 +424,7 @@ public partial class TrackView : UserControl
         {
             UpdateTrackSelect();
 
-            var state = GetClipInteractionMode();
+            var state = GetClipInteractionMode(); // HACK: 此处设置了_activeClip
             if (state == ClipInteractionMode.None)
             {
                 _isDraggingPlayhead = true;
@@ -436,6 +436,11 @@ public partial class TrackView : UserControl
                     return;
 
                 _isMovingClip = true;
+
+                var globalX = Math.Max(0, _mousePosition.X + OffsetX);
+                var pointerBeat = globalX / ScaleFactor;
+                var clickBeat = pointerBeat - _activeClip.StartBeat;
+                _lastClickedBeatOfClip = clickBeat;
             }
             else if (state == ClipInteractionMode.OnRight)
             {
@@ -623,8 +628,9 @@ public partial class TrackView : UserControl
             return;
 
         var globalX = Math.Max(0, point.X + OffsetX);
-        var pointerBeat = globalX / ScaleFactor;
-        _activeClip.Proto.StartBeat = pointerBeat;
+        var pointerBeat = globalX / ScaleFactor - _lastClickedBeatOfClip;
+        if (pointerBeat > 0)
+            _activeClip.Proto.StartBeat = pointerBeat;
 
         if (DataStateService.ActiveTrack?.Proto != null)
             MoveCommand.Execute(DataStateService.ActiveTrack.Proto, _activeClip.Proto);
