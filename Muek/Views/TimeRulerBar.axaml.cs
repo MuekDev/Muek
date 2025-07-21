@@ -92,7 +92,9 @@ public partial class TimeRulerBar : UserControl
             if (isMainLine && ScaleFactor > 22)
             {
                 context.DrawText(
-                    new FormattedText(beats.ToString(), CultureInfo.CurrentCulture, FlowDirection.LeftToRight,
+                    // HACK: 粗略计算小节
+                    new FormattedText(((beats - 1) * 4 + 1).ToString(), CultureInfo.CurrentCulture,
+                        FlowDirection.LeftToRight,
                         Typeface.Default, 10, brushWhite)
                     , new Point(drawX + 4, height));
                 beats++;

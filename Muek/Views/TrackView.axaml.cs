@@ -111,7 +111,7 @@ public partial class TrackView : UserControl
         }
     }
 
-    public static int Subdivisions { get; set; } = 4;
+    public static int Subdivisions => DataStateService.Subdivisions; 
 
 
     private void OnDropEnter(object? sender, DragEventArgs e)
@@ -386,7 +386,7 @@ public partial class TrackView : UserControl
                 new Point(playheadX, 0),
                 new Point(playheadX, renderSize.Height));
 
-            var label = (PlayHeadPosX + 1).ToString("0.0");
+            var label = $"{ (PlayHeadPosX*4 + 1):0.0} ({(PlayHeadPosX + 1):0.0})";
             context.DrawText(
                 new FormattedText(label, CultureInfo.CurrentCulture, FlowDirection.LeftToRight,
                     Typeface.Default, 10, Brushes.White),

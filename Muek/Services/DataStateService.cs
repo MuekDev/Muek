@@ -20,6 +20,9 @@ public static class DataStateService
 
     public static bool IsPlaying { get; set; }
     public static TrackViewModel? ActiveTrack { get; set; }
+    
+    // 即拍数
+    public static int Subdivisions { get; set; } = 4;
 
     public static void AddTrack(string? name = null, Color? color = null)
     {
