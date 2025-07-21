@@ -152,3 +152,21 @@ public static class MoveCommand
         _ = RpcService.SendCommand(new StopCommand());
     }
 }
+
+public static class ReOffsetCommand
+{
+    public static void Execute(Track track, Clip clip)
+    {
+        Console.WriteLine("[ReOffsetCommand] Execute");
+        using var channel = GrpcChannel.ForAddress(RpcService.Host);
+        var client = new AudioProxyProto.AudioProxyProtoClient(channel);
+        var reply = client.ReOffsetClip(new ReOffsetClipRequest()
+        {
+            Clip = clip,
+            Track = track,
+        });
+        Console.WriteLine($"RESPONSE: {reply}");
+
+        _ = RpcService.SendCommand(new StopCommand());
+    }
+}

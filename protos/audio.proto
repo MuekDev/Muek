@@ -52,6 +52,10 @@ message MoveClipPosRequest {
   Track track = 1;
   Clip clip = 2;
 }
+message ReOffsetClipRequest {
+  Track track = 1;
+  Clip clip = 2;
+}
 
 // 音频服务
 service AudioProxyProto {
@@ -61,7 +65,8 @@ service AudioProxyProto {
   rpc GetPlayheadPos (Empty) returns (PlayheadPos);
   // rpc UpdateTrack (Track) returns (Ack);
   rpc HandleNewAudioClip (NewAudioClipRequest) returns (Ack);
-  rpc ReDurationClip (ReDurationRequest) returns (Ack);
+  rpc ReDurationClip (ReDurationRequest) returns (Ack);   // 即右侧拖拽裁剪
+  rpc ReOffsetClip (ReOffsetClipRequest) returns (Ack);   // 即左侧拖拽裁剪
   rpc MoveClip (MoveClipPosRequest) returns (Ack);
 }
 

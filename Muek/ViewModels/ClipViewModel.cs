@@ -15,6 +15,7 @@ public class ClipViewModel
 
     public double StartBeat => Proto.StartBeat;
     public double Duration => Proto.Duration;
+    public double Offset => Proto.Offset;
     public string Path => Proto.Path;
     public string Name => Proto.Name;
     public double SourceDuration { get; set; }

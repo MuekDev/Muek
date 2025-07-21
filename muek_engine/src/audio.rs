@@ -12,6 +12,7 @@ use tonic::{Response, Status};
 use crate::audio::audio_proto::MoveClipPosRequest;
 use crate::audio::audio_proto::NewAudioClipRequest;
 use crate::audio::audio_proto::ReDurationRequest;
+use crate::audio::audio_proto::ReOffsetClipRequest;
 use crate::audio::audio_proto::audio_proxy_proto_server::AudioProxyProto;
 use crate::audio::audio_proto::{Ack, Empty, PlayRequest, Track};
 use crate::audio::audio_proto::{DecodeResponse, PlayheadPos};
@@ -130,11 +131,13 @@ impl AudioPlayer {
                     * 4 // 4 拍每小节
                     * 2; // 双通道
 
-                let clip_samples = if sss.len() > duration_sample {
-                    &sss[0..duration_sample]
-                } else {
-                    sss.as_slice()
-                };
+                let offset_sample = (((clip.offset * 60.0) / bpm) * sample_rate as f64).round() as usize
+                    * 4 // 4 拍每小节
+                    * 2; // 双通道
+
+                let offset_sample = offset_sample.min(sss.len()); // 防止越界
+                let end_sample = (offset_sample + duration_sample).min(sss.len()); // 防止越界
+                let clip_samples = &sss[offset_sample..end_sample];
 
                 let start_sample = (((clip.start_beat * 60.0) / bpm) * sample_rate as f64).round()
                     as usize
@@ -434,6 +437,48 @@ impl AudioProxyProto for AudioProxy {
                     "[move_clip] {}, from {} -> to {}",
                     req_clip.name, clip.start_beat, req_clip.start_beat
                 );
+                clip.start_beat = req_clip.start_beat;
+                return Ok(Response::new(Ack {}));
+            } else {
+                return Err(Status::not_found("Clip not found in track"));
+            }
+        } else {
+            return Err(Status::not_found("Track not found"));
+        }
+    }
+
+    async fn re_offset_clip(
+        &self,
+        request: tonic::Request<ReOffsetClipRequest>,
+    ) -> std::result::Result<tonic::Response<Ack>, tonic::Status> {
+        let r = request.get_ref();
+        let req_track = r
+            .track
+            .as_ref()
+            .ok_or_else(|| Status::internal("Cannot find the track"))?;
+        let req_clip = r
+            .clip
+            .as_ref()
+            .ok_or_else(|| Status::internal("Cannot find the clip"))?;
+
+        let new_offset = req_clip.offset;
+
+        let engine = get_audio_engine();
+        let mut tracks = engine
+            .tracks
+            .lock()
+            .map_err(|_| Status::internal("Failed to lock audio engine tracks"))?;
+
+        // 查找对应轨道
+        if let Some(track) = tracks.iter_mut().find(|t| t.id == req_track.id) {
+            // 查找对应片段
+            if let Some(clip) = track.clips.iter_mut().find(|c| c.id == req_clip.id) {
+                println!(
+                    "[re_offset_clip] {}, from {} -> to {}",
+                    req_clip.name, clip.offset, req_clip.offset
+                );
+                clip.offset = req_clip.offset;
+                clip.duration = req_clip.duration;
                 clip.start_beat = req_clip.start_beat;
                 return Ok(Response::new(Ack {}));
             } else {

@@ -29,6 +29,7 @@ public partial class TrackView : UserControl
     private bool _isResizingClipRight;         // 是否在调整片段长度
     private ClipViewModel? _activeClip = null; // 当前被激活的片段
     private double _lastClickedBeatOfClip = 0; // 最后一次点击clip title的位置（相对于clip，单位为beat）
+    private bool _isResizingClipLeft;
 
     public TrackView()
     {
@@ -111,7 +112,7 @@ public partial class TrackView : UserControl
         }
     }
 
-    public static int Subdivisions => DataStateService.Subdivisions; 
+    public static int Subdivisions => DataStateService.Subdivisions;
 
 
     private void OnDropEnter(object? sender, DragEventArgs e)
@@ -247,8 +248,9 @@ public partial class TrackView : UserControl
 
                     // 根据 clip.Duration 和 clip.Offset 裁剪波形（单位: 样本）
                     int totalSamples = waveform.Count;
-                    var durationRatio = (float)clip.Duration / clip.SourceDuration; // 片段占原始长度的比例
-                    var offsetRatio = (float)0 / clip.SourceDuration; // 左偏移占原始长度的比例  // TODO: 把0改成clip.Offset
+                    var durationRatio = (float)clip.Duration / clip.SourceDuration;
+                    var offsetRatio = (float)clip.Offset / clip.SourceDuration;
+
 
                     int startSample = (int)(offsetRatio * totalSamples);
                     int endSample = (int)((offsetRatio + durationRatio) * totalSamples);
@@ -386,7 +388,7 @@ public partial class TrackView : UserControl
                 new Point(playheadX, 0),
                 new Point(playheadX, renderSize.Height));
 
-            var label = $"{ (PlayHeadPosX*4 + 1):0.0} ({(PlayHeadPosX + 1):0.0})";
+            var label = $"{(PlayHeadPosX * 4 + 1):0.0} ({(PlayHeadPosX + 1):0.0})";
             context.DrawText(
                 new FormattedText(label, CultureInfo.CurrentCulture, FlowDirection.LeftToRight,
                     Typeface.Default, 10, Brushes.White),
@@ -442,6 +444,13 @@ public partial class TrackView : UserControl
 
                 _isResizingClipRight = true;
             }
+            else if (state == ClipInteractionMode.OnLeft)
+            {
+                if (_activeClip == null)
+                    return;
+
+                _isResizingClipLeft = true;
+            }
 
             e.Handled = true; // 避免冒泡
         }
@@ -468,7 +477,7 @@ public partial class TrackView : UserControl
     /// </returns>
     private ClipInteractionMode GetClipInteractionMode()
     {
-        if (_isMovingClip || _isDraggingPlayhead || _isResizingClipRight)
+        if (_isMovingClip || _isDraggingPlayhead || _isResizingClipRight || _isResizingClipLeft)
             return ClipInteractionMode.None;
 
         var trackIndex = (int)Math.Floor(_mousePosition.Y / TrackHeight);
@@ -546,12 +555,50 @@ public partial class TrackView : UserControl
             {
                 ReDurationForActiveClip(point);
             }
+            else if (_isResizingClipLeft)
+            {
+                ReOffsetForActiveClip(point);
+            }
         }
 
         _mousePosition = e.GetPosition(this);
 
         CheckIfPointerInClipBounds(_mousePosition);
     }
+
+    private void ReOffsetForActiveClip(Point point)
+    {
+        var globalX = Math.Max(0, point.X + OffsetX);
+        var pointerBeat = globalX / ScaleFactor;
+
+        if (_activeClip != null)
+        {
+            var newStart = pointerBeat;
+            var oldStart = _activeClip.StartBeat;
+
+            // 计算偏移的差值
+            var delta = newStart - oldStart;
+
+            if (delta != 0)
+            {
+                var newOffset = _activeClip.Proto.Offset + delta;
+                var newDuration = _activeClip.Proto.Duration - delta;
+
+                if (newOffset >= 0 && newDuration > 0.1)
+                {
+                    _activeClip.Proto.StartBeat = newStart;
+                    _activeClip.Proto.Offset = newOffset;
+                    _activeClip.Proto.Duration = newDuration;
+
+                    if (DataStateService.ActiveTrack?.Proto != null)
+                        ReOffsetCommand.Execute(DataStateService.ActiveTrack.Proto, _activeClip.Proto);
+
+                    InvalidateVisual();
+                }
+            }
+        }
+    }
+
 
     private void ReDurationForActiveClip(Point point)
     {
@@ -560,7 +607,10 @@ public partial class TrackView : UserControl
 
         if (_activeClip != null && _activeClip.StartBeat < pointerBeat)
         {
-            _activeClip.Proto.Duration = pointerBeat - _activeClip.StartBeat;
+            var newDuration = pointerBeat - _activeClip.StartBeat;
+            if (newDuration < 0.1 || newDuration > _activeClip.SourceDuration)
+                return;
+            _activeClip.Proto.Duration = newDuration;
             if (DataStateService.ActiveTrack?.Proto != null)
                 ReDurationCommand.Execute(DataStateService.ActiveTrack.Proto, _activeClip.Proto, _activeClip.Duration);
             InvalidateVisual();
@@ -602,6 +652,7 @@ public partial class TrackView : UserControl
         _isDraggingPlayhead = false;
         _isMovingClip = false;
         _isResizingClipRight = false;
+        _isResizingClipLeft = false;
     }
 
     protected override void OnPointerWheelChanged(PointerWheelEventArgs e)
