@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use std::result::Result;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::{Duration, Instant};
-use std::vec;
+use std::{slice, vec};
 
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 use cpal::{BufferSize, Stream};
@@ -123,65 +123,7 @@ impl AudioPlayer {
         // Join into samples
         println!("[play] tracks len: {}", lock.len());
 
-        // TODO: 实际上这部分的逻辑应当独立，并添加进独立的预混合计算和缓存功能。在采样被导入时预计算混合。
-        let mut samples: Vec<Vec<f32>> = vec![]; // empty buffer
-        let mut max_length: usize = 0;
-
-        for track in lock.iter() {
-            let mut current_track: Vec<f32> = vec![];
-
-            for clip in &track.clips {
-                println!("[play] clip id: {}", &clip.id);
-
-                let binding = CLIP_CACHES.read().unwrap();
-                let empty = &Vec::<f32>::new();
-                let sss = binding.get(&clip.id).unwrap_or(empty);
-
-                let duration_sample = (((clip.duration * 60.0) / bpm) * sample_rate as f64).round() as usize
-                    * 4 // 4 拍每小节
-                    * 2; // 双通道
-
-                let offset_sample = (((clip.offset * 60.0) / bpm) * sample_rate as f64).round() as usize
-                    * 4 // 4 拍每小节
-                    * 2; // 双通道
-
-                let offset_sample = offset_sample.min(sss.len()); // 防止越界
-                let end_sample = (offset_sample + duration_sample).min(sss.len()); // 防止越界
-                let clip_samples = &sss[offset_sample..end_sample];
-
-                let start_sample = (((clip.start_beat * 60.0) / bpm) * sample_rate as f64).round()
-                    as usize
-                    * 4     // TODO: 改为beats_per_bar变量，与前端同步，目前是4/4拍
-                    * 2; // TODO: 双通道需要*2，因为左右会交错填充
-
-                // 判断，防止panic
-                if current_track.len() < start_sample {
-                    let pad_len = start_sample - current_track.len();
-                    current_track.extend(std::iter::repeat(0.0).take(pad_len));
-                }
-
-                current_track.extend(clip_samples.into_iter());
-            }
-
-            max_length = max(max_length, current_track.len());
-            samples.push(current_track);
-            println!("[play] processed track: {:?}", track.id);
-        }
-
-        println!("[play] tracks loaded ok");
-
-        // mix tracks
-        let mixed: Vec<f32> = (0..max_length)
-            .into_par_iter()
-            .map(|i| {
-                let mut sum = 0.0;
-                for track in &samples {
-                    sum += *track.get(i).unwrap_or(&0.0);
-                }
-                // sum.clamp(-1.0, 1.0)     // TODO: clamp硬削波了，我们需要找到一个类似其他DAW的钳制方法
-                sum
-            })
-            .collect();
+        let mixed = render_x(bpm, sample_rate as f64, lock.clone());
 
         let a = &mixed[0..BUFFER_SIZE];
 
@@ -615,4 +557,68 @@ fn resample_mono(samples: &[f32], from_rate: usize, to_rate: usize) -> Vec<f32> 
     }
 
     resampled
+}
+
+fn render_x(bpm: f64, sample_rate: f64, tracks: Vec<Track>) -> Vec<f32> {
+    let mut samples: Vec<Vec<f32>> = vec![]; // empty buffer
+    let mut max_length: usize = 0;
+    let lock = tracks;
+
+    for track in lock.iter() {
+        let mut current_track: Vec<f32> = vec![];
+
+        for clip in &track.clips {
+            println!("[play] clip id: {}", &clip.id);
+
+            let binding = CLIP_CACHES.read().unwrap();
+            let empty = &Vec::<f32>::new();
+            let sss = binding.get(&clip.id).unwrap_or(empty);
+
+            let duration_sample = (((clip.duration * 60.0) / bpm) * sample_rate as f64).round() as usize
+                    * 4 // 4 拍每小节
+                    * 2; // 双通道
+
+            let offset_sample = (((clip.offset * 60.0) / bpm) * sample_rate as f64).round() as usize
+                    * 4 // 4 拍每小节
+                    * 2; // 双通道
+
+            let offset_sample = offset_sample.min(sss.len()); // 防止越界
+            let end_sample = (offset_sample + duration_sample).min(sss.len()); // 防止越界
+            let clip_samples = &sss[offset_sample..end_sample];
+
+            let start_sample = (((clip.start_beat * 60.0) / bpm) * sample_rate as f64).round()
+                    as usize
+                    * 4     // TODO: 改为beats_per_bar变量，与前端同步，目前是4/4拍
+                    * 2; // TODO: 双通道需要*2，因为左右会交错填充
+
+            // 判断，防止panic
+            if current_track.len() < start_sample {
+                let pad_len = start_sample - current_track.len();
+                current_track.extend(std::iter::repeat(0.0).take(pad_len));
+            }
+
+            current_track.extend(clip_samples.into_iter());
+        }
+
+        max_length = max(max_length, current_track.len());
+        samples.push(current_track);
+        println!("[play] processed track: {:?}", track.id);
+    }
+
+    println!("[play] tracks loaded ok");
+
+    // mix tracks
+    let mixed: Vec<f32> = (0..max_length)
+        .into_par_iter()
+        .map(|i| {
+            let mut sum = 0.0;
+            for track in &samples {
+                sum += *track.get(i).unwrap_or(&0.0);
+            }
+            // sum.clamp(-1.0, 1.0)     // TODO: clamp硬削波了，我们需要找到一个类似其他DAW的钳制方法
+            sum
+        })
+        .collect();
+
+    mixed
 }
