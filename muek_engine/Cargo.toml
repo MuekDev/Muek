@@ -14,6 +14,7 @@ symphonia = { version = "0.5.4", features = ["mp3"] }
 minimp3 = { git = "https://github.com/Manith-2001/minimp3-rs.git" }
 infer = "0.19.0"
 rayon = "1.10.0"
+ringbuf = "0.4.8"
 
 [build-dependencies]
 tonic-build = "*"

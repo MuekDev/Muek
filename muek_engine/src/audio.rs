@@ -3,10 +3,14 @@ use std::collections::HashMap;
 use std::result::Result;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::{Duration, Instant};
-use std::{slice, vec};
+use std::vec;
 
+use cpal::Stream;
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
-use cpal::{BufferSize, Stream};
+use ringbuf::storage::Heap;
+use ringbuf::traits::{Consumer, Observer, Producer, Split};
+use ringbuf::wrap::caching::Caching;
+use ringbuf::{HeapRb, SharedRb};
 use tonic::{Response, Status};
 
 use crate::audio::audio_proto::MoveClipPosRequest;
@@ -24,13 +28,25 @@ pub mod audio_proto {
 
 use once_cell::sync::Lazy;
 use rayon::prelude::*;
-use std::sync::{Arc, Mutex, RwLock};
+use std::sync::{Arc, Mutex, OnceLock, RwLock};
 
-const BUFFER_SIZE: usize = 4096;
+type SharedProducer<T> = Caching<Arc<SharedRb<T>>, true, false>;
+type SharedConsumer<T> = Caching<Arc<SharedRb<T>>, false, true>;
+
+const BUFFER_SIZE: usize = 48000;
 
 static AUDIO_ENGINE: Lazy<Arc<AudioPlayer>> = Lazy::new(|| Arc::new(AudioPlayer::new()));
 static CLIP_CACHES: Lazy<Arc<RwLock<HashMap<String, Vec<f32>>>>> =
     Lazy::new(|| Arc::new(RwLock::new(HashMap::new())));
+
+// static AUDIO_RINGBUF: Lazy<Arc<RwLock<HeapRb<f32>>>> =
+//     Lazy::new(|| Arc::new(RwLock::new(HeapRb::<f32>::new(BUFFER_SIZE))));
+
+static RINGBUF_PRODUCER: Lazy<Mutex<Option<SharedProducer<Heap<f32>>>>> =
+    Lazy::new(|| Mutex::new(None));
+
+static RINGBUF_CONSUMER: Lazy<Mutex<Option<SharedConsumer<Heap<f32>>>>> =
+    Lazy::new(|| Mutex::new(None));
 
 pub fn get_audio_engine() -> Arc<AudioPlayer> {
     AUDIO_ENGINE.clone()
@@ -45,13 +61,18 @@ pub struct AudioPlayer {
     pub start_time: Mutex<Option<Instant>>,
     pub bpm: Mutex<f64>,
     pub buffer_pos: Arc<AtomicUsize>,
-    pub buffer1: Arc<RwLock<Vec<f32>>>,
+    // pub buffer1: Arc<RwLock<Vec<f32>>>,
     pub buffer_index: Arc<AtomicUsize>,
     // pub buffer2: Arc<RwLock<Vec<f32>>>,
 }
 
 impl AudioPlayer {
     pub fn new() -> Self {
+        let rb = HeapRb::<f32>::new(BUFFER_SIZE);
+        let (p, c) = rb.split();
+        *RINGBUF_PRODUCER.lock().unwrap() = Some(p);
+        *RINGBUF_CONSUMER.lock().unwrap() = Some(c);
+
         Self {
             stream: Mutex::new(None),
             tracks: Mutex::new(vec![]),
@@ -61,7 +82,7 @@ impl AudioPlayer {
             start_time: Mutex::new(None),
             bpm: Mutex::new(150.0),
             buffer_pos: Arc::new(AtomicUsize::new(0)),
-            buffer1: Arc::new(RwLock::new(vec![0.0; BUFFER_SIZE])),
+            // buffer1: Arc::new(RwLock::new(vec![0.0; BUFFER_SIZE])),
             buffer_index: Arc::new(AtomicUsize::new(1)),
             // buffer2: Arc::new(RwLock::new(vec![0.0; BUFFER_SIZE])),
         }
@@ -125,12 +146,27 @@ impl AudioPlayer {
 
         let mixed = render_x(bpm, sample_rate as f64, lock.clone());
 
-        let a = &mixed[0..BUFFER_SIZE];
+        let samples = mixed.clone();
 
-        let mut lock = self.buffer1.write().unwrap();
-        {
-            lock.copy_from_slice(a);
-        }
+        let from_rate = 44100; // TODO: 由用户设置
+        let to_rate = 48000;
+
+        let samples = if from_rate != to_rate {
+            println!(
+                "[start_output] Resampling from {} to {}",
+                from_rate, to_rate
+            );
+            resample_stereo(&samples, from_rate, to_rate)
+        } else {
+            samples.to_vec()
+        };
+
+        // let a = &mixed[0..BUFFER_SIZE];
+
+        // let mut lock = self.buffer1.write().unwrap();
+        // {
+        // lock.copy_from_slice(a);
+        // }
 
         // let a = &mixed[BUFFER_SIZE..BUFFER_SIZE * 2];
 
@@ -139,11 +175,49 @@ impl AudioPlayer {
         //     lock.copy_from_slice(a);
         // }
 
-        *self.samples.lock().unwrap() = Arc::new(mixed);
+        *self.samples.lock().unwrap() = Arc::new(mixed.clone());
         let _ = &self.buffer_index.store(1, Ordering::Relaxed);
         let _ = &self.buffer_pos.store(0, Ordering::Relaxed);
 
         println!("[play] 缓存带入终了。");
+        let buffer_index = self.buffer_index.clone();
+        // let mut rb = RINGBUF_PRODUCER.lock().unwrap();
+        // if let Some(r) = rb.as_mut() {
+        //     let mut  i = 0;
+        //     for s in samples.iter() {
+        //         if i <= BUFFER_SIZE {
+        //             r.try_push(*s);
+        //             i += 1;
+        //         }
+        //     }
+        // }
+
+        tokio::spawn(async move {
+            let mut rb = RINGBUF_PRODUCER.lock().unwrap();
+            let mut rem_buffer_count: usize = 0;
+            loop {
+                let idx = buffer_index.load(Ordering::Relaxed);
+                if idx != rem_buffer_count {
+                    // if idx >= samples.len() {
+                    //     break;
+                    // }
+
+                    // let lock = rb.as_mut().unwrap();
+
+                    // let s = samples.get(idx).unwrap_or(&0.0);
+
+                    // let _ = lock.try_push(*s);
+
+                    let slice = &samples[BUFFER_SIZE*idx..BUFFER_SIZE*(idx+1)];
+
+                    let lock = rb.as_mut().unwrap();
+                    lock.push_slice(slice);
+                    rem_buffer_count = idx;
+
+                    println!("idx updated: {}",idx);
+                }
+            }
+        });
 
         // Start play audio
         self.start_output();
@@ -158,26 +232,12 @@ impl AudioPlayer {
             config.sample_rate()
         );
 
-        let from_rate = 44100; // TODO: 由用户设置
-        let to_rate = config.sample_rate().0 as usize;
-        let samples = self.samples.lock().unwrap().clone();
-
-        let samples = if from_rate != to_rate {
-            println!(
-                "[start_output] Resampling from {} to {}",
-                from_rate, to_rate
-            );
-            resample_stereo(&samples, from_rate, to_rate)
-        } else {
-            samples.to_vec()
-        };
-
         let position = self.position.clone();
         let buffer_index = self.buffer_index.clone();
         let buffer_pos = self.buffer_pos.clone();
-        let buffer1 = self.buffer1.clone();
+        // let buffer1 = self.buffer1.clone();
         // println!("[start_output] samples len: {:?}", samples.len());
-
+        // let buffer = AUDIO_RINGBUF.clone();
         let err_fn = |err| eprintln!("stream error: {}", err);
 
         let stream = device
@@ -190,41 +250,50 @@ impl AudioPlayer {
 
                     for out in output {
                         // 读取当前 buffer 的样本
-                        *out = buffer1.read().unwrap().get(b_pos).copied().unwrap_or(0.0);
-
+                        // *out = buffer.write().unwrap().try_pop().unwrap_or(0.0);
+                        // *out = buffer1.read().unwrap().get(b_pos).copied().unwrap_or(0.0);
+                        let mut buffer = RINGBUF_CONSUMER.lock().unwrap();
+                        *out = buffer.as_mut().unwrap().try_pop().unwrap_or(0.0);
+                        
                         pos += 1;
                         b_pos += 1;
-
-                        // 是否需要切换 buffer
-                        // TODO: 使用buffer2
+                        
                         if b_pos >= BUFFER_SIZE {
                             b_idx += 1;
                             b_pos = 0;
-
-                            let start = b_idx * BUFFER_SIZE;
-                            let end = start + BUFFER_SIZE;
-
-                            let mut next_buf = vec![0.0; BUFFER_SIZE]; // 默认填 0
-
-                            if start < samples.len() {
-                                let slice_end = end.min(samples.len()); // 不越界
-                                next_buf[..slice_end - start]
-                                    .copy_from_slice(&samples[start..slice_end]);
-                            } else {
-                                println!("[stream] End of samples reached.");
-                                // TODO: 停止播放
-                            }
-
-                            // 切换 buffer 内容
-                            let mut w = buffer1.write().unwrap();
-                            *w = next_buf;
-
-                            buffer_index.store(b_idx, Ordering::Relaxed);
                         }
+
+                        // 是否需要切换 buffer
+                        // TODO: 使用buffer2
+                        // if b_pos >= BUFFER_SIZE {
+                        //     b_idx += 1;
+                        //     b_pos = 0;
+
+                        //     let start = b_idx * BUFFER_SIZE;
+                        //     let end = start + BUFFER_SIZE;
+
+                        //     let mut next_buf = vec![0.0; BUFFER_SIZE]; // 默认填 0
+
+                        //     if start < samples.len() {
+                        //         let slice_end = end.min(samples.len()); // 不越界
+                        //         next_buf[..slice_end - start]
+                        //             .copy_from_slice(&samples[start..slice_end]);
+                        //     } else {
+                        //         println!("[stream] End of samples reached.");
+                        //         // TODO: 停止播放
+                        //     }
+
+                        //     // 切换 buffer 内容
+                        //     let mut w = buffer1.write().unwrap();
+                        //     *w = next_buf;
+
+                        //     buffer_index.store(b_idx, Ordering::Relaxed);
+                        // }
                     }
 
                     position.store(pos, Ordering::Relaxed);
                     buffer_pos.store(b_pos, Ordering::Relaxed);
+                    buffer_index.store(b_idx, Ordering::Relaxed);
                 },
                 err_fn,
                 None,
@@ -466,8 +535,6 @@ impl AudioProxyProto for AudioProxy {
             .clip
             .as_ref()
             .ok_or_else(|| Status::internal("Cannot find the clip"))?;
-
-        let new_offset = req_clip.offset;
 
         let engine = get_audio_engine();
         let mut tracks = engine
