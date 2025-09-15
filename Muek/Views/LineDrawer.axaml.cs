@@ -33,5 +33,7 @@ public partial class LineDrawer : UserControl
 
         // 在 LineY 位置绘制横线
         context.DrawLine(pen, new Point(0, LineY), new Point(width, LineY));
+        
+        
     }
 }

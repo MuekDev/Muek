@@ -16,7 +16,7 @@ public partial class Mixer : UserControl
     private string _trackName;
     public Mixer()
     {
-        this.IsVisible = _currentTrack != null;
+        // this.IsVisible = _currentTrack != null;
         InitializeComponent();
         _trackColor = _currentTrack?.Color;
         _trackName = _currentTrack?.Name;

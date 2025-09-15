@@ -101,16 +101,22 @@ public partial class MuekValuer : UserControl
     {
         _hover = false;
 
-        DefaultValue = 50;
-        MaxValue = 100;
-        MinValue = 0;
-        Value = DefaultValue;
-        ValuerHeight = 200;
-        ValuerWidth = 20;
-        Layout = LayoutEnum.Slider;
+        // DefaultValue = 50;
+        // MaxValue = 100;
+        // MinValue = 0;
+        // Value = DefaultValue;
+        // ValuerHeight = 200;
+        // ValuerWidth = 20;
+        // Layout = LayoutEnum.Slider;
         Speed = .005;
         ValuerColor = Brushes.White;
         InitializeComponent();
+    }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        Value = DefaultValue;
     }
 
     public override void Render(DrawingContext context)
