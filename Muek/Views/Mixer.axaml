@@ -3,11 +3,12 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:views="clr-namespace:Muek.Views"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             mc:Ignorable="d" d:DesignWidth="100" d:DesignHeight="*"
              x:Class="Muek.Views.Mixer">
     <Grid Background="#232323">
         <StackPanel Orientation="Vertical">
         <StackPanel Orientation="Horizontal" VerticalAlignment="Top">
+            <!-- 不知道为什么要有一个button，但是感觉要有 -->
             <ToggleButton Height="20" Width="20" CornerRadius="20" HorizontalAlignment="Left"
                           VerticalAlignment="Center" Margin="5">
                 <ToggleButton.Styles>

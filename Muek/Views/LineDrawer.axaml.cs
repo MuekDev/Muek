@@ -1,8 +1,12 @@
 using System;
 using Avalonia;
+using Avalonia.Animation;
+using Avalonia.Animation.Easings;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
+using Avalonia.Styling;
 
 namespace Muek.Views;
 
@@ -21,6 +25,7 @@ public partial class LineDrawer : UserControl
             }
         }
     }
+    
 
     public IBrush LineBrush { get; set; } = Brushes.Red;
 
@@ -33,7 +38,37 @@ public partial class LineDrawer : UserControl
 
         // 在 LineY 位置绘制横线
         context.DrawLine(pen, new Point(0, LineY), new Point(width, LineY));
-        
-        
+    }
+    
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    {
+        base.OnPropertyChanged(change);
+        if (change.Property == IsVisibleProperty && IsVisible)
+        {
+            SetValue(OpacityProperty,0);
+            Console.WriteLine($"IsVisibleChanged:{Opacity}");
+            new Animation
+            {
+                Duration = TimeSpan.FromMilliseconds(500),
+                FillMode = FillMode.Forward,
+                Easing = Easing.Parse("CubicEaseOut"),
+                Children =
+                {
+                    new KeyFrame
+                    {
+                        Cue = new Cue(1),
+                        Setters =
+                        {
+                            new Setter
+                            {
+                                Property = OpacityProperty,
+                                Value = 1.0
+                            }
+                        }
+                    }
+                }
+            }.RunAsync(this);
+            
+        }
     }
 }

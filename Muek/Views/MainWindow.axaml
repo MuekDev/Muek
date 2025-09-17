@@ -70,7 +70,7 @@
                 </Border>
             </Grid>
 
-            <Grid Grid.Row="2" ColumnDefinitions="200,*">
+            <Grid Grid.Row="2" ColumnDefinitions="200,*,200">
                 <ScrollViewer>
                     <!-- 左侧轨道头 -->
                     <Grid Grid.Column="0" VerticalAlignment="Top">
@@ -246,12 +246,14 @@
                     <views:TrackView x:Name="TrackViewControl" DragDrop.AllowDrop="True"
                                      HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
                 </Grid>
+                <Grid Grid.Column="2">
+                    <views:Mixer></views:Mixer>
+                </Grid>
             </Grid>
-
+            
         </Grid>
-        <Grid Grid.Column="1" Width="200">
-            <views:Mixer ></views:Mixer>
-        </Grid>
+                
+        
         
         </Grid>
 </Window>
