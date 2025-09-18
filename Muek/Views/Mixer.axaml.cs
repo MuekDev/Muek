@@ -1,5 +1,8 @@
+using System;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -11,14 +14,17 @@ namespace Muek.Views;
 public partial class Mixer : UserControl
 {
     //TODO
-    private TrackViewModel? _currentTrack = DataStateService.GetSelectedTrack();
-    private string _trackColor;
-    private string _trackName;
+    //Name
+    //Color
+
     public Mixer()
     {
-        // this.IsVisible = _currentTrack != null;
         InitializeComponent();
-        _trackColor = _currentTrack?.Color;
-        _trackName = _currentTrack?.Name;
+        Console.WriteLine("Mixer Initialized");
+    }
+
+    private void HideMixer(object? sender, RoutedEventArgs e)
+    {
+        this.IsVisible = false;
     }
 }

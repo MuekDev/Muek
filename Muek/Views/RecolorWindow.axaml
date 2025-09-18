@@ -16,7 +16,7 @@
         <StackPanel Margin="12" Spacing="10" >
                 <!-- <Label HorizontalAlignment="Center">Track Color</Label> -->
                 <!-- <ColorSpectrum Height="100" Shape="Ring" Margin="0" x:Name="Color"></ColorSpectrum> -->
-                <ColorView x:Name="MyColorView"></ColorView>
+                <ColorView IsColorPaletteVisible="False" IsAccentColorsVisible="False" IsColorComponentsVisible="False" ColorSpectrumShape="Ring" x:Name="MyColorView"></ColorView>
                 <StackPanel Orientation="Horizontal" Margin="0,8,0,0" Spacing="10" HorizontalAlignment="Center">
                         <Button x:Name="SubmitBtn" VerticalAlignment="Bottom" Click="SubmitBtn_OnClick">Confirm</Button>
                         <Button x:Name="CancelBtn" VerticalAlignment="Bottom" Click="CancelBtn_OnClick">Cancel</Button>
