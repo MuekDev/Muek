@@ -34,7 +34,8 @@ public class TrackHeadViewModel : Button
             _isFirstClickTrackHead = true;
 
             var mainWindow = ViewHelper.GetMainWindow();
-             //mainWindow.TrackLineDrawer.IsVisible = true;
+            mainWindow.Mixer.ShowMixer();
+            //mainWindow.TrackLineDrawer.IsVisible = true;
         }
     }
 

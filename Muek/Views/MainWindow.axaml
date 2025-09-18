@@ -247,7 +247,7 @@
                                      HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
                 </Grid>
                 <Grid Grid.Column="2">
-                    <views:Mixer></views:Mixer>
+                    <views:Mixer x:Name="Mixer" IsVisible="False"></views:Mixer>
                 </Grid>
             </Grid>
             

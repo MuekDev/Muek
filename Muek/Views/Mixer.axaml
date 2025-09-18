@@ -6,9 +6,15 @@
              xmlns:avalonia="https://github.com/projektanker/icons.avalonia"
              mc:Ignorable="d" d:DesignWidth="100" d:DesignHeight="*"
              x:Class="Muek.Views.Mixer">
-    <Grid Background="#232323">
+    <Grid RowDefinitions="Auto,*" Background="#232323">
+        <Grid>
+            <Panel Height="1" Name="MixerColor"></Panel>
+        </Grid>
+        <Grid Grid.Row="1"  ColumnDefinitions="*,Auto">
+        <Grid Grid.Column="0">
         <StackPanel Orientation="Vertical">
-        <StackPanel Orientation="Horizontal" VerticalAlignment="Top">
+            
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Top">
             <!-- 不知道为什么要有一个button，但是感觉要有 -->
             <ToggleButton Height="20" Width="20" CornerRadius="20" HorizontalAlignment="Left"
                           VerticalAlignment="Center" Margin="5">
@@ -19,9 +25,24 @@
                     </Style>
                 </ToggleButton.Styles>
             </ToggleButton>
-            <Label VerticalAlignment="Center"></Label>
+            <Label VerticalAlignment="Center" Name="MixerName"></Label>
             <!-- 删除 -->
-            <Button HorizontalAlignment="Right" VerticalAlignment="Center"
+            
+        </StackPanel>
+            <StackPanel Orientation="Vertical" Margin="10" HorizontalAlignment="Left" Width="40">
+            <views:MuekValuer Name="MixerPan"
+                              Height="40" Layout="Knob" ValuerHeight="20"
+                              MinValue="-100" MaxValue="100" DefaultValue="0"></views:MuekValuer>
+                <Label HorizontalAlignment="Center" Margin="0,0,0,5">Pan</Label>
+                <views:MuekValuer Name="MixerVol"
+                                  MaxValue="100" DefaultValue="90"
+                    Layout="Slider" Height="200" Width="20" ValuerHeight="190" ValuerWidth="18"></views:MuekValuer>
+                <Label HorizontalAlignment="Center">Vol</Label>
+            </StackPanel>
+        </StackPanel>
+        </Grid>
+        <Grid Grid.Column="1">
+            <Button HorizontalAlignment="Right" VerticalAlignment="Top" Margin="10"
                     Background="white"
                     Height="15" Width="15" CornerRadius="20"
                     Padding="2" Click="HideMixer" >
@@ -34,19 +55,11 @@
                     </Style>
                 </Button.Styles>
                 <avalonia:Icon Value="fa-times" FontSize="10"
-                        Foreground="White"
-                        HorizontalAlignment="Right" />
+                               Foreground="White"
+                               HorizontalAlignment="Right" />
             </Button>
-        </StackPanel>
-            <StackPanel Orientation="Vertical" Margin="10" HorizontalAlignment="Left" Width="40">
-            <views:MuekValuer ValuerColor="AliceBlue" Height="40" Layout="Knob" ValuerHeight="20"
-                              MinValue="-100" MaxValue="100" DefaultValue="0"></views:MuekValuer>
-                <Label HorizontalAlignment="Center" Margin="0,0,0,5">Pan</Label>
-                <views:MuekValuer MinValue="0" MaxValue="100" DefaultValue="90"
-                    Layout="Slider" Height="200" Width="20" ValuerHeight="190" ValuerWidth="18"></views:MuekValuer>
-                <Label HorizontalAlignment="Center">Vol</Label>
-            </StackPanel>
-        </StackPanel>
+        </Grid>
+        </Grid>
     </Grid>
     
 </UserControl>

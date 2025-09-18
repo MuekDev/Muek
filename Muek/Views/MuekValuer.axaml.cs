@@ -36,7 +36,11 @@ public partial class MuekValuer : UserControl
     public IBrush ValuerColor
     {
         get => GetValue(ValuerColorProperty);
-        set => SetValue(ValuerColorProperty, value);
+        set
+        {
+            SetValue(ValuerColorProperty, value);
+            InvalidateVisual();
+        }
     }
 
     public static readonly StyledProperty<double> SizeProperty = AvaloniaProperty.Register<MuekValuer, double>(
