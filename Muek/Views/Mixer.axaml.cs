@@ -27,7 +27,13 @@ public partial class Mixer : UserControl
         this.IsVisible = false;
     }
 
-    public void ShowMixer()
+    public void Show()
+    {
+        
+        IsVisible = true;
+    }
+
+    public void Refresh()
     {
         var track = DataStateService.ActiveTrack;
         
@@ -38,8 +44,8 @@ public partial class Mixer : UserControl
         Console.WriteLine($"TrackName: {track.Name}");
         Console.WriteLine($"Track Color: {track.Color}\n" +
                           $"Mixer Color: {MixerPan.ValuerColor}");
-        IsVisible = true;
     }
+    
     
     public override void Render(DrawingContext context)
     {

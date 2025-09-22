@@ -4,6 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
+using Muek.Models;
 
 namespace Muek.Views;
 
@@ -19,6 +20,10 @@ public partial class RenameWindow : Window
     private void SubmitBtn_OnClick(object? sender, RoutedEventArgs e)
     {
         if (NameBox.Text != null) Submit?.Invoke(this, NameBox.Text);
+        
+        var mainWindow = ViewHelper.GetMainWindow();
+        mainWindow.Mixer.Refresh();
+        
         Close();
     }
 

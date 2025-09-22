@@ -5,6 +5,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
+using Muek.Models;
 
 namespace Muek.Views;
 
@@ -19,6 +20,10 @@ public partial class RecolorWindow : Window
     private void SubmitBtn_OnClick(object? sender, RoutedEventArgs e)
     {
         Submit?.Invoke(this,MyColorView.Color);
+        
+        var mainWindow = ViewHelper.GetMainWindow();
+        mainWindow.Mixer.Refresh();
+        
         Close();
     }
 

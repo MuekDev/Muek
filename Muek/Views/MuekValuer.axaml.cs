@@ -127,7 +127,7 @@ public partial class MuekValuer : UserControl
     public override void Render(DrawingContext context)
     {
         base.Render(context);
-
+        //Slider渲染逻辑
         if (Layout == LayoutEnum.Slider)
         {
             if (_hover || _pressed)
@@ -145,7 +145,7 @@ public partial class MuekValuer : UserControl
             context.DrawRectangle(ValuerColor,null, new Rect(0,(1-percentValue)*(ValuerHeight-6)+2, ValuerWidth, 4));
 
         }
-        
+        //Knob渲染逻辑
         if (Layout == LayoutEnum.Knob)
         {
             if (_hover || _pressed)
@@ -159,6 +159,8 @@ public partial class MuekValuer : UserControl
             // context.DrawEllipse(Brushes.Black, null,
             //     new Point(ValuerHeight + ValuerHeight * .8 * -double.Sin(percentValue * Double.Pi * 2),
             //         ValuerHeight + ValuerHeight * .8 * double.Cos(percentValue * Double.Pi * 2)), ValuerHeight * .2, ValuerHeight * .2);
+            
+            //通过三角函数渲染圆形控件
             context.DrawEllipse(ValuerColor, null,
                 new Point(ValuerHeight + ValuerHeight * .9 * -double.Sin(percentValue * Double.Pi * 2),
                     ValuerHeight + ValuerHeight * .9 * double.Cos(percentValue * Double.Pi * 2)), ValuerHeight * .2, ValuerHeight * .2);
