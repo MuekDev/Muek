@@ -121,6 +121,7 @@ public partial class MuekValuer : UserControl
     {
         base.OnInitialized();
         Value = DefaultValue;
+        ClipToBounds = false;
     }
 
     public override void Render(DrawingContext context)
@@ -140,7 +141,9 @@ public partial class MuekValuer : UserControl
             {
                 context.DrawRectangle(ValuerColor,null, new Rect(0,(1-percentValue)*(ValuerHeight-6)+1.5, ValuerWidth, 5));
             }
-            context.DrawRectangle(Brushes.Black,null, new Rect(0,(1-percentValue)*(ValuerHeight-6)+2, ValuerWidth, 4));
+            // context.DrawRectangle(Brushes.Black,null, new Rect(0,(1-percentValue)*(ValuerHeight-6)+2, ValuerWidth, 4));
+            context.DrawRectangle(ValuerColor,null, new Rect(0,(1-percentValue)*(ValuerHeight-6)+2, ValuerWidth, 4));
+
         }
         
         if (Layout == LayoutEnum.Knob)
@@ -153,9 +156,12 @@ public partial class MuekValuer : UserControl
             context.DrawEllipse(ValuerColor, null, new Point(ValuerHeight, ValuerHeight), ValuerHeight * .95, ValuerHeight * .95);
             context.DrawEllipse(Brush.Parse("#CC000000"), null, new Point(ValuerHeight, ValuerHeight), ValuerHeight * .9, ValuerHeight * .9);
             var percentValue = (Value - MinValue) / (MaxValue - MinValue);
-            context.DrawEllipse(Brushes.Black, null,
-                new Point(ValuerHeight + ValuerHeight * .8 * -double.Sin(percentValue * Double.Pi * 2),
-                    ValuerHeight + ValuerHeight * .8 * double.Cos(percentValue * Double.Pi * 2)), ValuerHeight * .2, ValuerHeight * .2);
+            // context.DrawEllipse(Brushes.Black, null,
+            //     new Point(ValuerHeight + ValuerHeight * .8 * -double.Sin(percentValue * Double.Pi * 2),
+            //         ValuerHeight + ValuerHeight * .8 * double.Cos(percentValue * Double.Pi * 2)), ValuerHeight * .2, ValuerHeight * .2);
+            context.DrawEllipse(ValuerColor, null,
+                new Point(ValuerHeight + ValuerHeight * .9 * -double.Sin(percentValue * Double.Pi * 2),
+                    ValuerHeight + ValuerHeight * .9 * double.Cos(percentValue * Double.Pi * 2)), ValuerHeight * .2, ValuerHeight * .2);
         }
 
 
