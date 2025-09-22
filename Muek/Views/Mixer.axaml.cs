@@ -14,9 +14,7 @@ namespace Muek.Views;
 
 public partial class Mixer : UserControl
 {
-    //TODO
-    //Name
-    //Color
+    //Mixer部分
 
     public Mixer()
     {
@@ -42,7 +40,7 @@ public partial class Mixer : UserControl
                           $"Mixer Color: {MixerPan.ValuerColor}");
         IsVisible = true;
     }
-
+    
     public override void Render(DrawingContext context)
     {
         base.Render(context);

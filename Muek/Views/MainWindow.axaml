@@ -70,13 +70,13 @@
                 </Border>
             </Grid>
 
-            <Grid Grid.Row="2" ColumnDefinitions="200,*,200">
+            <Grid Grid.Row="2" ColumnDefinitions="200,*,Auto">
                 <ScrollViewer>
                     <!-- 左侧轨道头 -->
                     <Grid Grid.Column="0" VerticalAlignment="Top">
                         <StackPanel>
                             <!-- 轨道 -->
-                            <!-- 轨道是可以拖动的，没写，类似IDE里面拖动直接切换位置 -->
+                            <!-- 轨道是可以拖动的 -->
                             <ItemsControl x:Name="ItemsControlX" ItemsSource="{Binding Tracks}"
                                           Background="Transparent" CornerRadius="12,0,0,12" Padding="0">
                                 <ItemsControl.ItemTemplate>
@@ -247,7 +247,7 @@
                                      HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
                 </Grid>
                 <Grid Grid.Column="2">
-                    <views:Mixer x:Name="Mixer" IsVisible="False"></views:Mixer>
+                    <views:Mixer x:Name="Mixer" Width="200" IsVisible="False"></views:Mixer>
                 </Grid>
             </Grid>
             

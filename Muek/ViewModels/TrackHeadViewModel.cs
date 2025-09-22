@@ -25,7 +25,7 @@ public class TrackHeadViewModel : Button
     protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
         base.OnPointerPressed(e);
-        if (e.ClickCount == 1)
+        if (e.ClickCount == 1 && e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
         {
             _pressedPosition = e.GetPosition(Parent.Parent.Parent.Parent.Parent as Visual) / 100;
             //Console.WriteLine(_pressedPosition);
