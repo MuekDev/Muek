@@ -55,18 +55,20 @@ public class TrackHeadViewModel : Button
             {
                 var oldIndex = track.IntIndex;
                 var newIndex = oldIndex + _moveToIndexDelta;
-
-                if (newIndex >= 0 && newIndex < DataStateService.Tracks.Count)
+                if(oldIndex != newIndex)
                 {
-                    DataStateService.Tracks.Move(oldIndex, newIndex);
-
-                    for (var i = 0; i < DataStateService.Tracks.Count; i++)
+                    if (newIndex >= 0 && newIndex < DataStateService.Tracks.Count)
                     {
-                        DataStateService.Tracks[i].Proto.Index = (uint)i;
-                    }
-                }
+                        DataStateService.Tracks.Move(oldIndex, newIndex);
 
-                mainWindow.TrackViewControl.InvalidateVisual();
+                        for (var i = 0; i < DataStateService.Tracks.Count; i++)
+                        {
+                            DataStateService.Tracks[i].Proto.Index = (uint)i;
+                        }
+                    }
+
+                    mainWindow.TrackViewControl.InvalidateVisual();
+                }
             }
             
             new Animation
