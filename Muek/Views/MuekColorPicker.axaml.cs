@@ -1,17 +1,8 @@
 using System;
-using System.Collections.Generic;
 using Avalonia;
-using Avalonia.Animation;
-using Avalonia.Animation.Easings;
-using Avalonia.Collections;
 using Avalonia.Controls;
-using Avalonia.Diagnostics;
 using Avalonia.Input;
-using Avalonia.Markup.Xaml;
 using Avalonia.Media;
-using Avalonia.Rendering.Composition;
-using Avalonia.Styling;
-using Avalonia.Threading;
 
 namespace Muek.Views;
 

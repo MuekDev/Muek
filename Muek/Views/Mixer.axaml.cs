@@ -1,14 +1,11 @@
 using System;
-using Avalonia;
+using Avalonia.Animation;
+using Avalonia.Animation.Easings;
 using Avalonia.Controls;
-using Avalonia.Input;
 using Avalonia.Interactivity;
-using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Styling;
-using CommunityToolkit.Mvvm.ComponentModel;
 using Muek.Services;
-using Muek.ViewModels;
 
 namespace Muek.Views;
 
@@ -19,18 +16,94 @@ public partial class Mixer : UserControl
     public Mixer()
     {
         InitializeComponent();
+        Width = 0;
         Console.WriteLine("Mixer Initialized");
     }
 
     private void HideMixer(object? sender, RoutedEventArgs e)
     {
-        this.IsVisible = false;
+        Opacity = 1.0;
+        new Animation
+        {
+            Duration = TimeSpan.FromMilliseconds(500),
+            FillMode = FillMode.Forward,
+            Easing = Easing.Parse("CubicEaseOut"),
+            Children =
+            {
+                new KeyFrame
+                {
+                    Cue = new Cue(1),
+                    Setters =
+                    {
+                        new Setter
+                        {
+                            Property = OpacityProperty,
+                            Value = 0.0
+                        },
+                        new Setter
+                        {
+                            Property = WidthProperty,
+                            Value = 0.0
+                        }
+                    }
+                }
+            }
+        }.RunAsync(this);
+        if (Opacity == 0.0)
+        {
+            this.IsVisible = false;
+        }
     }
 
     public void Show()
     {
-        
+        Opacity = 0.0;
         IsVisible = true;
+        new Animation
+        {
+            Duration = TimeSpan.FromMilliseconds(500),
+            FillMode = FillMode.Forward,
+            Easing = Easing.Parse("CubicEaseOut"),
+            Children =
+            {
+                new KeyFrame
+                {
+                    Cue = new Cue(1),
+                    Setters =
+                    {
+                        new Setter
+                        {
+                            Property = OpacityProperty,
+                            Value = 1.0
+                        }
+                    }
+                }
+            }
+        }.RunAsync(this);
+        if (Width <= 0)
+        {
+            new Animation
+            {
+                Duration = TimeSpan.FromMilliseconds(500),
+                FillMode = FillMode.Forward,
+                Easing = Easing.Parse("CubicEaseOut"),
+                Children =
+                {
+                    new KeyFrame
+                    {
+                        Cue = new Cue(1),
+                        Setters =
+                        {
+                            new Setter
+                            {
+                                Property = WidthProperty,
+                                Value = 200.0
+                            }
+                        }
+                    }
+                }
+            }.RunAsync(this);
+        }
     }
 
     public void Refresh()
