@@ -222,6 +222,7 @@
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
+                            
                             <!-- 添加轨道 -->
                             <Border Padding="5,2,0,2">
                                 <Border Background="#b2b2b2" Height="100" Margin="0,0,0,0" CornerRadius="12,0,0,12"

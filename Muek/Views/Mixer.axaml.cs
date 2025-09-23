@@ -36,14 +36,16 @@ public partial class Mixer : UserControl
     public void Refresh()
     {
         var track = DataStateService.ActiveTrack;
-        
-        MixerName.Content = track.Name;
-        MixerPan.ValuerColor = Brush.Parse(track.Color);
-        MixerVol.ValuerColor = Brush.Parse(track.Color);
-        MixerColor.Background = Brush.Parse(track.Color);
-        Console.WriteLine($"TrackName: {track.Name}");
-        Console.WriteLine($"Track Color: {track.Color}\n" +
-                          $"Mixer Color: {MixerPan.ValuerColor}");
+        if(track != null)
+        {
+            MixerName.Content = track.Name;
+            MixerPan.ValuerColor = Brush.Parse(track.Color);
+            MixerVol.ValuerColor = Brush.Parse(track.Color);
+            MixerColor.Background = Brush.Parse(track.Color);
+            Console.WriteLine($"TrackName: {track.Name}");
+            Console.WriteLine($"Track Color: {track.Color}\n" +
+                              $"Mixer Color: {MixerPan.ValuerColor}");
+        }
     }
     
     

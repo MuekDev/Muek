@@ -2,9 +2,10 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:views="clr-namespace:Muek.Views"
         mc:Ignorable="d"
         Width="400"
-        Height="500"
+        Height="400"
         x:Class="Muek.Views.RecolorWindow"
         WindowStartupLocation="CenterOwner"
         Title="RecolorWindow"
@@ -16,8 +17,9 @@
         <StackPanel Margin="12" Spacing="10" >
                 <!-- <Label HorizontalAlignment="Center">Track Color</Label> -->
                 <!-- <ColorSpectrum Height="100" Shape="Ring" Margin="0" x:Name="Color"></ColorSpectrum> -->
-                <ColorView IsColorPaletteVisible="False" IsAccentColorsVisible="False" IsColorComponentsVisible="False" ColorSpectrumShape="Ring" x:Name="MyColorView"></ColorView>
-                <StackPanel Orientation="Horizontal" Margin="0,8,0,0" Spacing="10" HorizontalAlignment="Center">
+                <!-- <ColorView IsColorPaletteVisible="False" IsAccentColorsVisible="False" IsColorComponentsVisible="False" ColorSpectrumShape="Ring" x:Name="MyColorView"></ColorView> -->
+                <views:MuekColorPicker Height="300" Width="300" Name="MyColorView" Margin="10"></views:MuekColorPicker>
+                <StackPanel Orientation="Horizontal" Margin="0,8,0,0" Spacing="100" HorizontalAlignment="Center">
                         <Button x:Name="SubmitBtn" VerticalAlignment="Bottom" Click="SubmitBtn_OnClick">Confirm</Button>
                         <Button x:Name="CancelBtn" VerticalAlignment="Bottom" Click="CancelBtn_OnClick">Cancel</Button>
                 </StackPanel>

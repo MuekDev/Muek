@@ -142,7 +142,7 @@ public class TrackHeadViewModel : Button
 
             Console.WriteLine(switchIndex);
 
-            if (_isFirstClickTrackHead)
+            if (_isFirstClickTrackHead && switchIndex != 0)
             {
                 new Animation
                 {

@@ -114,6 +114,7 @@ public partial class TrackViewModel : ViewModelBase
     public void ShowRecolorWindow()
     {
         var recolorWindow = new RecolorWindow();
+        recolorWindow.MyColorView.SelectedColor = Avalonia.Media.Color.Parse(Proto.Color);
         recolorWindow.Show();
         recolorWindow.Submit += (sender, color) =>
         {

@@ -15,11 +15,11 @@ public partial class RecolorWindow : Window
     public RecolorWindow()
     {
         InitializeComponent();
-        MyColorView.Palette = new FlatColorPalette();
+        // MyColorView.Palette = new FlatColorPalette();
     }
     private void SubmitBtn_OnClick(object? sender, RoutedEventArgs e)
     {
-        Submit?.Invoke(this,MyColorView.Color);
+        Submit?.Invoke(this,MyColorView.SelectedColor);
         
         var mainWindow = ViewHelper.GetMainWindow();
         mainWindow.Mixer.Refresh();
