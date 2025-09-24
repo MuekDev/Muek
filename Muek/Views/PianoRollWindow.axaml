@@ -1,0 +1,61 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:views="clr-namespace:Muek.Views"
+             xmlns:avalonia="https://github.com/projektanker/icons.avalonia"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             Background="Transparent"
+             x:Class="Muek.Views.PianoRollWindow">
+    <Grid RowDefinitions="Auto,*,Auto">
+        <Border Background="#232323" Height="50">
+        <Grid >
+            <!-- 关闭 -->
+            <Button HorizontalAlignment="Right" VerticalAlignment="Center" Margin="10"
+                    Background="white"
+                    Height="20" Width="20" CornerRadius="20"
+                    Padding="2" Click="Hide" IsVisible="False"
+                    Name="CloseButton">
+                <Button.Styles>
+                    <Style
+                        Selector="Button:pointerover/template/ContentPresenter">
+                        <Setter Property="Background"
+                                Value="#ff5656">
+                        </Setter>
+                    </Style>
+                </Button.Styles>
+                <avalonia:Icon Value="fa-times" FontSize="15"
+                               Foreground="White"
+                               HorizontalAlignment="Right" />
+            </Button>
+            <Button HorizontalAlignment="Right" VerticalAlignment="Center" Margin="10"
+                    Background="YellowGreen"
+                    Height="20" Width="20" CornerRadius="20"
+                    Padding="2" Click="Show" IsVisible="True"
+                    Name="OpenButton">
+                <Button.Styles>
+                    <Style
+                        Selector="Button:pointerover/template/ContentPresenter">
+                        <Setter Property="Background"
+                                Value="White">
+                        </Setter>
+                    </Style>
+                </Button.Styles>
+                <avalonia:Icon Value="mdi-piano" FontSize="15"
+                               Foreground="Black"
+                               HorizontalAlignment="Right" />
+            </Button>
+        </Grid>
+        </Border>
+        <Grid Grid.Row="1" ColumnDefinitions="Auto,*">
+            <ScrollViewer  VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Disabled"
+                           Name="PianoRollLeft" ScrollChanged="ScrollChange" Margin="2">
+                <views:PianoRoll Width="40" IsPianoBar="True"></views:PianoRoll>
+            </ScrollViewer>
+            <ScrollViewer Grid.Column="1" HorizontalScrollBarVisibility="Visible"
+                          Name="PianoRollRight" ScrollChanged="ScrollChange" Margin="2">
+                <views:PianoRoll IsPianoBar="False" HorizontalAlignment="Left" Name="EditArea"></views:PianoRoll>
+            </ScrollViewer>
+        </Grid>
+    </Grid>
+</UserControl>

@@ -15,7 +15,9 @@
         <entry key="Muek/Views/MuekKnob.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/Views/MuekTrack.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/Views/MuekValuer.axaml" value="Muek/Muek.csproj" />
+        <entry key="Muek/Views/PianoEdit.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/Views/PianoRoll.axaml" value="Muek/Muek.csproj" />
+        <entry key="Muek/Views/PianoRollWindow.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/Views/ProcessingWindow.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/Views/RecolorWindow.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/Views/RenameWindow.axaml" value="Muek/Muek.csproj" />

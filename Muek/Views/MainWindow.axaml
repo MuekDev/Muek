@@ -71,7 +71,7 @@
             </Grid>
 
             <Grid Grid.Row="2" ColumnDefinitions="200,*,Auto">
-                <ScrollViewer>
+                <ScrollViewer VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Disabled">
                     <!-- 左侧轨道头 -->
                     <Grid Grid.Column="0" VerticalAlignment="Top">
                         <StackPanel>
@@ -115,7 +115,7 @@
                                                             </MenuItem>
                                                         </MenuFlyout>
                                                     </vm:TrackHeadViewModel.ContextFlyout>
-                                                    <!-- TODO -->
+                                                    
                                                     <StackPanel>
                                                         <!-- 轨道名称 -->
                                                         <TextBlock FontWeight="Bold" FontSize="18"
@@ -243,9 +243,12 @@
                     </Grid>
                 </ScrollViewer>
 
-                <Grid Grid.Column="1" Background="#313131">
+                <Grid Grid.RowDefinitions="*,Auto" Grid.Column="1" Background="#313131">
                     <views:TrackView x:Name="TrackViewControl" DragDrop.AllowDrop="True"
                                      HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
+                    
+                    <!-- 钢琴窗 -->
+                    <views:PianoRollWindow Grid.Row="1" Height="40"></views:PianoRollWindow>
                 </Grid>
                 <Grid Grid.Column="2">
                     <views:Mixer x:Name="Mixer" IsVisible="False"></views:Mixer>
