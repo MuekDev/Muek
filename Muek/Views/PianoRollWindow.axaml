@@ -50,7 +50,7 @@
         <Grid Grid.Row="1" ColumnDefinitions="Auto,*">
             <ScrollViewer  VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Disabled"
                            Name="PianoRollLeft" ScrollChanged="ScrollChange" Margin="2">
-                <views:PianoRoll Width="40" IsPianoBar="True"></views:PianoRoll>
+                <views:PianoRoll Width="40" IsPianoBar="True" Name="PianoBar"></views:PianoRoll>
             </ScrollViewer>
             <ScrollViewer Grid.Column="1" HorizontalScrollBarVisibility="Visible"
                           Name="PianoRollRight" ScrollChanged="ScrollChange" Margin="2">

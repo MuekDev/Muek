@@ -77,12 +77,17 @@ public partial class PianoRollWindow : UserControl
     {
         if (e.Source.Equals(PianoRollLeft))
         {
+            EditArea.Height = PianoBar.Height;
             PianoRollRight.Offset = new Vector(PianoRollRight.Offset.X,PianoRollLeft.Offset.Y);
+            EditArea.NoteHeight = PianoBar.NoteHeight;
         }
 
         if (e.Source.Equals(PianoRollRight))
         {
+            PianoBar.Height = EditArea.Height;
             PianoRollLeft.Offset = new Vector(0,PianoRollRight.Offset.Y);
+            PianoBar.NoteHeight = EditArea.NoteHeight;
+            
         }
         EditArea.ScrollOffset = PianoRollRight.Offset.Y;
         EditArea.ClampValue = PianoRollRight.Offset.X;
@@ -96,10 +101,9 @@ public partial class PianoRollWindow : UserControl
         {
             PianoRollRight.Offset = new Vector(PianoRollRight.Offset.X - e.Delta.Y * 44,PianoRollRight.Offset.Y );
             PianoRollRight.Offset = new Vector(Math.Max(0, PianoRollRight.Offset.X),PianoRollRight.Offset.Y) ; // 不允许左滚超过0
+            
             InvalidateVisual();
             e.Handled = true;
-
-            return;
         }
     }
 }

@@ -248,7 +248,7 @@
                                      HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
                     
                     <!-- 钢琴窗 -->
-                    <views:PianoRollWindow Grid.Row="1" Height="40"></views:PianoRollWindow>
+                    <views:PianoRollWindow Grid.Row="1" Height="40" Name="PianoRollWindow"></views:PianoRollWindow>
                 </Grid>
                 <Grid Grid.Column="2">
                     <views:Mixer x:Name="Mixer" IsVisible="False"></views:Mixer>
