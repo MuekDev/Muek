@@ -974,7 +974,7 @@ public partial class PianoRoll : UserControl
                     {
                         Notes.Add(new Note
                         {
-                            StartTime = _currentNoteStartTime,
+                            StartTime = _currentNoteStartTime >= 0 ? _currentNoteStartTime : 0,
                             EndTime = _currentNoteEndTime,
                             Name = _currentHoverNote,
                             Color = Colors.YellowGreen
@@ -991,7 +991,7 @@ public partial class PianoRoll : UserControl
                                                    _widthOfBeat) / _widthOfBeat;
                             dragedSelectedNotes.Add(new Note
                             {
-                              StartTime = selectedNote.StartTime + dragRelativePos,
+                              StartTime = selectedNote.StartTime + dragRelativePos >= 0 ? selectedNote.StartTime + dragRelativePos : 0,
                               EndTime = dragRelativePos + selectedNote.EndTime,
                               Name = IndexToNoteName(
                                   (int)(-(e.GetPosition(this).Y - _dragPos.Y) / NoteHeight +
@@ -1016,7 +1016,7 @@ public partial class PianoRoll : UserControl
                     {
                         Notes.Add(new Note
                         {
-                            StartTime = _currentNoteStartTime,
+                            StartTime = _currentNoteStartTime >= 0 ? _currentNoteStartTime : 0,
                             EndTime = _currentNoteEndTime,
                             Name = _editingNote,
                             Color = Colors.YellowGreen
@@ -1029,7 +1029,7 @@ public partial class PianoRoll : UserControl
                         {
                             dragedSelectedNotes.Add(new Note
                             {
-                                StartTime = selectedNote.StartTime,
+                                StartTime = selectedNote.StartTime >= 0 ? selectedNote.StartTime : 0,
                                 EndTime = (e.GetPosition(this).X - e.GetPosition(this).X % _widthOfBeat + _widthOfBeat) / _widthOfBeat,
                                 Name = selectedNote.Name,
                                 Color = Colors.YellowGreen
