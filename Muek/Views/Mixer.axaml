@@ -2,14 +2,65 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             xmlns:views="clr-namespace:Muek.Views"
+             xmlns:avalonia="https://github.com/projektanker/icons.avalonia"
+             mc:Ignorable="d" d:DesignWidth="100" d:DesignHeight="*"
              x:Class="Muek.Views.Mixer">
-    <Grid>
-        <StackPanel Orientation="Horizontal" VerticalAlignment="Top">
-        <ToggleButton Height="20" Width="20" CornerRadius="20" HorizontalAlignment="Left"
-                      VerticalAlignment="Center" Margin="5" Name="BypassButton">
-        </ToggleButton>
-        <Label VerticalAlignment="Center" Name="TrackName"></Label>
+    <Grid RowDefinitions="Auto,*" Background="#232323">
+        <Grid>
+            <Panel Height="1" Name="MixerColor"></Panel>
+        </Grid>
+        <Grid Grid.Row="1"  ColumnDefinitions="*,Auto">
+        <Grid Grid.Column="0">
+        <StackPanel Orientation="Vertical">
+            
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Top">
+            <!-- 不知道为什么要有一个button，但是感觉要有 -->
+            <ToggleButton Height="20" Width="20" CornerRadius="20" HorizontalAlignment="Left"
+                          VerticalAlignment="Center" Margin="5">
+                <ToggleButton.Styles>
+                    <Style
+                        Selector="ToggleButton:checked/template/ContentPresenter">
+                        <Setter Property="Background" Value="#ff5656"></Setter>
+                    </Style>
+                </ToggleButton.Styles>
+            </ToggleButton>
+            <Label VerticalAlignment="Center" Name="MixerName"></Label>
+            
+            
         </StackPanel>
+            <StackPanel Orientation="Vertical" Margin="10" HorizontalAlignment="Left" Width="40">
+            <views:MuekValuer Name="MixerPan"
+                              Height="40" Layout="Knob" ValuerHeight="20"
+                              MinValue="-100" MaxValue="100" DefaultValue="0"></views:MuekValuer>
+                <Label HorizontalAlignment="Center" Margin="0,0,0,5">Pan</Label>
+                <views:MuekValuer Name="MixerVol"
+                                  MaxValue="100" DefaultValue="90"
+                    Layout="Slider" Height="200" Width="20" ValuerHeight="190" ValuerWidth="18"></views:MuekValuer>
+                <Label HorizontalAlignment="Center">Vol</Label>
+            </StackPanel>
+        </StackPanel>
+        </Grid>
+            <!-- 删除 -->
+        <Grid Grid.Column="1">
+            <Button HorizontalAlignment="Right" VerticalAlignment="Top" Margin="10"
+                    Background="white"
+                    Height="15" Width="15" CornerRadius="20"
+                    Padding="2" Click="HideMixer" >
+                <Button.Styles>
+                    <Style
+                        Selector="Button:pointerover/template/ContentPresenter">
+                        <Setter Property="Background"
+                                Value="#ff5656">
+                        </Setter>
+                    </Style>
+                </Button.Styles>
+                <avalonia:Icon Value="fa-times" FontSize="10"
+                               Foreground="White"
+                               HorizontalAlignment="Right" />
+            </Button>
+        </Grid>
+        </Grid>
     </Grid>
+    
 </UserControl>

@@ -70,13 +70,13 @@
                 </Border>
             </Grid>
 
-            <Grid Grid.Row="2" ColumnDefinitions="200,*">
-                <ScrollViewer>
+            <Grid Grid.Row="2" ColumnDefinitions="200,*,Auto">
+                <ScrollViewer VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Disabled">
                     <!-- 左侧轨道头 -->
                     <Grid Grid.Column="0" VerticalAlignment="Top">
                         <StackPanel>
                             <!-- 轨道 -->
-                            <!-- 轨道是可以拖动的，没写，类似IDE里面拖动直接切换位置 -->
+                            <!-- 轨道是可以拖动的 -->
                             <ItemsControl x:Name="ItemsControlX" ItemsSource="{Binding Tracks}"
                                           Background="Transparent" CornerRadius="12,0,0,12" Padding="0">
                                 <ItemsControl.ItemTemplate>
@@ -115,7 +115,7 @@
                                                             </MenuItem>
                                                         </MenuFlyout>
                                                     </vm:TrackHeadViewModel.ContextFlyout>
-                                                    <!-- TODO -->
+                                                    
                                                     <StackPanel>
                                                         <!-- 轨道名称 -->
                                                         <TextBlock FontWeight="Bold" FontSize="18"
@@ -222,7 +222,7 @@
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
-
+                            
                             <!-- 添加轨道 -->
                             <Border Padding="5,2,0,2">
                                 <Border Background="#b2b2b2" Height="100" Margin="0,0,0,0" CornerRadius="12,0,0,12"
@@ -236,24 +236,28 @@
                                     </Button>
                                 </Border>
                             </Border>
-
                         </StackPanel>
-
+                        
                         <views:LineDrawer x:Name="TrackLineDrawer" LineBrush="White" IsVisible="False"></views:LineDrawer>
 
                     </Grid>
                 </ScrollViewer>
 
-                <Grid Grid.Column="1" Background="#313131">
+                <Grid Grid.RowDefinitions="*,Auto" Grid.Column="1" Background="#313131">
                     <views:TrackView x:Name="TrackViewControl" DragDrop.AllowDrop="True"
                                      HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
+                    
+                    <!-- 钢琴窗 -->
+                    <views:PianoRollWindow Grid.Row="1" Height="40" Name="PianoRollWindow"></views:PianoRollWindow>
+                </Grid>
+                <Grid Grid.Column="2">
+                    <views:Mixer x:Name="Mixer" IsVisible="False"></views:Mixer>
                 </Grid>
             </Grid>
-
+            
         </Grid>
-        <Grid Grid.Column="1" Width="200">
-            <views:Mixer ></views:Mixer>
-        </Grid>
+                
+        
         
         </Grid>
 </Window>

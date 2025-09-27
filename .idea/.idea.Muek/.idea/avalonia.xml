@@ -6,14 +6,22 @@
         <entry key="Muek/App.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/Views/ClipItem.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/Views/LineDrawer.axaml" value="Muek/Muek.csproj" />
+        <entry key="Muek/Views/MIDIView.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/Views/MainWindow.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/Views/MixWindow.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/Views/Mixer.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/Views/MixerWindow.axaml" value="Muek/Muek.csproj" />
+        <entry key="Muek/Views/MuekColorPicker.axaml" value="Muek/Muek.csproj" />
+        <entry key="Muek/Views/MuekKnob.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/Views/MuekTrack.axaml" value="Muek/Muek.csproj" />
+        <entry key="Muek/Views/MuekValuer.axaml" value="Muek/Muek.csproj" />
+        <entry key="Muek/Views/PianoEdit.axaml" value="Muek/Muek.csproj" />
+        <entry key="Muek/Views/PianoRoll.axaml" value="Muek/Muek.csproj" />
+        <entry key="Muek/Views/PianoRollWindow.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/Views/ProcessingWindow.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/Views/RecolorWindow.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/Views/RenameWindow.axaml" value="Muek/Muek.csproj" />
+        <entry key="Muek/Views/Slider.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/Views/TimeRulerBar.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/Views/TrackView.axaml" value="Muek/Muek.csproj" />
       </map>

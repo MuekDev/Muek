@@ -16,7 +16,7 @@
     <StackPanel Margin="12" Spacing="10">
         <Label HorizontalAlignment="Center">Track Name</Label>
         <TextBox x:Name="NameBox" FontSize="15" Width="200"></TextBox>
-        <StackPanel Orientation="Horizontal" Margin="0,8,0,0" Spacing="10" HorizontalAlignment="Center">
+        <StackPanel Orientation="Horizontal" Margin="0,8,0,0" Spacing="50" HorizontalAlignment="Center">
             <Button x:Name="SubmitBtn" VerticalAlignment="Bottom" Click="SubmitBtn_OnClick">Rename</Button>
             <Button x:Name="CancelBtn" VerticalAlignment="Bottom" Click="CancelBtn_OnClick">Cancel</Button>
         </StackPanel>

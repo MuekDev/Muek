@@ -4,6 +4,7 @@ using Muek.Commands;
 using Muek.Services;
 using Projektanker.Icons.Avalonia;
 using Projektanker.Icons.Avalonia.FontAwesome;
+using Projektanker.Icons.Avalonia.MaterialDesign;
 
 namespace Muek;
 
@@ -27,7 +28,8 @@ internal sealed class Program
     public static AppBuilder BuildAvaloniaApp()
     {
         IconProvider.Current
-            .Register<FontAwesomeIconProvider>();
+            .Register<FontAwesomeIconProvider>()
+            .Register<MaterialDesignIconProvider>();
 
         return AppBuilder.Configure<App>()
             .UsePlatformDetect()

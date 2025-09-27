@@ -137,6 +137,14 @@ public partial class TrackView : UserControl
 
             var trackIndex = (int)Math.Floor(y / TrackHeight);
 
+            
+            //如果在最后一行，则创建新轨道
+            if (trackIndex == DataStateService.Tracks.Count)
+            {
+                new MainWindowViewModel().AddTrack();
+            }
+            
+            
             Console.WriteLine($"Dropped at beat: {beat}, track: {trackIndex}");
 
             foreach (var file in files)
@@ -348,14 +356,29 @@ public partial class TrackView : UserControl
         {
             var x = _mousePosition.X;
             var y = Math.Floor(_mousePosition.Y / TrackHeight) * TrackHeight;
-            var rect = new Rect(x, y, 100, TrackHeight);
-            var background = new LinearGradientBrush();
-            background.StartPoint = new RelativePoint(0.0, 0.5, RelativeUnit.Relative);
-            background.EndPoint = new RelativePoint(1.0, 0.5, RelativeUnit.Relative);
-            background.GradientStops.Add(new GradientStop(Colors.YellowGreen, 0.0));
-            background.GradientStops.Add(new GradientStop(Colors.Transparent, 1.0));
+            var index = (int)y /  TrackHeight;
+            if((DataStateService.Tracks.Count) >= index)
+            {
+                
+                var rect = new Rect(x, y, 100, TrackHeight);
+                var background = new LinearGradientBrush();
+                background.StartPoint = new RelativePoint(0.0, 0.5, RelativeUnit.Relative);
+                background.EndPoint = new RelativePoint(1.0, 0.5, RelativeUnit.Relative);
+                if(DataStateService.Tracks.Count != index)
+                {
+                    background.GradientStops.Add(
+                        new GradientStop(Color.Parse(DataStateService.Tracks[index].Color), 0.0));
+                    background.GradientStops.Add(new GradientStop(Colors.Transparent, 1.0));
+                }
+                else
+                {
+                    background.GradientStops.Add(
+                        new GradientStop(Colors.DimGray, 0.0));
+                    background.GradientStops.Add(new GradientStop(Colors.Transparent, 1.0));
+                }
 
-            context.FillRectangle(background, rect);
+                context.FillRectangle(background, rect);
+            }
         }
 
 

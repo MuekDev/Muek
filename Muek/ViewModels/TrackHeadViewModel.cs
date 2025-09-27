@@ -25,7 +25,7 @@ public class TrackHeadViewModel : Button
     protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
         base.OnPointerPressed(e);
-        if (e.ClickCount == 1)
+        if (e.ClickCount == 1 && e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
         {
             _pressedPosition = e.GetPosition(Parent.Parent.Parent.Parent.Parent as Visual) / 100;
             //Console.WriteLine(_pressedPosition);
@@ -34,7 +34,9 @@ public class TrackHeadViewModel : Button
             _isFirstClickTrackHead = true;
 
             var mainWindow = ViewHelper.GetMainWindow();
-             //mainWindow.TrackLineDrawer.IsVisible = true;
+            mainWindow.Mixer.Refresh();
+            mainWindow.Mixer.Show();
+            //mainWindow.TrackLineDrawer.IsVisible = true;
         }
     }
 
@@ -53,18 +55,20 @@ public class TrackHeadViewModel : Button
             {
                 var oldIndex = track.IntIndex;
                 var newIndex = oldIndex + _moveToIndexDelta;
-
-                if (newIndex >= 0 && newIndex < DataStateService.Tracks.Count)
+                if(oldIndex != newIndex)
                 {
-                    DataStateService.Tracks.Move(oldIndex, newIndex);
-
-                    for (var i = 0; i < DataStateService.Tracks.Count; i++)
+                    if (newIndex >= 0 && newIndex < DataStateService.Tracks.Count)
                     {
-                        DataStateService.Tracks[i].Proto.Index = (uint)i;
-                    }
-                }
+                        DataStateService.Tracks.Move(oldIndex, newIndex);
 
-                mainWindow.TrackViewControl.InvalidateVisual();
+                        for (var i = 0; i < DataStateService.Tracks.Count; i++)
+                        {
+                            DataStateService.Tracks[i].Proto.Index = (uint)i;
+                        }
+                    }
+
+                    mainWindow.TrackViewControl.InvalidateVisual();
+                }
             }
             
             new Animation
@@ -140,7 +144,7 @@ public class TrackHeadViewModel : Button
 
             Console.WriteLine(switchIndex);
 
-            if (_isFirstClickTrackHead)
+            if (_isFirstClickTrackHead && switchIndex != 0)
             {
                 new Animation
                 {
