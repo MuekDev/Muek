@@ -1,17 +1,29 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Windows.Input;
 using Avalonia;
+using Avalonia.Animation;
+using Avalonia.Animation.Easings;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
+using Avalonia.Rendering.Composition.Animations;
+using Avalonia.Styling;
+using Google.Protobuf.WellKnownTypes;
 using Muek.Models;
 
 namespace Muek.Views;
 
 public partial class PianoRoll : UserControl
 {
+    
+    public int Index = 0;
 
     public static readonly StyledProperty<double> NoteHeightProperty = AvaloniaProperty.Register<PianoRoll, double>(
         nameof(NoteHeight));
@@ -96,6 +108,7 @@ public partial class PianoRoll : UserControl
     private Note _currentHoverDrawedNote = new Note();
     
     private Point _currentMousePosition;
+    private Point _pressedMousePosition;
     
     public List<Note> Notes = new();
 
@@ -108,11 +121,12 @@ public partial class PianoRoll : UserControl
     
     public List<Note> SelectedNotes = new();
     
-    
+    private bool _isShowingOptions = false;
     
     public PianoRoll()
     {
         InitializeComponent();
+        
         
         NoteHeight = 15;
         ClampValue = 0;
@@ -159,58 +173,9 @@ public partial class PianoRoll : UserControl
                 {
                     for (int note = 0; note < _Temperament; note++)
                     {
-                        switch (note)
-                        {
-                            case 0:
-                                noteName = $"C{i}";
-                                noteColor = _noteColor3;
-                                break;
-                            case 1:
-                                noteName = $"C#{i}";
-                                noteColor = _noteColor2;
-                                break;
-                            case 2:
-                                noteName = $"D{i}";
-                                noteColor = _noteColor1;
-                                break;
-                            case 3:
-                                noteName = $"D#{i}";
-                                noteColor = _noteColor2;
-                                break;
-                            case 4:
-                                noteName = $"E{i}";
-                                noteColor = _noteColor1;
-                                break;
-                            case 5:
-                                noteName = $"F{i}";
-                                noteColor = _noteColor1;
-                                break;
-                            case 6:
-                                noteName = $"F#{i}";
-                                noteColor = _noteColor2;
-                                break;
-                            case 7:
-                                noteName = $"G{i}";
-                                noteColor = _noteColor1;
-                                break;
-                            case 8:
-                                noteName = $"G#{i}";
-                                noteColor = _noteColor2;
-                                break;
-                            case 9:
-                                noteName = $"A{i}";
-                                noteColor = _noteColor1;
-                                break;
-                            case 10:
-                                noteName = $"A#{i}";
-                                noteColor = _noteColor2;
-                                break;
-                            case 11:
-                                noteName = $"B{i}";
-                                noteColor = _noteColor1;
-                                break;
-                        }
-
+                        noteName = IndexToNoteName(i * _Temperament + note);
+                        noteColor = NoteNameToBrush(noteName);
+                        
                         // Console.WriteLine(noteName);
                         context.FillRectangle(noteColor,
                             new Rect(0, Height - (i * _Temperament + note + 1) * NoteHeight, Width * .9, NoteHeight),5);
@@ -243,57 +208,7 @@ public partial class PianoRoll : UserControl
             {
                 for (int note = 0; note < _Temperament; note++)
                 {
-                    switch (note)
-                    {
-                        case 0:
-                            noteName = $"C{i}";
-                            noteColor = _noteColor3;
-                            break;
-                        case 1:
-                            noteName = $"C#{i}";
-                            noteColor = _noteColor2;
-                            break;
-                        case 2:
-                            noteName = $"D{i}";
-                            noteColor = _noteColor1;
-                            break;
-                        case 3:
-                            noteName = $"D#{i}";
-                            noteColor = _noteColor2;
-                            break;
-                        case 4:
-                            noteName = $"E{i}";
-                            noteColor = _noteColor1;
-                            break;
-                        case 5:
-                            noteName = $"F{i}";
-                            noteColor = _noteColor1;
-                            break;
-                        case 6:
-                            noteName = $"F#{i}";
-                            noteColor = _noteColor2;
-                            break;
-                        case 7:
-                            noteName = $"G{i}";
-                            noteColor = _noteColor1;
-                            break;
-                        case 8:
-                            noteName = $"G#{i}";
-                            noteColor = _noteColor2;
-                            break;
-                        case 9:
-                            noteName = $"A{i}";
-                            noteColor = _noteColor1;
-                            break;
-                        case 10:
-                            noteName = $"A#{i}";
-                            noteColor = _noteColor2;
-                            break;
-                        case 11:
-                            noteName = $"B{i}";
-                            noteColor = _noteColor1;
-                            break;
-                    }
+                    noteName = IndexToNoteName(i * _Temperament + note);
                     
                     //绘制编辑区
                     // Console.WriteLine(noteName);
@@ -348,57 +263,7 @@ public partial class PianoRoll : UserControl
             {
                 for (int note = 0; note < _Temperament; note++)
                 {
-                    switch (note)
-                    {
-                        case 0:
-                            noteName = $"C{i}";
-                            noteColor = _noteColor3;
-                            break;
-                        case 1:
-                            noteName = $"C#{i}";
-                            noteColor = _noteColor2;
-                            break;
-                        case 2:
-                            noteName = $"D{i}";
-                            noteColor = _noteColor1;
-                            break;
-                        case 3:
-                            noteName = $"D#{i}";
-                            noteColor = _noteColor2;
-                            break;
-                        case 4:
-                            noteName = $"E{i}";
-                            noteColor = _noteColor1;
-                            break;
-                        case 5:
-                            noteName = $"F{i}";
-                            noteColor = _noteColor1;
-                            break;
-                        case 6:
-                            noteName = $"F#{i}";
-                            noteColor = _noteColor2;
-                            break;
-                        case 7:
-                            noteName = $"G{i}";
-                            noteColor = _noteColor1;
-                            break;
-                        case 8:
-                            noteName = $"G#{i}";
-                            noteColor = _noteColor2;
-                            break;
-                        case 9:
-                            noteName = $"A{i}";
-                            noteColor = _noteColor1;
-                            break;
-                        case 10:
-                            noteName = $"A#{i}";
-                            noteColor = _noteColor2;
-                            break;
-                        case 11:
-                            noteName = $"B{i}";
-                            noteColor = _noteColor1;
-                            break;
-                    }
+                    noteName = IndexToNoteName(i * _Temperament + note);
                     
                     //渲染音符
                     foreach (Note existNote in Notes)
@@ -426,8 +291,8 @@ public partial class PianoRoll : UserControl
                                 {
                                     //更改音符长度
                                     context.DrawLine(new Pen(Brushes.Red,2),
-                                        new Point(end, Height - (i * _Temperament + note + 1) * NoteHeight),
-                                        new Point(end, Height - (i * _Temperament + note + 1) * NoteHeight + NoteHeight * .9));
+                                        new Point(end-1, Height - (i * _Temperament + note + 1) * NoteHeight),
+                                        new Point(end-1, Height - (i * _Temperament + note + 1) * NoteHeight + NoteHeight * .9));
                                 }
                                 else
                                 {
@@ -482,57 +347,7 @@ public partial class PianoRoll : UserControl
             {
                 for (int note = 0; note < _Temperament; note++)
                 {
-                    switch (note)
-                    {
-                        case 0:
-                            noteName = $"C{i}";
-                            noteColor = _noteColor3;
-                            break;
-                        case 1:
-                            noteName = $"C#{i}";
-                            noteColor = _noteColor2;
-                            break;
-                        case 2:
-                            noteName = $"D{i}";
-                            noteColor = _noteColor1;
-                            break;
-                        case 3:
-                            noteName = $"D#{i}";
-                            noteColor = _noteColor2;
-                            break;
-                        case 4:
-                            noteName = $"E{i}";
-                            noteColor = _noteColor1;
-                            break;
-                        case 5:
-                            noteName = $"F{i}";
-                            noteColor = _noteColor1;
-                            break;
-                        case 6:
-                            noteName = $"F#{i}";
-                            noteColor = _noteColor2;
-                            break;
-                        case 7:
-                            noteName = $"G{i}";
-                            noteColor = _noteColor1;
-                            break;
-                        case 8:
-                            noteName = $"G#{i}";
-                            noteColor = _noteColor2;
-                            break;
-                        case 9:
-                            noteName = $"A{i}";
-                            noteColor = _noteColor1;
-                            break;
-                        case 10:
-                            noteName = $"A#{i}";
-                            noteColor = _noteColor2;
-                            break;
-                        case 11:
-                            noteName = $"B{i}";
-                            noteColor = _noteColor1;
-                            break;
-                    }
+                    noteName = IndexToNoteName(i * _Temperament + note);
                     
                     //渲染选中音符
                     foreach (Note existNote in SelectedNotes)
@@ -550,26 +365,26 @@ public partial class PianoRoll : UserControl
                                     Brushes.White),
                                 new Point(start, Height - (i * _Temperament + note + 1) * NoteHeight));
                             
-                            // //Hover音符
-                            // if (existNote.Name.Equals(_currentHoverNote) &&
-                            //     _currentMousePosition.X > existNote.StartTime * _widthOfBeat &&
-                            //     _currentMousePosition.X < existNote.EndTime * _widthOfBeat)
-                            // {
-                            //     if (double.Abs(_currentMousePosition.X - existNote.EndTime * _widthOfBeat) < 5)
-                            //     {
-                            //         context.DrawLine(new Pen(Brushes.White,2),
-                            //             new Point(end, Height - (i * _Temperament + note + 1) * NoteHeight),
-                            //             new Point(end, Height - (i * _Temperament + note + 1) * NoteHeight + NoteHeight * .9));
-                            //     }
-                            //     else
-                            //     {
-                            //         context.DrawRectangle(null,new Pen(Brushes.White,1),
-                            //             new Rect(start, Height - (i * _Temperament + note + 1) * NoteHeight,end-start,NoteHeight * .9));
-                            //
-                            //     }
-                            //     
-                            //    
-                            // }
+                            //Hover音符
+                            if (existNote.Name.Equals(_currentHoverNote) &&
+                                _currentMousePosition.X > existNote.StartTime * _widthOfBeat &&
+                                _currentMousePosition.X < existNote.EndTime * _widthOfBeat)
+                            {
+                                if (double.Abs(_currentMousePosition.X - existNote.EndTime * _widthOfBeat) < 5)
+                                {
+                                    context.DrawLine(new Pen(Brushes.Red,2),
+                                        new Point(end-1, Height - (i * _Temperament + note + 1) * NoteHeight),
+                                        new Point(end-1, Height - (i * _Temperament + note + 1) * NoteHeight + NoteHeight * .9));
+                                }
+                                else
+                                {
+                                    context.DrawRectangle(null,new Pen(Brushes.White,1),
+                                        new Rect(start, Height - (i * _Temperament + note + 1) * NoteHeight,end-start,NoteHeight * .9));
+                            
+                                }
+                                
+                               
+                            }
                         }
                         
                     }
@@ -635,57 +450,7 @@ public partial class PianoRoll : UserControl
             {
                 for (int note = 0; note < _Temperament; note++)
                 {
-                    switch (note)
-                    {
-                        case 0:
-                            noteName = $"C{i}";
-                            noteColor = _noteColor1;
-                            break;
-                        case 1:
-                            noteName = $"C#{i}";
-                            noteColor = _noteColor2;
-                            break;
-                        case 2:
-                            noteName = $"D{i}";
-                            noteColor = _noteColor1;
-                            break;
-                        case 3:
-                            noteName = $"D#{i}";
-                            noteColor = _noteColor2;
-                            break;
-                        case 4:
-                            noteName = $"E{i}";
-                            noteColor = _noteColor1;
-                            break;
-                        case 5:
-                            noteName = $"F{i}";
-                            noteColor = _noteColor1;
-                            break;
-                        case 6:
-                            noteName = $"F#{i}";
-                            noteColor = _noteColor2;
-                            break;
-                        case 7:
-                            noteName = $"G{i}";
-                            noteColor = _noteColor1;
-                            break;
-                        case 8:
-                            noteName = $"G#{i}";
-                            noteColor = _noteColor2;
-                            break;
-                        case 9:
-                            noteName = $"A{i}";
-                            noteColor = _noteColor1;
-                            break;
-                        case 10:
-                            noteName = $"A#{i}";
-                            noteColor = _noteColor2;
-                            break;
-                        case 11:
-                            noteName = $"B{i}";
-                            noteColor = _noteColor1;
-                            break;
-                    }
+                    noteName = IndexToNoteName(i * _Temperament + note);
 
                     var relativePos = e.GetPosition(this) -
                                       new Point(0, Height - (i * _Temperament + note + 1) * NoteHeight);
@@ -738,9 +503,30 @@ public partial class PianoRoll : UserControl
                 //框选逻辑
                 if (_selectFrame != null)
                 {
-                    _selectFrame = new Rect(((Rect)_selectFrame).X, ((Rect)_selectFrame).Y,
-                        e.GetPosition(this).X - ((Rect)_selectFrame).X, e.GetPosition(this).Y - ((Rect)_selectFrame).Y);
-                    // Console.WriteLine(_selectFrame);
+                    Rect _tempSelectFrame = (Rect)_selectFrame;
+
+                    double selectStartX = _tempSelectFrame.X;
+                    double selectStartY =  _tempSelectFrame.Y;
+                    double selectWidth = double.Abs(selectStartX - e.GetPosition(this).X);
+                    double selectHeight = double.Abs(selectStartY - e.GetPosition(this).Y);
+                    
+                    if (e.GetPosition(this).X < _pressedMousePosition.X)
+                    {
+                        selectStartX = e.GetPosition(this).X;
+                        selectWidth =  _tempSelectFrame.Right - selectStartX;
+                    }
+                    if (e.GetPosition(this).Y < _pressedMousePosition.Y)
+                    {
+                        selectStartY = e.GetPosition(this).Y;
+                        selectHeight = _tempSelectFrame.Bottom - selectStartY;
+                    }
+                    
+                    
+                    
+                    _selectFrame = new Rect(selectStartX, selectStartY,
+                        selectWidth, selectHeight);
+                    
+
                     
                     var noteColor = _noteColor1;
                     var noteName = "";
@@ -749,58 +535,6 @@ public partial class PianoRoll : UserControl
                     {
                         for (int note = 0; note < _Temperament; note++)
                         {
-                            switch (note)
-                            {
-                                case 0:
-                                    noteName = $"C{i}";
-                                    noteColor = _noteColor1;
-                                    break;
-                                case 1:
-                                    noteName = $"C#{i}";
-                                    noteColor = _noteColor2;
-                                    break;
-                                case 2:
-                                    noteName = $"D{i}";
-                                    noteColor = _noteColor1;
-                                    break;
-                                case 3:
-                                    noteName = $"D#{i}";
-                                    noteColor = _noteColor2;
-                                    break;
-                                case 4:
-                                    noteName = $"E{i}";
-                                    noteColor = _noteColor1;
-                                    break;
-                                case 5:
-                                    noteName = $"F{i}";
-                                    noteColor = _noteColor1;
-                                    break;
-                                case 6:
-                                    noteName = $"F#{i}";
-                                    noteColor = _noteColor2;
-                                    break;
-                                case 7:
-                                    noteName = $"G{i}";
-                                    noteColor = _noteColor1;
-                                    break;
-                                case 8:
-                                    noteName = $"G#{i}";
-                                    noteColor = _noteColor2;
-                                    break;
-                                case 9:
-                                    noteName = $"A{i}";
-                                    noteColor = _noteColor1;
-                                    break;
-                                case 10:
-                                    noteName = $"A#{i}";
-                                    noteColor = _noteColor2;
-                                    break;
-                                case 11:
-                                    noteName = $"B{i}";
-                                    noteColor = _noteColor1;
-                                    break;
-                            }
-
                             
                             
                             foreach (Note existNote in Notes)
@@ -853,6 +587,7 @@ public partial class PianoRoll : UserControl
     protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
         base.OnPointerPressed(e);
+        _pressedMousePosition =  e.GetPosition(this);
         if (!IsPianoBar)
         {
             if (e.Properties.IsLeftButtonPressed)
@@ -898,6 +633,10 @@ public partial class PianoRoll : UserControl
                         //拖动单个音符
                         if (e.Properties.IsLeftButtonPressed)
                         {
+                            if (!SelectedNotes.Contains(existNote))
+                            {
+                                SelectedNotes.Clear();
+                            }
                             _isDragging = true;
                             _selectFrame = null;
                             _dragPos = e.GetPosition(this);
@@ -927,8 +666,10 @@ public partial class PianoRoll : UserControl
     protected override void OnPointerReleased(PointerReleasedEventArgs e)
     {
         base.OnPointerReleased(e);
-        
-        
+        if (e.GetPosition(this) == _pressedMousePosition)
+        {
+            SelectedNotes.Clear();
+        }
         
         if (_currentNoteStartTime < _currentNoteEndTime && (_isDrawing || _isDragging || _isEditing))
         {
@@ -1051,9 +792,66 @@ public partial class PianoRoll : UserControl
         _isDragging = false;
         _isEditing = false;
         _selectFrame = null;
+
+        if(!IsPianoBar)
+        {
+            if (SelectedNotes.Count > 0)
+            {
+                _isShowingOptions = true;
+                _ = ShowOptions();
+            }
+            else
+            {
+                _isShowingOptions = false;
+                _ = HideOptions();
+            }
+
+            
+            
+        }
+        
+        SaveNotes();
         InvalidateVisual();
         e.Handled = true;
     }
+
+    private async Task ShowOptions()
+    {
+        var positionLeft = SelectedNotes[0].StartTime * _widthOfBeat;
+        var positionTop = Height - NoteNameToIndex(SelectedNotes[0].Name) * NoteHeight;
+        foreach (Note selectedNote in SelectedNotes)
+        {
+            positionLeft = double.Min(positionLeft, selectedNote.StartTime * _widthOfBeat);
+            positionTop = double.Min(positionTop, Height - NoteNameToIndex(selectedNote.Name) * NoteHeight);
+        }
+
+        Options.Margin = new Thickness(positionLeft, positionTop, 0, 0);
+            
+        while (Options.Opacity < 1 && _isShowingOptions)
+        {
+            Options.IsVisible = true;
+            await Task.Delay(50);
+            Options.Opacity += .5;
+            Console.WriteLine("IsShowingOptions");
+        }
+        await Task.CompletedTask;
+        Console.WriteLine("ShowOptionsCompleted");
+    }
+    private async Task HideOptions()
+    {
+        
+    while (Options.Opacity > 0 && !_isShowingOptions)
+    {
+        
+        await Task.Delay(50);
+        Options.Opacity -= .5;
+        Console.WriteLine("IsHidingOptions");
+    }
+    await Task.CompletedTask;
+    Options.IsVisible = false;
+    Console.WriteLine("HidingOptionsCompleted");
+    }
+    
 
     protected override void OnPointerWheelChanged(PointerWheelEventArgs e)
     {
@@ -1096,7 +894,7 @@ public partial class PianoRoll : UserControl
         }
     }
 
-    private int NoteNameToIndex(string name)
+    public int NoteNameToIndex(string name)
     {
         string noteName = "";
         for (int i = _noteRangeMin; i <= _noteRangeMax; i++)
@@ -1142,10 +940,13 @@ public partial class PianoRoll : UserControl
                         noteName = $"B{i}";
                         break;
                 }
+                
                 if (name.Equals(noteName))
                 {
                     return (i * _Temperament + note);
                 }
+                
+                
             }
         }
         return -1;
@@ -1154,7 +955,7 @@ public partial class PianoRoll : UserControl
     private string IndexToNoteName(int index)
     {
         string noteName = "";
-        for (int i = _noteRangeMin; i <= _noteRangeMax; i++)
+        for (int i = _noteRangeMin - 1; i <= _noteRangeMax + 1; i++)
         {
             for (int note = 0; note < _Temperament; note++)
             {
@@ -1204,5 +1005,71 @@ public partial class PianoRoll : UserControl
             }
         }
         return "";
+    }
+
+    private IBrush NoteNameToBrush(string name)
+    {
+        if (name.Contains('#'))
+        {
+            return _noteColor2;
+        }
+        if (name[0] == 'C')
+        {
+            return _noteColor3;
+        }
+        return _noteColor1;
+    }
+
+    public void SaveNotes()
+    {
+        ViewHelper.GetMainWindow().PatternPreview.Notes = Notes;
+        ViewHelper.GetMainWindow().PatternPreview.InvalidateVisual();
+    }
+
+    private void SelectedNotesMoveUp(object? sender, RoutedEventArgs e)
+    {
+        for (int i = 0; i < SelectedNotes.Count; i++)
+        {
+            if(Notes.Contains(SelectedNotes[i]))
+            {
+                Notes.Remove(SelectedNotes[i]);
+                SelectedNotes[i] = new Note
+                {
+                    Color = SelectedNotes[i].Color,
+                    StartTime = SelectedNotes[i].StartTime,
+                    EndTime = SelectedNotes[i].EndTime,
+                    Name = SelectedNotes[i].Name.Substring(0, SelectedNotes[i].Name.Length - 1)
+                    + (int.Parse(SelectedNotes[i].Name[^1].ToString()) + 1)
+                };
+                Console.WriteLine(SelectedNotes[i].Name);
+                Notes.Add(SelectedNotes[i]);
+            }
+        }
+
+        _ = ShowOptions();
+        InvalidateVisual();
+    }
+    private void SelectedNotesMoveDown(object? sender, RoutedEventArgs e)
+    {
+        for (int i = 0; i < SelectedNotes.Count; i++)
+        {
+            if(Notes.Contains(SelectedNotes[i]))
+            {
+                Notes.Remove(SelectedNotes[i]);
+                SelectedNotes[i] = new Note
+                {
+                    Color = SelectedNotes[i].Color,
+                    StartTime = SelectedNotes[i].StartTime,
+                    EndTime = SelectedNotes[i].EndTime,
+                    Name = SelectedNotes[i].Name.Substring(0, SelectedNotes[i].Name.Length - 1)
+                           + (int.Parse(SelectedNotes[i].Name[^1].ToString()) - 1)
+                };
+                Console.WriteLine(SelectedNotes[i].Name);
+                Notes.Add(SelectedNotes[i]);
+            }
+        }
+
+        _ = ShowOptions();
+        InvalidateVisual();
     }
 }
