@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Audio;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;

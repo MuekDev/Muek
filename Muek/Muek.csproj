@@ -24,22 +24,12 @@
             <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
         </PackageReference>
         <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.1"/>
-        <PackageReference Include="Google.Protobuf" Version="3.31.1" />
-        <PackageReference Include="Grpc.Net.Client" Version="2.71.0" />
-        <PackageReference Include="Grpc.Tools" Version="2.72.0">
-          <PrivateAssets>all</PrivateAssets>
-          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-        </PackageReference>
+<!--        <PackageReference Include="Google.Protobuf" Version="3.31.1" />-->
         <PackageReference Include="NAudio" Version="2.2.1" />
         <PackageReference Include="Projektanker.Icons.Avalonia" Version="9.6.2"/>
         <PackageReference Include="Projektanker.Icons.Avalonia.FontAwesome" Version="9.6.2"/>
         <PackageReference Include="Projektanker.Icons.Avalonia.MaterialDesign" Version="9.6.2" />
         <PackageReference Include="System.Reactive" Version="6.0.1"/>
-    </ItemGroup>
-    
-    <ItemGroup>
-        <Protobuf Include="../protos/greet.proto" GrpcServices="Client"/>
-        <Protobuf Include="../protos/audio.proto" GrpcServices="Client"/>
     </ItemGroup>
     
     <ItemGroup>

@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using Audio;
 using Avalonia.Media;
+using Muek.Models;
 using Muek.ViewModels;
 
 namespace Muek.Services;

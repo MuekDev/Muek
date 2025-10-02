@@ -2,13 +2,12 @@ using System;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using Audio;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.VisualTree;
-using Muek.Commands;
+using Muek.Models;
 using Muek.Services;
 using Muek.ViewModels;
 using NAudio.Wave;
@@ -174,7 +173,8 @@ public partial class TrackView : UserControl
                 }
 
                 var track = DataStateService.Tracks[trackIndex].Proto;
-                HandleNewClipCommand.Execute(track, newClip);
+                // HandleNewClipCommand.Execute(track, newClip);
+                // TODO
             }
 
             _isDropping = false;
@@ -618,8 +618,9 @@ public partial class TrackView : UserControl
                     _activeClip.Proto.Offset = newOffset;
                     _activeClip.Proto.Duration = newDuration;
 
-                    if (DataStateService.ActiveTrack?.Proto != null)
-                        ReOffsetCommand.Execute(DataStateService.ActiveTrack.Proto, _activeClip.Proto);
+                    // if (DataStateService.ActiveTrack?.Proto != null)
+                        // TODO
+                        // ReOffsetCommand.Execute(DataStateService.ActiveTrack.Proto, _activeClip.Proto);
 
                     InvalidateVisual();
                 }
@@ -639,8 +640,9 @@ public partial class TrackView : UserControl
             if (newDuration < 0.1 || newDuration > _activeClip.SourceDuration)
                 return;
             _activeClip.Proto.Duration = newDuration;
-            if (DataStateService.ActiveTrack?.Proto != null)
-                ReDurationCommand.Execute(DataStateService.ActiveTrack.Proto, _activeClip.Proto, _activeClip.Duration);
+            // TODO
+            // if (DataStateService.ActiveTrack?.Proto != null)
+                // ReDurationCommand.Execute(DataStateService.ActiveTrack.Proto, _activeClip.Proto, _activeClip.Duration);
             InvalidateVisual();
         }
     }
@@ -654,9 +656,10 @@ public partial class TrackView : UserControl
         var pointerBeat = globalX / ScaleFactor - _lastClickedBeatOfClip;
         if (pointerBeat > 0)
             _activeClip.Proto.StartBeat = pointerBeat;
-
-        if (DataStateService.ActiveTrack?.Proto != null)
-            MoveCommand.Execute(DataStateService.ActiveTrack.Proto, _activeClip.Proto);
+        
+        // TODO
+        // if (DataStateService.ActiveTrack?.Proto != null)
+            // MoveCommand.Execute(DataStateService.ActiveTrack.Proto, _activeClip.Proto);
 
         InvalidateVisual();
     }

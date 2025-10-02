@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Audio;
+using Muek.Models;
 using NAudio.Wave;
 
 namespace Muek.ViewModels;
