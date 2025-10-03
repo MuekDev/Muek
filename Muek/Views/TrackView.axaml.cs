@@ -164,7 +164,7 @@ public partial class TrackView : UserControl
                     Duration = durationBeats,
                     Path = file,
                     Id = Guid.NewGuid().ToString(),
-                    CachedWaveform = AudioService.DecodeFromFile(file)
+                    CachedWaveform = AudioService.DecodeFromFile(file,48000,2).ToArray()
                 };
 
                 // 确保轨道存在
