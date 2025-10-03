@@ -28,7 +28,7 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         Console.WriteLine("Omg it is playing...");
         // await RpcService.SendCommand(new PlayCommand());
-        // TODO
+        AudioService.Play();
     }
 
     [RelayCommand]
@@ -37,6 +37,7 @@ public partial class MainWindowViewModel : ViewModelBase
         Console.WriteLine("Omg it is stopping...");
         // await RpcService.SendCommand(new StopCommand());
         // TODO
+        AudioService.Stop();
     }
 
     [RelayCommand]

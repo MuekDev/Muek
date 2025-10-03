@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace Muek.Models;
 
 public class Clip
@@ -8,4 +10,5 @@ public class Clip
     public string Path;
     public string Name;
     public string Id;
+    public float[]? CachedWaveform { get; set; }
 }
