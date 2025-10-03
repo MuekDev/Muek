@@ -34,10 +34,6 @@
     </ItemGroup>
     
     <ItemGroup>
-      <Folder Include="Helpers\" />
-    </ItemGroup>
-    
-    <ItemGroup>
       <None Update="muek_engine.dll">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>

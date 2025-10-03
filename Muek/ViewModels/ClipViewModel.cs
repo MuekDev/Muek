@@ -10,7 +10,9 @@ public class ClipViewModel
     public Clip Proto { get; }
 
     // 本地缓存字段，不参与 proto 序列化
-    public List<float>? CachedWaveform { get; set; }
+    public float[] CachedWaveform { get; set; }
+    public int CachedSampleRate { get; set; }
+    public int CachedChannels { get; set; }
     public bool IsRendering { get; set; }
 
     public double StartBeat => Proto.StartBeat;
@@ -42,7 +44,10 @@ public class ClipViewModel
             var read = reader.Read(buffer, 0, totalSamples);
 
             var step = Math.Max(1, read / sampleCount);
-            var result = new List<float>(sampleCount);
+            int actualCount = (int)Math.Ceiling((double)read / step);
+
+            var result = new float[actualCount];
+            int idx = 0;
 
             for (var i = 0; i < read; i += step)
             {
@@ -51,11 +56,10 @@ public class ClipViewModel
                 {
                     max = Math.Max(max, Math.Abs(buffer[j]));
                 }
-
-                result.Add(max);
+                result[idx++] = max;
             }
 
-            CachedWaveform = result;
+            CachedWaveform = result; 
         }
         catch (Exception e)
         {
@@ -68,59 +72,30 @@ public class ClipViewModel
         try
         {
             using var reader = new AudioFileReader(Path);
-            var buffer = new float[4096];
-            var result = new List<float>();
-            int read;
 
-            // 只取第一个通道（或混合通道）
-            var channels = reader.WaveFormat.Channels;
+            // 估算采样数（每通道）
+            long totalSamples = reader.Length / (reader.WaveFormat.BitsPerSample / 8);
+            long estimatedPerChannel = totalSamples / reader.WaveFormat.Channels;
+
+            var result = new List<float>((int)estimatedPerChannel);
+
+            var buffer = new float[4096];
+            int read;
+            int channels = reader.WaveFormat.Channels;
 
             while ((read = reader.Read(buffer, 0, buffer.Length)) > 0)
             {
                 for (int i = 0; i < read; i += channels)
                 {
-                    result.Add(buffer[i]); // 使用第一个通道
+                    result.Add(buffer[i]); // 只取第一个通道
                 }
             }
 
-            CachedWaveform = result;
+            CachedWaveform = result.ToArray();
         }
         catch (Exception e)
         {
             Console.WriteLine($"[Waveform] Failed to read: {e.Message}");
         }
     }
-
-    [Obsolete("<UNK>")]
-    private List<float> GenerateLODLevel(int factor)
-    {
-        var samples = CachedWaveform!;
-        int newLength = samples.Count / factor;
-        var lod = new List<float>(newLength);
-
-        for (int i = 0; i < newLength; i++)
-        {
-            int start = i * factor;
-            int end = Math.Min(start + factor, samples.Count);
-            float max = float.MinValue;
-            float min = float.MaxValue;
-            for (int j = start; j < end; j++)
-            {
-                var s = samples[j];
-                if (s > max) max = s;
-                if (s < min) min = s;
-            }
-            lod.Add((max + min) * 0.5f);
-        }
-
-        return lod;
-    }
-
-    // public void GenerateLodWaveform()
-    // {
-    //     LOD0 = GenerateLODLevel(0);
-    //     LOD1 = GenerateLODLevel(2);
-    //     LOD2 = GenerateLODLevel(4);
-    //     LOD3 = GenerateLODLevel(8);
-    // }
 }
