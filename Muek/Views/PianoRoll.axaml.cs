@@ -424,6 +424,8 @@ public partial class PianoRoll : UserControl
                                             NoteHeight * .9));
                                 }
                             }
+
+                            dragedSelectedNotes.Clear();
                         }
                         else
                         {
@@ -748,6 +750,7 @@ public partial class PianoRoll : UserControl
                         }
                         // Console.WriteLine($"Notes:{Notes.Count}");
                         // Console.WriteLine($"SelectedNotes:{SelectedNotes.Count}");
+                        dragedSelectedNotes.Clear();
                     }
                     
                 }
@@ -784,6 +787,7 @@ public partial class PianoRoll : UserControl
                         }
                         // Console.WriteLine($"Notes:{Notes.Count}");
                         // Console.WriteLine($"SelectedNotes:{SelectedNotes.Count}");
+                        dragedSelectedNotes.Clear();
                     }
                 }
             }
@@ -813,6 +817,7 @@ public partial class PianoRoll : UserControl
         SaveNotes();
         InvalidateVisual();
         e.Handled = true;
+        GC.Collect();
     }
 
     private async Task ShowOptions()
@@ -889,6 +894,7 @@ public partial class PianoRoll : UserControl
                 // Console.WriteLine(e.GetPosition(ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRight));
             }
 
+            _ = ShowOptions();
             InvalidateVisual();
             e.Handled = true;
         }
