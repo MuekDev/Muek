@@ -19,6 +19,7 @@ public partial class PatternPreview : UserControl
     public List<PianoRoll.Note> Notes = new();
 
     private bool _isHover = false;
+    private bool _isDragging = false;
     
     public PatternPreview()
     {
@@ -32,6 +33,15 @@ public partial class PatternPreview : UserControl
     {
         base.Render(context);
         context.DrawRectangle(Brushes.YellowGreen, null, new Rect(0, 0, Width, Height),10D,15D);
+        if (_isHover)
+        {
+            context.DrawRectangle(new SolidColorBrush(Colors.Black,.1), null, new Rect(0, 0, Width, Height), 10D, 15D);
+        }
+
+        if (_isDragging)
+        {
+            
+        }
         
         if (Notes.Count > 0)
         {
@@ -87,6 +97,9 @@ public partial class PatternPreview : UserControl
         {
             Console.WriteLine(note.Name);
         }
+
+        _isDragging = true;
+        e.Handled = true;
     }
 
     protected override void OnPointerEntered(PointerEventArgs e)
