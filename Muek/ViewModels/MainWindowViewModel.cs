@@ -4,12 +4,10 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using Audio;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Muek.Commands;
 using Muek.Services;
 using Muek.Views;
 
@@ -29,14 +27,17 @@ public partial class MainWindowViewModel : ViewModelBase
     public async Task OnPlayButtonClick()
     {
         Console.WriteLine("Omg it is playing...");
-        await RpcService.SendCommand(new PlayCommand());
+        // await RpcService.SendCommand(new PlayCommand());
+        AudioService.Play();
     }
 
     [RelayCommand]
     public async Task OnStopButtonClick()
     {
         Console.WriteLine("Omg it is stopping...");
-        await RpcService.SendCommand(new StopCommand());
+        // await RpcService.SendCommand(new StopCommand());
+        // TODO
+        AudioService.Stop();
     }
 
     [RelayCommand]

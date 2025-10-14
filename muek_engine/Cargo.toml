@@ -3,18 +3,8 @@ name = "muek_engine"
 version = "0.1.0"
 edition = "2024"
 
-[dependencies]
-prost = "0.13.5"
-tonic = "*"
-tokio = { version = "1.0", features = ["macros", "rt-multi-thread"] }
-# rodio = "0.20.1"
-once_cell = "1.21.3"
-cpal = "0.16.0"
-symphonia = { version = "0.5.4", features = ["mp3"] }
-minimp3 = { git = "https://github.com/Manith-2001/minimp3-rs.git" }
-infer = "0.19.0"
-rayon = "1.10.0"
-ringbuf = "0.4.8"
+[lib]
+crate-type = ["cdylib"]
 
 [build-dependencies]
-tonic-build = "*"
+csbindgen = "1.9.6"

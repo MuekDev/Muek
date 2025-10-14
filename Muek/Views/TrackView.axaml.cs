@@ -2,13 +2,13 @@ using System;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using Audio;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.VisualTree;
-using Muek.Commands;
+using Muek.Helpers;
+using Muek.Models;
 using Muek.Services;
 using Muek.ViewModels;
 using NAudio.Wave;
@@ -165,6 +165,7 @@ public partial class TrackView : UserControl
                     Duration = durationBeats,
                     Path = file,
                     Id = Guid.NewGuid().ToString(),
+                    CachedWaveform = AudioService.DecodeFromFile(file,48000,2).ToArray()
                 };
 
                 // 确保轨道存在
@@ -174,7 +175,8 @@ public partial class TrackView : UserControl
                 }
 
                 var track = DataStateService.Tracks[trackIndex].Proto;
-                HandleNewClipCommand.Execute(track, newClip);
+                // HandleNewClipCommand.Execute(track, newClip);
+                // TODO
             }
 
             _isDropping = false;
@@ -250,12 +252,12 @@ public partial class TrackView : UserControl
                 context.DrawRectangle(new Pen(Brushes.Black), rect);
 
                 // 渲染波形
-                if (clip.CachedWaveform is { Count: > 1 })
+                if (clip.CachedWaveform is { Length: > 1 })
                 {
                     var waveform = clip.CachedWaveform;
 
                     // 根据 clip.Duration 和 clip.Offset 裁剪波形（单位: 样本）
-                    int totalSamples = waveform.Count;
+                    int totalSamples = waveform.Length;
                     var durationRatio = (float)clip.Duration / clip.SourceDuration;
                     var offsetRatio = (float)clip.Offset / clip.SourceDuration;
 
@@ -265,7 +267,7 @@ public partial class TrackView : UserControl
                     startSample = Math.Clamp(startSample, 0, totalSamples - 1);
                     endSample = Math.Clamp(endSample, 0, totalSamples);
 
-                    waveform = waveform.GetRange(startSample, endSample - startSample);
+                    waveform = waveform.Slice(startSample, endSample - startSample);
 
 
                     var centerY = i * TrackHeight + TrackHeight / 2;
@@ -274,7 +276,7 @@ public partial class TrackView : UserControl
                     var pixelWidth = (int)Math.Ceiling(width);
                     if (pixelWidth <= 1) return;
 
-                    var samplesPerPixel = waveform.Count / pixelWidth;
+                    var samplesPerPixel = waveform.Length / pixelWidth;
                     samplesPerPixel = Math.Max(1, samplesPerPixel);
 
                     var geometry = new StreamGeometry();
@@ -283,7 +285,7 @@ public partial class TrackView : UserControl
                         if (samplesPerPixel <= 50)
                         {
                             // 高分辨率精细一点，用折线图（此乃盗窃reaper之秘术
-                            var waveformCount = waveform.Count;
+                            var waveformCount = waveform.Length;
 
                             var visibleStartX = Math.Max(0, -x); // 视口左边相对波形起点的偏移，单位像素
                             var visibleEndX = Math.Min(width, renderSize.Width - x);
@@ -320,7 +322,7 @@ public partial class TrackView : UserControl
                             for (var px = renderStartPx; px < renderEndPx; px++)
                             {
                                 var start = px * samplesPerPixel;
-                                var end = Math.Min(start + samplesPerPixel, waveform.Count);
+                                var end = Math.Min(start + samplesPerPixel, waveform.Length);
 
                                 float min = 0, max = 0;
                                 for (var j = start; j < end; j++)
@@ -618,8 +620,9 @@ public partial class TrackView : UserControl
                     _activeClip.Proto.Offset = newOffset;
                     _activeClip.Proto.Duration = newDuration;
 
-                    if (DataStateService.ActiveTrack?.Proto != null)
-                        ReOffsetCommand.Execute(DataStateService.ActiveTrack.Proto, _activeClip.Proto);
+                    // if (DataStateService.ActiveTrack?.Proto != null)
+                        // TODO
+                        // ReOffsetCommand.Execute(DataStateService.ActiveTrack.Proto, _activeClip.Proto);
 
                     InvalidateVisual();
                 }
@@ -639,8 +642,9 @@ public partial class TrackView : UserControl
             if (newDuration < 0.1 || newDuration > _activeClip.SourceDuration)
                 return;
             _activeClip.Proto.Duration = newDuration;
-            if (DataStateService.ActiveTrack?.Proto != null)
-                ReDurationCommand.Execute(DataStateService.ActiveTrack.Proto, _activeClip.Proto, _activeClip.Duration);
+            // TODO
+            // if (DataStateService.ActiveTrack?.Proto != null)
+                // ReDurationCommand.Execute(DataStateService.ActiveTrack.Proto, _activeClip.Proto, _activeClip.Duration);
             InvalidateVisual();
         }
     }
@@ -654,9 +658,10 @@ public partial class TrackView : UserControl
         var pointerBeat = globalX / ScaleFactor - _lastClickedBeatOfClip;
         if (pointerBeat > 0)
             _activeClip.Proto.StartBeat = pointerBeat;
-
-        if (DataStateService.ActiveTrack?.Proto != null)
-            MoveCommand.Execute(DataStateService.ActiveTrack.Proto, _activeClip.Proto);
+        
+        // TODO
+        // if (DataStateService.ActiveTrack?.Proto != null)
+            // MoveCommand.Execute(DataStateService.ActiveTrack.Proto, _activeClip.Proto);
 
         InvalidateVisual();
     }

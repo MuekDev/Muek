@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using Audio;
 using Avalonia.Media;
+using Muek.Models;
 using Muek.ViewModels;
 
 namespace Muek.Services;
@@ -16,7 +16,7 @@ public static class DataStateService
             { Color = Colors.YellowGreen.ToString(), Id = Guid.NewGuid().ToString(), Name = "Master" })
     ];
 
-    public static float Bpm { get; set; } = 150f;
+    public static float Bpm { get; set; } = 120f;
 
     public static bool IsPlaying { get; set; }
     public static TrackViewModel? ActiveTrack { get; set; }
