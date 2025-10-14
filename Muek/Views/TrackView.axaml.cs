@@ -2,13 +2,13 @@ using System;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using Audio;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.VisualTree;
-using Muek.Commands;
+using Muek.Helpers;
+using Muek.Models;
 using Muek.Services;
 using Muek.ViewModels;
 using NAudio.Wave;
@@ -29,6 +29,7 @@ public partial class TrackView : UserControl
     private bool _isResizingClipRight;         // 是否在调整片段长度
     private ClipViewModel? _activeClip = null; // 当前被激活的片段
     private double _lastClickedBeatOfClip = 0; // 最后一次点击clip title的位置（相对于clip，单位为beat）
+    private bool _isResizingClipLeft;
 
     public TrackView()
     {
@@ -111,7 +112,7 @@ public partial class TrackView : UserControl
         }
     }
 
-    public static int Subdivisions { get; set; } = 4;
+    public static int Subdivisions => DataStateService.Subdivisions;
 
 
     private void OnDropEnter(object? sender, DragEventArgs e)
@@ -164,6 +165,7 @@ public partial class TrackView : UserControl
                     Duration = durationBeats,
                     Path = file,
                     Id = Guid.NewGuid().ToString(),
+                    CachedWaveform = AudioService.DecodeFromFile(file,48000,2).ToArray()
                 };
 
                 // 确保轨道存在
@@ -173,7 +175,8 @@ public partial class TrackView : UserControl
                 }
 
                 var track = DataStateService.Tracks[trackIndex].Proto;
-                HandleNewClipCommand.Execute(track, newClip);
+                // HandleNewClipCommand.Execute(track, newClip);
+                // TODO
             }
 
             _isDropping = false;
@@ -249,21 +252,22 @@ public partial class TrackView : UserControl
                 context.DrawRectangle(new Pen(Brushes.Black), rect);
 
                 // 渲染波形
-                if (clip.CachedWaveform is { Count: > 1 })
+                if (clip.CachedWaveform is { Length: > 1 })
                 {
                     var waveform = clip.CachedWaveform;
 
                     // 根据 clip.Duration 和 clip.Offset 裁剪波形（单位: 样本）
-                    int totalSamples = waveform.Count;
-                    var durationRatio = (float)clip.Duration / clip.SourceDuration; // 片段占原始长度的比例
-                    var offsetRatio = (float)0 / clip.SourceDuration; // 左偏移占原始长度的比例  // TODO: 把0改成clip.Offset
+                    int totalSamples = waveform.Length;
+                    var durationRatio = (float)clip.Duration / clip.SourceDuration;
+                    var offsetRatio = (float)clip.Offset / clip.SourceDuration;
+
 
                     int startSample = (int)(offsetRatio * totalSamples);
                     int endSample = (int)((offsetRatio + durationRatio) * totalSamples);
                     startSample = Math.Clamp(startSample, 0, totalSamples - 1);
                     endSample = Math.Clamp(endSample, 0, totalSamples);
 
-                    waveform = waveform.GetRange(startSample, endSample - startSample);
+                    waveform = waveform.Slice(startSample, endSample - startSample);
 
 
                     var centerY = i * TrackHeight + TrackHeight / 2;
@@ -272,7 +276,7 @@ public partial class TrackView : UserControl
                     var pixelWidth = (int)Math.Ceiling(width);
                     if (pixelWidth <= 1) return;
 
-                    var samplesPerPixel = waveform.Count / pixelWidth;
+                    var samplesPerPixel = waveform.Length / pixelWidth;
                     samplesPerPixel = Math.Max(1, samplesPerPixel);
 
                     var geometry = new StreamGeometry();
@@ -281,7 +285,7 @@ public partial class TrackView : UserControl
                         if (samplesPerPixel <= 50)
                         {
                             // 高分辨率精细一点，用折线图（此乃盗窃reaper之秘术
-                            var waveformCount = waveform.Count;
+                            var waveformCount = waveform.Length;
 
                             var visibleStartX = Math.Max(0, -x); // 视口左边相对波形起点的偏移，单位像素
                             var visibleEndX = Math.Min(width, renderSize.Width - x);
@@ -318,7 +322,7 @@ public partial class TrackView : UserControl
                             for (var px = renderStartPx; px < renderEndPx; px++)
                             {
                                 var start = px * samplesPerPixel;
-                                var end = Math.Min(start + samplesPerPixel, waveform.Count);
+                                var end = Math.Min(start + samplesPerPixel, waveform.Length);
 
                                 float min = 0, max = 0;
                                 for (var j = start; j < end; j++)
@@ -409,7 +413,7 @@ public partial class TrackView : UserControl
                 new Point(playheadX, 0),
                 new Point(playheadX, renderSize.Height));
 
-            var label = (PlayHeadPosX + 1).ToString("0.0");
+            var label = $"{(PlayHeadPosX * 4 + 1):0.0} ({(PlayHeadPosX + 1):0.0})";
             context.DrawText(
                 new FormattedText(label, CultureInfo.CurrentCulture, FlowDirection.LeftToRight,
                     Typeface.Default, 10, Brushes.White),
@@ -445,7 +449,7 @@ public partial class TrackView : UserControl
         {
             UpdateTrackSelect();
 
-            var state = GetClipInteractionMode();
+            var state = GetClipInteractionMode(); // HACK: 此处设置了_activeClip
             if (state == ClipInteractionMode.None)
             {
                 _isDraggingPlayhead = true;
@@ -457,6 +461,11 @@ public partial class TrackView : UserControl
                     return;
 
                 _isMovingClip = true;
+
+                var globalX = Math.Max(0, _mousePosition.X + OffsetX);
+                var pointerBeat = globalX / ScaleFactor;
+                var clickBeat = pointerBeat - _activeClip.StartBeat;
+                _lastClickedBeatOfClip = clickBeat;
             }
             else if (state == ClipInteractionMode.OnRight)
             {
@@ -464,6 +473,13 @@ public partial class TrackView : UserControl
                     return;
 
                 _isResizingClipRight = true;
+            }
+            else if (state == ClipInteractionMode.OnLeft)
+            {
+                if (_activeClip == null)
+                    return;
+
+                _isResizingClipLeft = true;
             }
 
             e.Handled = true; // 避免冒泡
@@ -491,7 +507,7 @@ public partial class TrackView : UserControl
     /// </returns>
     private ClipInteractionMode GetClipInteractionMode()
     {
-        if (_isMovingClip || _isDraggingPlayhead || _isResizingClipRight)
+        if (_isMovingClip || _isDraggingPlayhead || _isResizingClipRight || _isResizingClipLeft)
             return ClipInteractionMode.None;
 
         var trackIndex = (int)Math.Floor(_mousePosition.Y / TrackHeight);
@@ -569,12 +585,51 @@ public partial class TrackView : UserControl
             {
                 ReDurationForActiveClip(point);
             }
+            else if (_isResizingClipLeft)
+            {
+                ReOffsetForActiveClip(point);
+            }
         }
 
         _mousePosition = e.GetPosition(this);
 
         CheckIfPointerInClipBounds(_mousePosition);
     }
+
+    private void ReOffsetForActiveClip(Point point)
+    {
+        var globalX = Math.Max(0, point.X + OffsetX);
+        var pointerBeat = globalX / ScaleFactor;
+
+        if (_activeClip != null)
+        {
+            var newStart = pointerBeat;
+            var oldStart = _activeClip.StartBeat;
+
+            // 计算偏移的差值
+            var delta = newStart - oldStart;
+
+            if (delta != 0)
+            {
+                var newOffset = _activeClip.Proto.Offset + delta;
+                var newDuration = _activeClip.Proto.Duration - delta;
+
+                if (newOffset >= 0 && newDuration > 0.1)
+                {
+                    _activeClip.Proto.StartBeat = newStart;
+                    _activeClip.Proto.Offset = newOffset;
+                    _activeClip.Proto.Duration = newDuration;
+
+                    // if (DataStateService.ActiveTrack?.Proto != null)
+                        // TODO
+                        // ReOffsetCommand.Execute(DataStateService.ActiveTrack.Proto, _activeClip.Proto);
+
+                    InvalidateVisual();
+                }
+            }
+        }
+    }
+
 
     private void ReDurationForActiveClip(Point point)
     {
@@ -583,9 +638,13 @@ public partial class TrackView : UserControl
 
         if (_activeClip != null && _activeClip.StartBeat < pointerBeat)
         {
-            _activeClip.Proto.Duration = pointerBeat - _activeClip.StartBeat;
-            if (DataStateService.ActiveTrack?.Proto != null)
-                ReDurationCommand.Execute(DataStateService.ActiveTrack.Proto, _activeClip.Proto, _activeClip.Duration);
+            var newDuration = pointerBeat - _activeClip.StartBeat;
+            if (newDuration < 0.1 || newDuration > _activeClip.SourceDuration)
+                return;
+            _activeClip.Proto.Duration = newDuration;
+            // TODO
+            // if (DataStateService.ActiveTrack?.Proto != null)
+                // ReDurationCommand.Execute(DataStateService.ActiveTrack.Proto, _activeClip.Proto, _activeClip.Duration);
             InvalidateVisual();
         }
     }
@@ -596,11 +655,13 @@ public partial class TrackView : UserControl
             return;
 
         var globalX = Math.Max(0, point.X + OffsetX);
-        var pointerBeat = globalX / ScaleFactor;
-        _activeClip.Proto.StartBeat = pointerBeat;
-
-        if (DataStateService.ActiveTrack?.Proto != null)
-            MoveCommand.Execute(DataStateService.ActiveTrack.Proto, _activeClip.Proto);
+        var pointerBeat = globalX / ScaleFactor - _lastClickedBeatOfClip;
+        if (pointerBeat > 0)
+            _activeClip.Proto.StartBeat = pointerBeat;
+        
+        // TODO
+        // if (DataStateService.ActiveTrack?.Proto != null)
+            // MoveCommand.Execute(DataStateService.ActiveTrack.Proto, _activeClip.Proto);
 
         InvalidateVisual();
     }
@@ -625,6 +686,7 @@ public partial class TrackView : UserControl
         _isDraggingPlayhead = false;
         _isMovingClip = false;
         _isResizingClipRight = false;
+        _isResizingClipLeft = false;
     }
 
     protected override void OnPointerWheelChanged(PointerWheelEventArgs e)

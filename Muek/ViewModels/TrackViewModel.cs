@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Audio;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -15,8 +14,6 @@ public partial class TrackViewModel : ViewModelBase
     public Track Proto { get; }
     public string Color => Proto.Color;
     public string Id => Proto.Id;
-    public string StrIndex => Proto.Index.ToString();
-    public uint UIntIndex => Proto.Index;
     public int IntIndex => (int)Proto.Index;
 
     [ObservableProperty] private string _name;

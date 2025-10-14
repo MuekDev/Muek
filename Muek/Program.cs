@@ -1,12 +1,23 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Text;
 using Avalonia;
-using Muek.Commands;
+using Muek.Engine;
 using Muek.Services;
+using NAudio.Utils;
 using Projektanker.Icons.Avalonia;
 using Projektanker.Icons.Avalonia.FontAwesome;
 using Projektanker.Icons.Avalonia.MaterialDesign;
 
 namespace Muek;
+
+public class MyClass
+{
+    public int Id;
+    public float Value;
+}
 
 internal sealed class Program
 {
@@ -16,10 +27,35 @@ internal sealed class Program
     [STAThread]
     public static void Main(string[] args)
     {
-        RpcService.Init();
-        _ = RpcService.SendCommand(new GreetCommand());
-        TimeSyncService.Start();
-        
+        List<MyClass> list = new()
+        {
+            new MyClass() { Id = 1, Value = 2.0f },
+            new MyClass() { Id = 2, Value = 3.0f }
+        };
+
+        // 转换为 MyClassRepr[]
+        // var reprArray = list
+        //     .Select(c => new MyClassRepr { id = c.Id, value = c.Value })
+        //     .ToArray();
+        //
+        // unsafe
+        // {
+        //     fixed (MyClassRepr* p = reprArray) 
+        //     {
+        //         MuekEngine.rust_receive_array(p, reprArray.Length);
+        //     }
+        // }
+
+        unsafe
+        {
+            var b = MuekEngine.alloc_u8_string();
+            var str = Encoding.UTF8.GetString(b->AsSpan());
+            Console.WriteLine(str);
+        }
+
+        var a = MuekEngine.my_add(1, 113);
+        Console.WriteLine("Init MuekEngine success with code " + a);
+
         BuildAvaloniaApp()
             .StartWithClassicDesktopLifetime(args);
     }

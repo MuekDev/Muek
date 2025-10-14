@@ -1,5 +1,3 @@
-//设置了一个TRACK_UID，需要改在这改
-global using TRACK_UID = string;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
