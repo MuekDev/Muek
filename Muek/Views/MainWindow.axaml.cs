@@ -31,6 +31,7 @@ public partial class MainWindow : Window
 
     public void DisableFx(object sender, RoutedEventArgs args)
     {
+        //TODO
         args.Handled = true;
     }
 
@@ -41,5 +42,10 @@ public partial class MainWindow : Window
         {
             this.BeginMoveDrag(e);
         }
+    }
+
+    private void AddPlugin(object? sender, RoutedEventArgs e)
+    {
+        //TODO
     }
 }

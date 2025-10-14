@@ -4,5 +4,11 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Muek.Views.PianoRoll">
-    <Grid/>
+    <Grid>
+        <StackPanel Name="Options" IsVisible="False" Orientation="Horizontal" VerticalAlignment="Top" HorizontalAlignment="Left"
+                    Opacity="0">
+            <Button Click="SelectedNotesMoveUp">Oct+</Button>
+            <Button Click="SelectedNotesMoveDown">Oct-</Button>
+        </StackPanel>
+    </Grid>
 </UserControl>

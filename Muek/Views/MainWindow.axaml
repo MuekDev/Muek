@@ -145,6 +145,8 @@
                                                                 </TextBlock>
                                                             </Grid>
                                                         </ToggleButton>
+                                                        <!-- TODO -->
+                                                        <Button Click="AddPlugin">AddPlugin</Button>
                                                     </StackPanel>
                                                 </vm:TrackHeadViewModel>
                                                 <StackPanel Margin="10">
@@ -199,8 +201,7 @@
 
                                                         </StackPanel>
                                                         <StackPanel Orientation="Horizontal">
-
-                                                            <!-- Bypass -->
+                                                            
 
 
                                                         </StackPanel>
@@ -236,13 +237,13 @@
                                     </Button>
                                 </Border>
                             </Border>
+                            <views:PatternPreview Name="PatternPreview"></views:PatternPreview>
                         </StackPanel>
                         
                         <views:LineDrawer x:Name="TrackLineDrawer" LineBrush="White" IsVisible="False"></views:LineDrawer>
-
                     </Grid>
                 </ScrollViewer>
-
+                
                 <Grid Grid.RowDefinitions="*,Auto" Grid.Column="1" Background="#313131">
                     <views:TrackView x:Name="TrackViewControl" DragDrop.AllowDrop="True"
                                      HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
