@@ -15,7 +15,6 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Rendering.Composition.Animations;
 using Avalonia.Styling;
-using Google.Protobuf.WellKnownTypes;
 using Muek.Models;
 
 namespace Muek.Views;

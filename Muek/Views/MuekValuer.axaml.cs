@@ -127,34 +127,39 @@ public partial class MuekValuer : UserControl
     public override void Render(DrawingContext context)
     {
         base.Render(context);
+        ValuerHeight = Bounds.Height;
+        ValuerWidth = Bounds.Width;
+        
         //Slider渲染逻辑
         if (Layout == LayoutEnum.Slider)
         {
+            var sliderStroke = new Pen(ValuerColor,.5);
             if (_hover || _pressed)
             {
-                context.DrawRectangle(ValuerColor, null, new Rect(1, 1, ValuerWidth, ValuerHeight));
+                sliderStroke.Thickness = 2;
+                // context.DrawRectangle(ValuerColor, null, new Rect(1, 1, ValuerWidth, ValuerHeight));
             }
-            context.DrawRectangle(ValuerColor, null, new Rect(1.5, 1.5, ValuerWidth-1, ValuerHeight-1));
-            context.DrawRectangle(Brush.Parse("#CC000000"), null, new Rect(2, 2, ValuerWidth-2, ValuerHeight-2));
+            context.DrawRectangle(ValuerColor, sliderStroke, new Rect(1.5, 1.5, ValuerWidth-1, ValuerHeight-1));
+            context.DrawRectangle(Brush.Parse("#CC000000"), sliderStroke, new Rect(2, 2, ValuerWidth-2, ValuerHeight-2));
             var percentValue = (Value - MinValue) /  (MaxValue - MinValue);
-            if (_hover || _pressed)
-            {
-                context.DrawRectangle(ValuerColor,null, new Rect(0,(1-percentValue)*(ValuerHeight-6)+1.5, ValuerWidth, 5));
-            }
             // context.DrawRectangle(Brushes.Black,null, new Rect(0,(1-percentValue)*(ValuerHeight-6)+2, ValuerWidth, 4));
-            context.DrawRectangle(ValuerColor,null, new Rect(0,(1-percentValue)*(ValuerHeight-6)+2, ValuerWidth, 4));
+            context.DrawRectangle(ValuerColor,sliderStroke, new Rect(0,(1-percentValue)*(ValuerHeight-6)+2, ValuerWidth, 4));
 
         }
         //Knob渲染逻辑
         if (Layout == LayoutEnum.Knob)
         {
+            ValuerHeight /= 2;
+            ValuerWidth /= 2;
+            var knobStroke = new Pen(ValuerColor,.5);
             if (_hover || _pressed)
             {
-                context.DrawEllipse(ValuerColor, null, new Point(ValuerHeight, ValuerHeight), ValuerHeight, ValuerHeight);
+                knobStroke.Thickness = 2;
+                // context.DrawEllipse(ValuerColor, null, new Point(ValuerHeight, ValuerHeight), ValuerHeight, ValuerHeight);
             }
 
-            context.DrawEllipse(ValuerColor, null, new Point(ValuerHeight, ValuerHeight), ValuerHeight * .95, ValuerHeight * .95);
-            context.DrawEllipse(Brush.Parse("#CC000000"), null, new Point(ValuerHeight, ValuerHeight), ValuerHeight * .9, ValuerHeight * .9);
+            context.DrawEllipse(ValuerColor, knobStroke, new Point(ValuerHeight, ValuerHeight), ValuerHeight * .95, ValuerHeight * .95);
+            context.DrawEllipse(Brush.Parse("#CC000000"), knobStroke, new Point(ValuerHeight, ValuerHeight), ValuerHeight * .9, ValuerHeight * .9);
             var percentValue = (Value - MinValue) / (MaxValue - MinValue);
             // context.DrawEllipse(Brushes.Black, null,
             //     new Point(ValuerHeight + ValuerHeight * .8 * -double.Sin(percentValue * Double.Pi * 2),
@@ -165,7 +170,7 @@ public partial class MuekValuer : UserControl
                 new Point(ValuerHeight + ValuerHeight * .9 * -double.Sin(percentValue * Double.Pi * 2),
                     ValuerHeight + ValuerHeight * .9 * double.Cos(percentValue * Double.Pi * 2)), ValuerHeight * .2, ValuerHeight * .2);
         }
-
+        Console.WriteLine($"pressed: {_pressed}\nhover: {_hover}");
 
     }
 
@@ -212,7 +217,6 @@ public partial class MuekValuer : UserControl
     {
         base.OnPointerReleased(e);
         _pressed = false;
-        _hover = false;
         e.Handled = true;
         InvalidateVisual();
     }
@@ -220,9 +224,9 @@ public partial class MuekValuer : UserControl
     protected override void OnPointerMoved(PointerEventArgs e)
     {
         base.OnPointerMoved(e);
-        _hover = true;
         if (_pressed)
         {
+            _hover = true;
             // Console.WriteLine(e.GetPosition(this));
             var relativePos = e.GetPosition(this) -  _tempPress;
 

@@ -5,7 +5,9 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Styling;
+using Muek.Models;
 using Muek.Services;
+using Muek.ViewModels;
 
 namespace Muek.Views;
 
@@ -18,6 +20,7 @@ public partial class Mixer : UserControl
         InitializeComponent();
         Width = 0;
         Console.WriteLine("Mixer Initialized");
+        
     }
 
     private void HideMixer(object? sender, RoutedEventArgs e)
