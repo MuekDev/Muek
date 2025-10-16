@@ -2,6 +2,7 @@ using System;
 using Avalonia.Animation;
 using Avalonia.Animation.Easings;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Styling;
@@ -123,10 +124,23 @@ public partial class Mixer : UserControl
                               $"Mixer Color: {MixerPan.ValuerColor}");
         }
     }
-    
-    
+
+    protected override void OnPointerEntered(PointerEventArgs e)
+    {
+        base.OnPointerEntered(e);
+        MixerColor.BoxShadow = BoxShadows.Parse($"0 0 25 2 {DataStateService.ActiveTrack.Color}");
+    }
+
+    protected override void OnPointerExited(PointerEventArgs e)
+    {
+        base.OnPointerExited(e);
+        MixerColor.BoxShadow = BoxShadows.Parse("0 0 0 0 transparent");
+    }
+
+
     public override void Render(DrawingContext context)
     {
         base.Render(context);
     }
+    
 }

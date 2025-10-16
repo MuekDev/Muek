@@ -8,7 +8,15 @@
              x:Class="Muek.Views.Mixer">
     <Grid RowDefinitions="Auto,*" Background="#232323">
         <Grid>
-            <Panel Height="1" Name="MixerColor"></Panel>
+            <!-- 颜色预览 -->
+            <!-- 长条色块 -->
+            <Border Height="1" Name="MixerColor" BoxShadow = "0 0 0 0 transparent">
+                <Border.Transitions>
+                    <Transitions>
+                        <BoxShadowsTransition Property="BoxShadow" Duration="0:0:0.2" Easing="CubicEaseInOut"></BoxShadowsTransition>
+                    </Transitions>
+                </Border.Transitions>
+            </Border>
         </Grid>
         <Grid Grid.Row="1"  ColumnDefinitions="*,Auto">
         <Grid Grid.Column="0">
@@ -71,5 +79,4 @@
         </Grid>
         </Grid>
     </Grid>
-    
 </UserControl>

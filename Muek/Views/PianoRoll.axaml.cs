@@ -835,7 +835,7 @@ public partial class PianoRoll : UserControl
         {
             Options.IsVisible = true;
             await Task.Delay(50);
-            Options.Opacity += .5;
+            lock(Options) Options.Opacity += .5;
             Console.WriteLine("IsShowingOptions");
         }
         await Task.CompletedTask;
@@ -848,7 +848,7 @@ public partial class PianoRoll : UserControl
     {
         
         await Task.Delay(50);
-        Options.Opacity -= .5;
+        lock(Options) Options.Opacity -= .5;
         Console.WriteLine("IsHidingOptions");
     }
     await Task.CompletedTask;
