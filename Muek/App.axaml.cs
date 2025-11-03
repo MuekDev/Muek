@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -12,6 +13,7 @@ public class App : Application
 {
     public override void Initialize()
     {
+        Console.WriteLine("[App] Initializing...");
         AvaloniaXamlLoader.Load(this);
     }
 
@@ -21,6 +23,7 @@ public class App : Application
         {
             // Avoid duplicate validations from both Avalonia and the CommunityToolkit. 
             // More info: https://docs.avaloniaui.net/docs/guides/development-guides/data-validation#manage-validationplugins
+            Console.WriteLine("[App] On FrameworkInitializationCompleted");
             DisableAvaloniaDataAnnotationValidation();
             desktop.MainWindow = new MainWindow
             {

@@ -27,6 +27,24 @@ namespace Muek.Engine
         [DllImport(__DllName, EntryPoint = "alloc_u8_string", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         internal static extern ByteBuffer* alloc_u8_string();
 
+        [DllImport(__DllName, EntryPoint = "get_string_length", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern int get_string_length(ByteBuffer* ptr);
+
+        [DllImport(__DllName, EntryPoint = "free_c_string", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void free_c_string(byte* str);
+
+        [DllImport(__DllName, EntryPoint = "init_vst_box", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void init_vst_box();
+
+        [DllImport(__DllName, EntryPoint = "run_vst_instance_by_path", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void run_vst_instance_by_path(ushort* utf16_str, int utf16_len);
+
+        [DllImport(__DllName, EntryPoint = "run_vst_instance_by_path_with_handle", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void run_vst_instance_by_path_with_handle(ushort* utf16_str, int utf16_len, nuint hwnd);
+
+        [DllImport(__DllName, EntryPoint = "verify_vst_instance_by_path", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern ByteBuffer* verify_vst_instance_by_path(ushort* utf16_str, int utf16_len);
+
 
     }
 

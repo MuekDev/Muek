@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading.Tasks;
 using Avalonia;
 using Muek.Engine;
 using Muek.Services;
@@ -46,14 +48,24 @@ internal sealed class Program
         //     }
         // }
 
+        Console.WriteLine("Initializing Muek Engine...");
         unsafe
         {
             var b = MuekEngine.alloc_u8_string();
             var str = Encoding.UTF8.GetString(b->AsSpan());
             Console.WriteLine(str);
+
+            // const string msg = @"C:\VST\Valhalla\ValhallaDSP\ValhallaSpaceModulator_x64.dll";
+            // fixed (char* p = msg)
+            // {
+            //     MuekEngine.run_vst_instance_by_path((ushort*)p, msg.Length);
+            // }
         }
+        
+        MuekEngine.init_vst_box();
 
         var a = MuekEngine.my_add(1, 113);
+        Debug.Assert(a == 114);
         Console.WriteLine("Init MuekEngine success with code " + a);
 
         BuildAvaloniaApp()
