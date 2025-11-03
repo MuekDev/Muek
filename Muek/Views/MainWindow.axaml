@@ -115,7 +115,7 @@
                                                             </MenuItem>
                                                         </MenuFlyout>
                                                     </vm:TrackHeadViewModel.ContextFlyout>
-                                                    
+
                                                     <StackPanel>
                                                         <!-- 轨道名称 -->
                                                         <TextBlock FontWeight="Bold" FontSize="18"
@@ -201,7 +201,6 @@
 
                                                         </StackPanel>
                                                         <StackPanel Orientation="Horizontal">
-                                                            
 
 
                                                         </StackPanel>
@@ -223,7 +222,7 @@
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
-                            
+
                             <!-- 添加轨道 -->
                             <Border Padding="5,2,0,2">
                                 <Border Background="#b2b2b2" Height="100" Margin="0,0,0,0" CornerRadius="12,0,0,12"
@@ -239,15 +238,15 @@
                             </Border>
                             <views:PatternPreview Name="PatternPreview"></views:PatternPreview>
                         </StackPanel>
-                        
+
                         <views:LineDrawer x:Name="TrackLineDrawer" LineBrush="White" IsVisible="False"></views:LineDrawer>
                     </Grid>
                 </ScrollViewer>
-                
+
                 <Grid Grid.RowDefinitions="*,Auto" Grid.Column="1" Background="#313131">
                     <views:TrackView x:Name="TrackViewControl" DragDrop.AllowDrop="True"
                                      HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
-                    
+
                     <!-- 钢琴窗 -->
                     <views:PianoRollWindow Grid.Row="1" Height="40" Name="PianoRollWindow"></views:PianoRollWindow>
                 </Grid>
@@ -255,10 +254,9 @@
                     <views:Mixer x:Name="Mixer" IsVisible="False"></views:Mixer>
                 </Grid>
             </Grid>
-            
+
         </Grid>
-                
-        
-        
-        </Grid>
+
+
+    </Grid>
 </Window>

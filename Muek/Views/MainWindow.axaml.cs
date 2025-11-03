@@ -1,17 +1,17 @@
+using System;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Muek.Services;
+using Muek.ViewModels;
 
 namespace Muek.Views;
-
 
 public partial class MainWindow : Window
 {
     public MainWindow()
     {
         InitializeComponent();
-        
     }
 
     public void SyncTimeline(object type)
@@ -46,6 +46,7 @@ public partial class MainWindow : Window
 
     private void AddPlugin(object? sender, RoutedEventArgs e)
     {
-        //TODO
+        var window = new PluginManagerWindow();
+        window.ShowDialog(this);
     }
 }
