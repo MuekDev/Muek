@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Net.Mime;
@@ -16,6 +17,16 @@ public partial class PluginManagerWindowViewModel(PluginManagerWindow window) : 
 {
     public PluginManagerWindow Window { get; } = window;
 
+    public List<string> VstPath = [
+    @"C:\Program Files\VstPlugins\",
+    @"C:\Program Files (x86)\VstPlugins\",
+    @"C:\Program Files (x86)\Steinberg\VstPlugins\",
+    @"C:\Program Files\Common Files\VST2\",
+    @"C:\Program Files\Steinberg\VstPlugins\",
+    @"C:\Program Files (x86)\Common Files\VST3\",
+    @"C:\Program Files\Common Files\VST3\",
+    ];
+
     public ObservableCollection<VstPlugin> Plugins { get; } =
     [
         new VstPlugin() { Name = "ddd", Path = "omg" }
@@ -24,16 +35,17 @@ public partial class PluginManagerWindowViewModel(PluginManagerWindow window) : 
     [RelayCommand]
     public async Task ReScan()
     {
-        VstHelper.ScanDir(@"C:\VST");
         Plugins.Clear();
-
-        await foreach (var file in VstHelper.ScanDirAsync(@"C:\VST"))
+        foreach (var path in VstPath)
         {
-            Console.WriteLine($"Name: {file.Name}");
-            Console.WriteLine($"Full path: {file.FullName}");
-            Console.WriteLine($"Size: {file.Length} bytes");
-            Console.WriteLine($"Last modified: {file.LastWriteTime}");
-            Plugins.Add(new VstPlugin() { Name = file.Name, Path = file.FullName });
+            await foreach (var file in VstHelper.ScanDirAsync(path))
+            {
+                Console.WriteLine($"Name: {file.Name}");
+                Console.WriteLine($"Full path: {file.FullName}");
+                Console.WriteLine($"Size: {file.Length} bytes");
+                Console.WriteLine($"Last modified: {file.LastWriteTime}");
+                Plugins.Add(new VstPlugin() { Name = file.Name, Path = file.FullName });
+            }
         }
     }
 
