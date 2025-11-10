@@ -47,13 +47,13 @@ public partial class PatternPreview : UserControl
         {
             double noteHeight = Height;
             double noteWidth = Width;
-            int noteMax = new PianoRoll().NoteNameToIndex(Notes[0].Name);
+            int noteMax = Notes[0].Name;
             int noteMin = noteMax;
             double noteFirst = Notes[0].StartTime;
             double noteLast = Notes[0].EndTime;
             foreach (var note in Notes)
             {
-                var position = new PianoRoll().NoteNameToIndex(note.Name);
+                var position = note.Name;
                 noteMin = int.Min(position, noteMin);
                 noteMax = int.Max(position, noteMax);
                 noteFirst = double.Min(noteFirst, note.StartTime);
@@ -62,12 +62,12 @@ public partial class PatternPreview : UserControl
 
             noteHeight = Height / (noteMax + 1 - noteMin);
             noteWidth = Width / (noteLast - noteFirst);
-            Console.WriteLine($"noteWidth:{noteWidth}");
-            Console.WriteLine($"noteHeight:{noteHeight}");
+            // Console.WriteLine($"noteWidth:{noteWidth}");
+            // Console.WriteLine($"noteHeight:{noteHeight}");
             
             foreach (var note in Notes)
             {
-                var position = new PianoRoll().NoteNameToIndex(note.Name);
+                var position = note.Name;
                 var background = new LinearGradientBrush
                 {
                     StartPoint = new RelativePoint(0.9,0.5, RelativeUnit.Relative),
@@ -82,9 +82,9 @@ public partial class PatternPreview : UserControl
                         noteWidth * (note.EndTime - note.StartTime) * .6,
                         noteHeight * .6),
                     (float)(noteHeight * .1));
-                Console.WriteLine("Drew");
-                Console.WriteLine(new Rect(noteWidth * (note.StartTime - noteFirst), Height - (position - noteMin) * noteHeight, noteWidth *
-                    (note.EndTime - note.StartTime), noteHeight));
+                // Console.WriteLine("Drew");
+                // Console.WriteLine(new Rect(noteWidth * (note.StartTime - noteFirst), Height - (position - noteMin) * noteHeight, noteWidth *
+                //     (note.EndTime - note.StartTime), noteHeight));
             }
         }
     }
@@ -95,7 +95,7 @@ public partial class PatternPreview : UserControl
         Console.WriteLine("Pattern Notes:");
         foreach (var note in Notes)
         {
-            Console.WriteLine(note.Name);
+            // Console.WriteLine(note.Name);
         }
 
         _isDragging = true;

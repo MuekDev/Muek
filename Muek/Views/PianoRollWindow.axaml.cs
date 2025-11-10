@@ -1,12 +1,18 @@
 using System;
+using System.Collections.Generic;
+using System.IO;
 using Avalonia;
 using Avalonia.Animation;
 using Avalonia.Animation.Easings;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using Avalonia.Markup.Xaml;
+using Avalonia.Media;
+using Avalonia.Platform.Storage;
 using Avalonia.Styling;
+using Muek.Models;
+using Muek.Services;
+using NAudio.Midi;
 
 namespace Muek.Views;
 
@@ -75,14 +81,14 @@ public partial class PianoRollWindow : UserControl
 
     private void ScrollChange(object? sender, ScrollChangedEventArgs e)
     {
-        if (e.Source.Equals(PianoRollLeft))
+        if (e.Source != null && e.Source.Equals(PianoRollLeft))
         {
             EditArea.Height = PianoBar.Height;
             PianoRollRight.Offset = new Vector(PianoRollRight.Offset.X,PianoRollLeft.Offset.Y);
             EditArea.NoteHeight = PianoBar.NoteHeight;
         }
 
-        if (e.Source.Equals(PianoRollRight))
+        if (e.Source != null && e.Source.Equals(PianoRollRight))
         {
             PianoBar.Height = EditArea.Height;
             PianoRollLeft.Offset = new Vector(0,PianoRollRight.Offset.Y);
@@ -105,5 +111,11 @@ public partial class PianoRollWindow : UserControl
             InvalidateVisual();
             e.Handled = true;
         }
+    }
+
+    private void ImportMidiFile(object? sender, RoutedEventArgs e)
+    {
+        EditArea.ImportMidi();
+        e.Handled = true;
     }
 }

@@ -49,4 +49,18 @@ public partial class MainWindow : Window
         var window = new PluginManagerWindow();
         window.ShowDialog(this);
     }
+
+    private void SettingsButton(object? sender, RoutedEventArgs e)
+    {
+        if (Settings.IsShowing)
+        {
+            Settings.Hide();
+            Console.WriteLine("HIDE SETTINGS");
+        }
+        else
+        {
+            Settings.Show();
+            Console.WriteLine("SHOW SETTINGS");
+        }
+    }
 }

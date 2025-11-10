@@ -22,7 +22,7 @@
         <Grid Background="#232323" RowDefinitions="40,40,*,24" Margin="0">
             <!-- 导航栏 -->
             <StackPanel Orientation="Horizontal">
-                <Button Background="Transparent">
+                <Button Background="Transparent" Click="SettingsButton">
                     <i:Icon Value="fa-bars" Foreground="White" />
                 </Button>
                 <Panel Width="40" />
@@ -69,8 +69,9 @@
                                         HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
                 </Border>
             </Grid>
-
-            <Grid Grid.Row="2" ColumnDefinitions="200,*,Auto">
+            <Grid Grid.Row="2" ColumnDefinitions="Auto,*">
+                <views:Settings Name="Settings"></views:Settings>
+                <Grid Grid.Column="1" ColumnDefinitions="200,*,Auto">
                 <ScrollViewer VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Disabled">
                     <!-- 左侧轨道头 -->
                     <Grid Grid.Column="0" VerticalAlignment="Top">
@@ -253,6 +254,7 @@
                 <Grid Grid.Column="2">
                     <views:Mixer x:Name="Mixer" IsVisible="False"></views:Mixer>
                 </Grid>
+            </Grid>
             </Grid>
 
         </Grid>
