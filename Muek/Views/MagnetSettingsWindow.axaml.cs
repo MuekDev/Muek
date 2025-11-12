@@ -52,18 +52,18 @@ public partial class MagnetSettingsWindow : UserControl
     {
         base.Render(context);
         context.DrawRectangle(new SolidColorBrush(new Color(255,255,255,255),.2),null,
-            new Rect(0,0, Bounds.Width, Bounds.Height),10,10);
+            new Rect(0,0, Bounds.Width, Bounds.Height),5,5);
         var pen  = new Pen(new SolidColorBrush(Colors.White,.5), .5);
         foreach (var grid in _grids)
         {
             context.DrawLine(pen,
               new Point(Bounds.Width / _grids.Count *  _grids.IndexOf(grid) + Bounds.Width / _grids.Count / 2,0),
-              new Point(Bounds.Width / _grids.Count *  _grids.IndexOf(grid) + Bounds.Width / _grids.Count / 2,Bounds.Height * .8)
+              new Point(Bounds.Width / _grids.Count *  _grids.IndexOf(grid) + Bounds.Width / _grids.Count / 2,Bounds.Height * .4)
               );
             context.DrawText(new FormattedText(grid.Name,
                     CultureInfo.CurrentCulture, FlowDirection.LeftToRight, Typeface.Default,
                     12, Brushes.YellowGreen),
-                new Point(Bounds.Width / _grids.Count *  _grids.IndexOf(grid) + Bounds.Width / _grids.Count / 2 - grid.name.Length * 3,Bounds.Height - Bounds.Height * .2)
+                new Point(Bounds.Width / _grids.Count *  _grids.IndexOf(grid) + Bounds.Width / _grids.Count / 2 - grid.name.Length * 3,Bounds.Height - Bounds.Height * .6)
             );
         }
         if (!_isPressed)
@@ -73,7 +73,7 @@ public partial class MagnetSettingsWindow : UserControl
         var selectedPen = new Pen(Brushes.YellowGreen, 2);
         context.DrawLine(selectedPen,
             new Point(_selectedGridPosition,0),
-            new Point(_selectedGridPosition,Bounds.Height * .8)
+            new Point(_selectedGridPosition,Bounds.Height * .4)
             );
     }
 

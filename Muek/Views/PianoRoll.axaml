@@ -6,8 +6,8 @@
              x:Class="Muek.Views.PianoRoll">
     <Grid>
         <StackPanel Name="Options" IsVisible="False" Orientation="Horizontal" VerticalAlignment="Top" HorizontalAlignment="Left">
-            <Button Click="SelectedNotesMoveUp">Oct+</Button>
-            <Button Click="SelectedNotesMoveDown">Oct-</Button>
+            <Button Click="SelectedNotesMoveUp" Name="MoveUpButton">Oct+</Button>
+            <Button Click="SelectedNotesMoveDown" Name="MoveDownButton">Oct-</Button>
         </StackPanel>
     </Grid>
 </UserControl>

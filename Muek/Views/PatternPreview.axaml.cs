@@ -14,6 +14,15 @@ namespace Muek.Views;
 
 public partial class PatternPreview : UserControl
 {
+    public static readonly StyledProperty<IBrush> BackgroundColorProperty = AvaloniaProperty.Register<PatternPreview, IBrush>(
+        nameof(BackgroundColor));
+
+    public IBrush BackgroundColor
+    {
+        get => GetValue(BackgroundColorProperty);
+        set => SetValue(BackgroundColorProperty, value);
+    }
+    
     public int Index;
     
     public List<PianoRoll.Note> Notes = new();
@@ -24,18 +33,17 @@ public partial class PatternPreview : UserControl
     public PatternPreview()
     {
         InitializeComponent();
-        Width = 150;
-        Height = 50;
         ClipToBounds = false;
+        BackgroundColor = Brushes.YellowGreen;
     }
     
     public override void Render(DrawingContext context)
     {
         base.Render(context);
-        context.DrawRectangle(Brushes.YellowGreen, null, new Rect(0, 0, Width, Height),10D,15D);
+        context.DrawRectangle(BackgroundColor, null, new Rect(0, 0, Bounds.Width, Bounds.Height));
         if (_isHover)
         {
-            context.DrawRectangle(new SolidColorBrush(Colors.Black,.1), null, new Rect(0, 0, Width, Height), 10D, 15D);
+            context.DrawRectangle(new SolidColorBrush(Colors.Black,.1), null, new Rect(0, 0, Bounds.Width, Bounds.Height), 10D, 15D);
         }
 
         if (_isDragging)
@@ -45,8 +53,8 @@ public partial class PatternPreview : UserControl
         
         if (Notes.Count > 0)
         {
-            double noteHeight = Height;
-            double noteWidth = Width;
+            double noteHeight;
+            double noteWidth;
             int noteMax = Notes[0].Name;
             int noteMin = noteMax;
             double noteFirst = Notes[0].StartTime;
@@ -60,8 +68,8 @@ public partial class PatternPreview : UserControl
                 noteLast = double.Max(noteLast, note.EndTime);
             }
 
-            noteHeight = Height / (noteMax + 1 - noteMin);
-            noteWidth = Width / (noteLast - noteFirst);
+            noteHeight = Bounds.Height / (noteMax + 1 - noteMin);
+            noteWidth = Bounds.Width / (noteLast - noteFirst);
             // Console.WriteLine($"noteWidth:{noteWidth}");
             // Console.WriteLine($"noteHeight:{noteHeight}");
             
@@ -77,8 +85,8 @@ public partial class PatternPreview : UserControl
                 background.GradientStops.Add(new GradientStop(Colors.Transparent, 1.0));
                 context.FillRectangle(background,
                     new Rect(
-                        noteWidth * .6 * (note.StartTime - noteFirst) + Width*.2,
-                        Height*.6 - (position - noteMin + 1) * noteHeight * .6 + Height*.2,
+                        noteWidth * .6 * (note.StartTime - noteFirst) + Bounds.Width*.2,
+                        Bounds.Height*.6 - (position - noteMin + 1) * noteHeight * .6 + Bounds.Height*.2,
                         noteWidth * (note.EndTime - note.StartTime) * .6,
                         noteHeight * .6),
                     (float)(noteHeight * .1));
@@ -99,7 +107,7 @@ public partial class PatternPreview : UserControl
         }
 
         _isDragging = true;
-        e.Handled = true;
+        // e.Handled = true;
     }
 
     protected override void OnPointerEntered(PointerEventArgs e)

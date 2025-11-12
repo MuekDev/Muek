@@ -1,18 +1,11 @@
 using System;
-using System.Collections.Generic;
-using System.IO;
 using Avalonia;
 using Avalonia.Animation;
 using Avalonia.Animation.Easings;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using Avalonia.Media;
-using Avalonia.Platform.Storage;
 using Avalonia.Styling;
-using Muek.Models;
-using Muek.Services;
-using NAudio.Midi;
 
 namespace Muek.Views;
 
@@ -22,61 +15,66 @@ public partial class PianoRollWindow : UserControl
     {
         InitializeComponent();
         ClipToBounds = false;
-        Console.WriteLine();
     }
 
     private void Hide(object? sender, RoutedEventArgs e)
     {
-        CloseButton.IsVisible = false;
-        OpenButton.IsVisible = true;
-        new Animation
+        if(Height >= 400.0)
         {
-            Duration = TimeSpan.FromMilliseconds(500),
-            FillMode = FillMode.Forward,
-            Easing = Easing.Parse("CubicEaseOut"),
-            Children =
+            CloseButton.IsVisible = false;
+            OpenButton.IsVisible = true;
+            new Animation
             {
-                new KeyFrame
+                Duration = TimeSpan.FromMilliseconds(500),
+                FillMode = FillMode.Forward,
+                Easing = Easing.Parse("CubicEaseOut"),
+                Children =
                 {
-                    Cue = new Cue(1),
-                    Setters =
+                    new KeyFrame
                     {
-                        new Setter
+                        Cue = new Cue(1),
+                        Setters =
                         {
-                            Property = HeightProperty,
-                            Value = 40.0
+                            new Setter
+                            {
+                                Property = HeightProperty,
+                                Value = PatternPreview.Height + TopBar.Height
+                            }
                         }
                     }
                 }
-            }
-        }.RunAsync(this);
+            }.RunAsync(this);
+        }
     }
 
     private void Show(object? sender, RoutedEventArgs e)
     {
-        CloseButton.IsVisible = true;
-        OpenButton.IsVisible = false;
-        new Animation
+        if(Height <= PatternPreview.Height + TopBar.Height)
         {
-            Duration = TimeSpan.FromMilliseconds(500),
-            FillMode = FillMode.Forward,
-            Easing = Easing.Parse("CubicEaseOut"),
-            Children =
+            CloseButton.IsVisible = true;
+            OpenButton.IsVisible = false;
+            new Animation
             {
-                new KeyFrame
+                Duration = TimeSpan.FromMilliseconds(500),
+                FillMode = FillMode.Forward,
+                Easing = Easing.Parse("CubicEaseOut"),
+                Children =
                 {
-                    Cue = new Cue(1),
-                    Setters =
+                    new KeyFrame
                     {
-                        new Setter
+                        Cue = new Cue(1),
+                        Setters =
                         {
-                            Property = HeightProperty,
-                            Value = 400.0
+                            new Setter
+                            {
+                                Property = HeightProperty,
+                                Value = 400.0
+                            }
                         }
                     }
                 }
-            }
-        }.RunAsync(this);
+            }.RunAsync(this);
+        }
     }
 
     private void ScrollChange(object? sender, ScrollChangedEventArgs e)

@@ -237,7 +237,7 @@
                                     </Button>
                                 </Border>
                             </Border>
-                            <views:PatternPreview Name="PatternPreview"></views:PatternPreview>
+                            <!-- <views:PatternPreview Name="PatternPreview"></views:PatternPreview> -->
                         </StackPanel>
 
                         <views:LineDrawer x:Name="TrackLineDrawer" LineBrush="White" IsVisible="False"></views:LineDrawer>
@@ -249,7 +249,7 @@
                                      HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
 
                     <!-- 钢琴窗 -->
-                    <views:PianoRollWindow Grid.Row="1" Height="40" Name="PianoRollWindow"></views:PianoRollWindow>
+                    <views:PianoRollWindow Grid.Row="1" Name="PianoRollWindow" Height="90"></views:PianoRollWindow>
                 </Grid>
                 <Grid Grid.Column="2">
                     <views:Mixer x:Name="Mixer" IsVisible="False"></views:Mixer>

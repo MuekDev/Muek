@@ -8,15 +8,15 @@
              Background="Transparent"
              x:Class="Muek.Views.PianoRollWindow">
     <Grid RowDefinitions="Auto,*,Auto">
-        <Border Background="#232323" Height="50">
-        <Grid >
+        <Border Background="#232323" Height="50" Name="TopBar">
+        <Grid>
             <StackPanel Orientation="Horizontal">
                 <Button Click="ImportMidiFile">Import MIDI File</Button>
                 <Button>
                     <avalonia:Icon Value="mdi-magnet"></avalonia:Icon>
                     <Button.Flyout>
                         <Flyout>
-                            <views:MagnetSettingsWindow Width="250" Height="100" PropertyChanged="MagnetPropertyChange" Name="MagnetSettingsWindow"></views:MagnetSettingsWindow>
+                            <views:MagnetSettingsWindow Width="250" Height="40" PropertyChanged="MagnetPropertyChange" Name="MagnetSettingsWindow"></views:MagnetSettingsWindow>
                         </Flyout>
                     </Button.Flyout>
                 </Button>
@@ -63,10 +63,13 @@
                            Name="PianoRollLeft" ScrollChanged="ScrollChange" Margin="2">
                 <views:PianoRoll Width="40" IsPianoBar="True" Name="PianoBar"></views:PianoRoll>
             </ScrollViewer>
-            <ScrollViewer Grid.Column="1" HorizontalScrollBarVisibility="Visible"
+            <ScrollViewer Grid.Column="1" HorizontalScrollBarVisibility="Disabled"
                           Name="PianoRollRight" ScrollChanged="ScrollChange" Margin="2">
                 <views:PianoRoll IsPianoBar="False" HorizontalAlignment="Left" Name="EditArea"></views:PianoRoll>
             </ScrollViewer>
+        </Grid>
+        <Grid Grid.Row="2">
+            <views:PatternPreview Height="40" Name="PatternPreview" PointerPressed="Show"></views:PatternPreview>
         </Grid>
     </Grid>
 </UserControl>
