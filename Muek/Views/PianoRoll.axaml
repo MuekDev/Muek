@@ -5,8 +5,7 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Muek.Views.PianoRoll">
     <Grid>
-        <StackPanel Name="Options" IsVisible="False" Orientation="Horizontal" VerticalAlignment="Top" HorizontalAlignment="Left"
-                    Opacity="0">
+        <StackPanel Name="Options" IsVisible="False" Orientation="Horizontal" VerticalAlignment="Top" HorizontalAlignment="Left">
             <Button Click="SelectedNotesMoveUp">Oct+</Button>
             <Button Click="SelectedNotesMoveDown">Oct-</Button>
         </StackPanel>

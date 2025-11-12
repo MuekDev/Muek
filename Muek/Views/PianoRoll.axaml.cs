@@ -114,7 +114,7 @@ public partial class PianoRoll : UserControl
     
     public List<Note> SelectedNotes = new();
     
-    private bool _isShowingOptions = false;
+    // private bool _isShowingOptions = false;
     public double Magnet = 1.0;
 
     public PianoRoll()
@@ -806,13 +806,15 @@ public partial class PianoRoll : UserControl
         {
             if (SelectedNotes.Count > 0)
             {
-                _isShowingOptions = true;
-                _ = ShowOptions();
+                // _isShowingOptions = true;
+                // _ = ShowOptions();
+                ShowOptions();
             }
             else
             {
-                _isShowingOptions = false;
-                _ = HideOptions();
+                // _isShowingOptions = false;
+                // _ = HideOptions();
+                HideOptions();
             }
         }
         
@@ -822,7 +824,7 @@ public partial class PianoRoll : UserControl
         GC.Collect();
     }
 
-    private async Task ShowOptions()
+    private void ShowOptions()
     {
         var positionLeft = SelectedNotes[0].StartTime * _widthOfBeat;
         var positionTop = Height - SelectedNotes[0].Name * NoteHeight;
@@ -831,33 +833,51 @@ public partial class PianoRoll : UserControl
             positionLeft = double.Min(positionLeft, selectedNote.StartTime * _widthOfBeat);
             positionTop = double.Min(positionTop, Height - selectedNote.Name * NoteHeight);
         }
-
         Options.Margin = new Thickness(positionLeft, positionTop, 0, 0);
-            
-        while (Options.Opacity < 1 && _isShowingOptions)
-        {
-            Options.IsVisible = true;
-            await Task.Delay(50);
-            lock(Options) Options.Opacity += .5;
-            Console.WriteLine("IsShowingOptions");
-        }
-        await Task.CompletedTask;
-        Console.WriteLine("ShowOptionsCompleted");
+        Options.IsVisible = true;
     }
-    private async Task HideOptions()
+
+    private void HideOptions()
     {
-        
-    while (Options.Opacity > 0 && !_isShowingOptions)
-    {
-        
-        await Task.Delay(50);
-        lock(Options) Options.Opacity -= .5;
-        Console.WriteLine("IsHidingOptions");
+        Options.IsVisible = false;
     }
-    await Task.CompletedTask;
-    Options.IsVisible = false;
-    Console.WriteLine("HidingOptionsCompleted");
-    }
+    
+    // private async Task ShowOptions()
+    // {
+    //     var positionLeft = SelectedNotes[0].StartTime * _widthOfBeat;
+    //     var positionTop = Height - SelectedNotes[0].Name * NoteHeight;
+    //     foreach (Note selectedNote in SelectedNotes)
+    //     {
+    //         positionLeft = double.Min(positionLeft, selectedNote.StartTime * _widthOfBeat);
+    //         positionTop = double.Min(positionTop, Height - selectedNote.Name * NoteHeight);
+    //     }
+    //
+    //     Options.Margin = new Thickness(positionLeft, positionTop, 0, 0);
+    //         
+    //     while (Options.Opacity < 1 && _isShowingOptions)
+    //     {
+    //         Options.IsVisible = true;
+    //         await Task.Delay(50);
+    //         lock(Options) Options.Opacity += .5;
+    //         Console.WriteLine("IsShowingOptions");
+    //     }
+    //     await Task.CompletedTask;
+    //     Console.WriteLine("ShowOptionsCompleted");
+    // }
+    // private async Task HideOptions()
+    // {
+    //     
+    // while (Options.Opacity > 0 && !_isShowingOptions)
+    // {
+    //     
+    //     await Task.Delay(50);
+    //     lock(Options) Options.Opacity -= .5;
+    //     Console.WriteLine("IsHidingOptions");
+    // }
+    // await Task.CompletedTask;
+    // Options.IsVisible = false;
+    // Console.WriteLine("HidingOptionsCompleted");
+    // }
     
 
     protected override void OnPointerWheelChanged(PointerWheelEventArgs e)
@@ -896,7 +916,8 @@ public partial class PianoRoll : UserControl
                 // Console.WriteLine(e.GetPosition(ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRight));
             }
 
-            _ = ShowOptions();
+            // _ = ShowOptions();
+            ShowOptions();
             InvalidateVisual();
             e.Handled = true;
         }
@@ -1053,7 +1074,8 @@ public partial class PianoRoll : UserControl
             }
         }
 
-        _ = ShowOptions();
+        // _ = ShowOptions();
+        ShowOptions();
         InvalidateVisual();
     }
     private void SelectedNotesMoveDown(object? sender, RoutedEventArgs e)
@@ -1075,7 +1097,8 @@ public partial class PianoRoll : UserControl
             }
         }
 
-        _ = ShowOptions();
+        // _ = ShowOptions();
+        ShowOptions();
         InvalidateVisual();
     }
 
