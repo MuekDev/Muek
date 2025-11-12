@@ -10,8 +10,17 @@
     <Grid RowDefinitions="Auto,*,Auto">
         <Border Background="#232323" Height="50">
         <Grid >
-            <Button Click="ImportMidiFile">Import MIDI File</Button>
-            
+            <StackPanel Orientation="Horizontal">
+                <Button Click="ImportMidiFile">Import MIDI File</Button>
+                <Button>
+                    <avalonia:Icon Value="mdi-magnet"></avalonia:Icon>
+                    <Button.Flyout>
+                        <Flyout>
+                            <views:MagnetSettingsWindow Width="250" Height="100" PropertyChanged="MagnetPropertyChange" Name="MagnetSettingsWindow"></views:MagnetSettingsWindow>
+                        </Flyout>
+                    </Button.Flyout>
+                </Button>
+            </StackPanel>
             <!-- 关闭 -->
             <Button HorizontalAlignment="Right" VerticalAlignment="Center" Margin="10"
                     Background="white"

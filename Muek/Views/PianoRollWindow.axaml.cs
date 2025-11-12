@@ -118,4 +118,10 @@ public partial class PianoRollWindow : UserControl
         EditArea.ImportMidi();
         e.Handled = true;
     }
+
+    private void MagnetPropertyChange(object? sender, AvaloniaPropertyChangedEventArgs e)
+    {
+        EditArea.Magnet = MagnetSettingsWindow.SelectedGrid.Value;
+        EditArea.InvalidateVisual();
+    }
 }

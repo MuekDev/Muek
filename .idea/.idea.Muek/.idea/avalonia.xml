@@ -7,6 +7,7 @@
         <entry key="Muek/Views/ClipItem.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/Views/LineDrawer.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/Views/MIDIView.axaml" value="Muek/Muek.csproj" />
+        <entry key="Muek/Views/MagnetSettingsWindow.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/Views/MainWindow.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/Views/MixWindow.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/Views/Mixer.axaml" value="Muek/Muek.csproj" />
