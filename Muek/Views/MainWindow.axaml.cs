@@ -62,5 +62,14 @@ public partial class MainWindow : Window
             Settings.Show();
             Console.WriteLine("SHOW SETTINGS");
         }
+
+        if (ProjectInfo.IsShowing)
+        {
+            ProjectInfo.Hide();
+        }
+        else
+        {
+            ProjectInfo.Show();
+        }
     }
 }

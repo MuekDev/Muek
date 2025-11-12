@@ -7,12 +7,12 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              Background="Transparent"
              x:Class="Muek.Views.PianoRollWindow">
-    <Grid RowDefinitions="Auto,*,Auto">
-        <Border Background="#232323" Height="50" Name="TopBar">
+    <Grid RowDefinitions="Auto,*,Auto" Background="#232323">
+        <Border Height="50" Name="TopBar">
         <Grid>
-            <StackPanel Orientation="Horizontal">
-                <Button Click="ImportMidiFile">Import MIDI File</Button>
-                <Button>
+            <StackPanel Orientation="Horizontal" Margin="5,0">
+                <Button Click="ImportMidiFile" Height="35" VerticalContentAlignment="Center">Import MIDI File</Button>
+                <Button Height="35">
                     <avalonia:Icon Value="mdi-magnet"></avalonia:Icon>
                     <Button.Flyout>
                         <Flyout>
@@ -58,7 +58,7 @@
             </Button>
         </Grid>
         </Border>
-        <Grid Grid.Row="1" ColumnDefinitions="Auto,*">
+        <Grid Grid.Row="1" ColumnDefinitions="Auto,*" Margin="5,0">
             <ScrollViewer  VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Disabled"
                            Name="PianoRollLeft" ScrollChanged="ScrollChange" Margin="2">
                 <views:PianoRoll Width="40" IsPianoBar="True" Name="PianoBar"></views:PianoRoll>
@@ -68,7 +68,7 @@
                 <views:PianoRoll IsPianoBar="False" HorizontalAlignment="Left" Name="EditArea"></views:PianoRoll>
             </ScrollViewer>
         </Grid>
-        <Grid Grid.Row="2">
+        <Grid Grid.Row="2" Margin="5,0">
             <views:PatternPreview Height="40" Name="PatternPreview" PointerPressed="Show"></views:PatternPreview>
         </Grid>
     </Grid>

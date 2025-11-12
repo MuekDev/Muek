@@ -4,31 +4,28 @@ using Avalonia.Animation;
 using Avalonia.Animation.Easings;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
-using Avalonia.Media;
 using Avalonia.Styling;
 
 namespace Muek.Views;
 
-public partial class Settings : UserControl
+public partial class ProjectInfo : UserControl
 {
     public bool IsShowing { get; set; } = false;
     public double MaxWidth { get; set; } = 400;
-    public Settings()
+    public ProjectInfo()
     {
         InitializeComponent();
         Width = 0;
     }
-
     public void Show()
     {
         if(Width <= 0)
         {
             new Animation
             {
-                Duration = TimeSpan.FromMilliseconds(800),
+                Duration = TimeSpan.FromMilliseconds(1000),
                 FillMode = FillMode.Forward,
                 Easing = Easing.Parse("CubicEaseOut"),
-                Delay = TimeSpan.FromMilliseconds(200),
                 Children =
                 {
                     new KeyFrame
@@ -55,9 +52,10 @@ public partial class Settings : UserControl
         {
             new Animation
             {
-                Duration = TimeSpan.FromMilliseconds(1000),
+                Duration = TimeSpan.FromMilliseconds(800),
                 FillMode = FillMode.Forward,
                 Easing = Easing.Parse("CubicEaseOut"),
+                Delay = TimeSpan.FromMilliseconds(200),
                 Children =
                 {
                     new KeyFrame

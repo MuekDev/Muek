@@ -52,7 +52,9 @@
             </StackPanel>
 
             <!-- 工作区 -->
-            <Grid Grid.Row="1" ColumnDefinitions="200,*">
+            <Grid Grid.Row="1" Grid.ColumnDefinitions="Auto,*">
+                <views:ProjectInfo Name="ProjectInfo"></views:ProjectInfo>
+                <Grid Grid.Column="1"  ColumnDefinitions="200,*">
                 <!-- 左侧轨道头 -->
                 <StackPanel Grid.Column="0" Background="Transparent" HorizontalAlignment="Right"
                             Orientation="Horizontal">
@@ -65,11 +67,15 @@
                 </StackPanel>
                 <!-- 右(顶部)刻度尺 -->
                 <Border Grid.Column="1" Background="#313131" Height="30" Margin="0" CornerRadius="8">
-                    <views:TimeRulerBar x:Name="TimeRulerBarControl"
-                                        HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
+                    
+                        
+                        <views:TimeRulerBar Grid.Column="1" x:Name="TimeRulerBarControl"
+                                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
                 </Border>
             </Grid>
+            </Grid>
             <Grid Grid.Row="2" ColumnDefinitions="Auto,*">
+                <!-- 设置 -->
                 <views:Settings Name="Settings"></views:Settings>
                 <Grid Grid.Column="1" ColumnDefinitions="200,*,Auto">
                 <ScrollViewer VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Disabled">

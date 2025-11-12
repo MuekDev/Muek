@@ -8,6 +8,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
+using Avalonia.Threading;
 
 namespace Muek.Views;
 
@@ -66,9 +67,10 @@ public partial class MagnetSettingsWindow : UserControl
                 new Point(Bounds.Width / _grids.Count *  _grids.IndexOf(grid) + Bounds.Width / _grids.Count / 2 - grid.name.Length * 3,Bounds.Height - Bounds.Height * .6)
             );
         }
+
         if (!_isPressed)
-            _selectedGridPosition = Bounds.Width / _grids.Count * _grids.IndexOf(SelectedGrid) +
-                                Bounds.Width / _grids.Count / 2;
+            _selectedGridPosition = Bounds.Width / _grids.Count * _grids.IndexOf(SelectedGrid) + Bounds.Width / _grids.Count / 2;
+                
         
         var selectedPen = new Pen(Brushes.YellowGreen, 2);
         context.DrawLine(selectedPen,
@@ -102,12 +104,12 @@ public partial class MagnetSettingsWindow : UserControl
         
         double closestDistance = double.MaxValue;
         double closestPosition = _selectedGridPosition;
-    
+
         foreach (var grid in _grids)
         {
             double gridPosition = Bounds.Width / _grids.Count * _grids.IndexOf(grid) + Bounds.Width / _grids.Count / 2;
             double distance = Math.Abs(_selectedGridPosition - gridPosition);
-        
+
             if (distance < closestDistance)
             {
                 closestDistance = distance;
@@ -115,7 +117,7 @@ public partial class MagnetSettingsWindow : UserControl
                 SelectedGrid = grid;
             }
         }
-    
+
         _selectedGridPosition = closestPosition;
         InvalidateVisual();
     }

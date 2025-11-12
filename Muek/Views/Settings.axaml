@@ -6,13 +6,15 @@
              x:Class="Muek.Views.Settings">
     <Grid RowDefinitions="Auto,*" Margin="20,5">
         <TextBlock>Settings</TextBlock>
-        <TabControl Grid.Row="1">
-            <TabItem Header="Audio" FontSize="12">
-                <TextBlock>Here is Audio Settings</TextBlock>
-            </TabItem>
-            <TabItem Header="File" FontSize="12">
-                <TextBlock>Here is File Settings</TextBlock>
-            </TabItem>
-        </TabControl>
+        <Grid Grid.Row="1" Width="400" Margin="20,0">
+            <TabControl>
+                <TabItem Header="Audio" FontSize="12">
+                    <TextBlock>Here is Audio Settings</TextBlock>
+                </TabItem>
+                <TabItem Header="File" FontSize="12">
+                    <TextBlock>Here is File Settings</TextBlock>
+                </TabItem>
+            </TabControl>
+        </Grid>
     </Grid>
 </UserControl>
