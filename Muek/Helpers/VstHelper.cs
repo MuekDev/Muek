@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Muek.Helpers;
@@ -20,7 +21,9 @@ public class VstHelper
     public static async IAsyncEnumerable<FileInfo> ScanDirAsync(string folder)
     {
         await Task.Yield();
-        foreach (var path in Directory.EnumerateFiles(folder, "*.dll", SearchOption.AllDirectories))
+        foreach (var path in Directory.EnumerateFiles(folder, "*.dll", SearchOption.AllDirectories)
+                     // .Union(Directory.EnumerateFiles(folder, "*.vst3", SearchOption.AllDirectories))
+                 )
         {
             yield return new FileInfo(path);
         }

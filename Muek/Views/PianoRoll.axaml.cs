@@ -1,21 +1,16 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
-using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Input;
 using Avalonia;
-using Avalonia.Animation;
-using Avalonia.Animation.Easings;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using Avalonia.Markup.Xaml;
 using Avalonia.Media;
-using Avalonia.Rendering.Composition.Animations;
-using Avalonia.Styling;
+using Avalonia.Platform.Storage;
 using Muek.Models;
+using Muek.Services;
+using NAudio.Midi;
 
 namespace Muek.Views;
 
@@ -68,7 +63,7 @@ public partial class PianoRoll : UserControl
     private int _noteRangeMax = 9;
     private int _noteRangeMin = 0;
 
-    private int _Temperament = 12;
+    private int _temperament = 12;
 
     
     //TODO 需要获取目前窗口大小
@@ -82,7 +77,7 @@ public partial class PianoRoll : UserControl
 
     private IBrush _noteHoverColor;
 
-    private string _currentHoverNote = "";
+    private int _currentHoverNote = -1;
     
     private bool _isDrawing = false;
     private bool _isDragging = false;
@@ -94,14 +89,15 @@ public partial class PianoRoll : UserControl
     private double _dragStartTime;
     private double _dragEndTime;
     
-    private string _editingNote = "";
+    private int _editingNote = -1;
 
-    public struct Note
+    public record struct Note()
     {
-        public string Name;
-        public double StartTime;
-        public double EndTime;
-        public Color Color;
+        public int Name = 0;
+        public double StartTime = 0;
+        public double EndTime = 0;
+        public int Velocity = 127;
+        public Color Color = default;
     }
     
     private Note _currentHoverDrawedNote = new Note();
@@ -111,7 +107,6 @@ public partial class PianoRoll : UserControl
     
     public List<Note> Notes = new();
 
-
     public Point ScalingSensitivity = new Point(5, 2);
     
     
@@ -120,19 +115,19 @@ public partial class PianoRoll : UserControl
     
     public List<Note> SelectedNotes = new();
     
-    private bool _isShowingOptions = false;
-    
+    // private bool _isShowingOptions = false;
+    public double Magnet = 1.0;
+
     public PianoRoll()
     {
         InitializeComponent();
-        
         
         NoteHeight = 15;
         ClampValue = 0;
         
         
         // IsVisible = true;
-        Height = NoteHeight * (_noteRangeMax - _noteRangeMin + 1) * _Temperament;
+        Height = NoteHeight * (_noteRangeMax - _noteRangeMin + 1) * _temperament;
         // Console.WriteLine(Height);
 
         
@@ -163,34 +158,34 @@ public partial class PianoRoll : UserControl
             _noteHoverColor = new SolidColorBrush(Colors.Black, .5);
             
             var noteColor = _noteColor1;
-            var noteName = "";
+            var noteName = -1;
 
             //左侧钢琴
             {
                 //十二平均律
                 for (int i = _noteRangeMin; i <= _noteRangeMax; i++)
                 {
-                    for (int note = 0; note < _Temperament; note++)
+                    for (int note = 0; note < _temperament; note++)
                     {
-                        noteName = IndexToNoteName(i * _Temperament + note);
-                        noteColor = NoteNameToBrush(noteName);
+                        noteName = i * _temperament + note;
+                        noteColor = NoteNameToBrush(IndexToNoteName(noteName));
                         
                         // Console.WriteLine(noteName);
                         context.FillRectangle(noteColor,
-                            new Rect(0, Height - (i * _Temperament + note + 1) * NoteHeight, Width * .9, NoteHeight),5);
+                            new Rect(0, Height - (i * _temperament + note + 1) * NoteHeight, Width * .9, NoteHeight),5);
                         context.FillRectangle(noteColor,
-                            new Rect(0, Height - (i * _Temperament + note + 1) * NoteHeight, Width * .8, NoteHeight));
+                            new Rect(0, Height - (i * _temperament + note + 1) * NoteHeight, Width * .8, NoteHeight));
                         // Console.WriteLine(new Rect(0, Height - (i * _Temperament + note +1) * NoteHeight,NoteWidth,NoteHeight));
-                        context.DrawText(new FormattedText(noteName,
+                        context.DrawText(new FormattedText(IndexToNoteName(noteName),
                                 CultureInfo.CurrentCulture, FlowDirection.LeftToRight, Typeface.Default,
                                 NoteHeight * .6, (noteColor == _noteColor2 ? _noteColor1 : _noteColor2)),
-                            new Point(0, Height - (i * _Temperament + note + 1) * NoteHeight)
+                            new Point(0, Height - (i * _temperament + note + 1) * NoteHeight)
                         );
 
                         if (noteName.Equals(_currentHoverNote))
                         {
                             context.FillRectangle(_noteHoverColor,
-                                new Rect(0, Height - (i * _Temperament + note + 1) * NoteHeight, Width * .9,
+                                new Rect(0, Height - (i * _temperament + note + 1) * NoteHeight, Width * .9,
                                     NoteHeight));
                         }
                     }
@@ -202,67 +197,123 @@ public partial class PianoRoll : UserControl
         else
         {
             var noteColor = _noteColor1;
-            var noteName = "";
+            int noteName = -1;
             for (int i = _noteRangeMin; i <= _noteRangeMax; i++)
             {
-                for (int note = 0; note < _Temperament; note++)
+                for (int note = 0; note < _temperament; note++)
                 {
-                    noteName = IndexToNoteName(i * _Temperament + note);
+                    noteName = i * _temperament + note;
                     
                     //绘制编辑区
                     // Console.WriteLine(noteName);
                     context.DrawRectangle(Brush.Parse("#40232323"),new Pen(new SolidColorBrush(new HslColor(1,0,0,0).ToRgb(),.1)),
-                        new Rect(ClampValue, Height - (i * _Temperament + note + 1) * NoteHeight, _renderSize, NoteHeight));
+                        new Rect(ClampValue, Height - (i * _temperament + note + 1) * NoteHeight, _renderSize, NoteHeight));
                     // Console.WriteLine(new Rect(0, Height - (i * _Temperament + note +1) * NoteHeight,NoteWidth,NoteHeight));
-                    if (!noteName.Contains('#'))
+                    if (!IndexToNoteName(noteName).Contains('#'))
                     {
                         context.DrawRectangle(new SolidColorBrush(Colors.White,.05),null,
-                            new Rect(ClampValue, Height - (i * _Temperament + note + 1) * NoteHeight, _renderSize, NoteHeight));
+                            new Rect(ClampValue, Height - (i * _temperament + note + 1) * NoteHeight, _renderSize, NoteHeight));
                     }
                     
                     //绘制Hover区
                     if (noteName.Equals(_currentHoverNote))
                     {
                         context.FillRectangle(_noteHoverColor,
-                            new Rect(ClampValue, Height - (i * _Temperament + note + 1) * NoteHeight, _renderSize,
+                            new Rect(ClampValue, Height - (i * _temperament + note + 1) * NoteHeight, _renderSize,
                                 NoteHeight));
+                        // Console.WriteLine($"HOVERING: {_currentHoverNote}");
                     }
                     
                 }
             }
-            
+
+            if(_widthOfBeat > 20)
+            {
+                for (double i = 0; i < Width / _widthOfBeat; i += Magnet)
+                {
+                    var gridLinePen = new Pen(new SolidColorBrush(Colors.White, .2), _widthOfBeat * .01);
+                    if (i * _widthOfBeat > ClampValue && i * _widthOfBeat < _renderSize + ClampValue)
+                    {
+                        context.DrawLine(gridLinePen,
+                            new Point(i * _widthOfBeat, 0),
+                            new Point(i * _widthOfBeat, Height));
+                    }
+                }
+
+                if (Magnet <= 1 / 8.0)
+                {
+                    for (int i = 0; i < Width / _widthOfBeat; i += 1)
+                    {
+                        var gridLinePen = new Pen(new SolidColorBrush(Colors.MediumPurple), _widthOfBeat * .02);
+                        if (i * _widthOfBeat > ClampValue && i * _widthOfBeat < _renderSize + ClampValue)
+                        {
+                            
+                            context.DrawLine(gridLinePen,
+                                new Point(i * _widthOfBeat, 0),
+                                new Point(i * _widthOfBeat, Height));
+                        }
+                    }
+                }
+
+                if (Magnet <= 1 / 4.0)
+                {
+                    for (int i = 0; i < Width / _widthOfBeat; i += 2)
+                    {
+                        var gridLinePen = new Pen(new SolidColorBrush(Colors.LightSkyBlue), _widthOfBeat * .02);
+                        if (i * _widthOfBeat > ClampValue && i * _widthOfBeat < _renderSize + ClampValue)
+                        {
+                            context.DrawLine(gridLinePen,
+                                new Point(i * _widthOfBeat, 0),
+                                new Point(i * _widthOfBeat, Height));
+                        }
+                    }
+                }
+            }
             
             for (int i = 0; i < Width / _widthOfBeat; i++)
             {
-                var gridLinePen = new Pen(Brushes.White, 1);
+                var gridLinePen = new Pen(Brushes.White, _widthOfBeat * .02);
                 if(i * _widthOfBeat > ClampValue && i *  _widthOfBeat < _renderSize + ClampValue)
                 {
                     if (i % 4 == 0)
                     {
-                        gridLinePen.Brush = Brushes.White;
-                
                         //小节数
-                        context.DrawText(new FormattedText(i.ToString(),
+                        context.DrawText(new FormattedText((i / 4).ToString(),
                                 CultureInfo.CurrentCulture, FlowDirection.LeftToRight, Typeface.Default, 15,
                                 Brushes.White),
                             new Point(6 + i * _widthOfBeat, ScrollOffset));
+                        context.DrawLine(gridLinePen,
+                            new Point(i * _widthOfBeat, 0),
+                            new Point(i * _widthOfBeat, Height));
                     }
-                    else
-                    {
-                        gridLinePen.Brush = Brushes.DimGray;
-                    }
-                
-                    context.DrawLine(gridLinePen,
-                        new Point(i * _widthOfBeat, 0),
-                        new Point(i * _widthOfBeat, Height));
+                }
+            }
+
+            if(_currentHoverNote!=-1)
+            {
+                if(!_isDrawing && !_isEditing && !_isDragging)
+                {
+                    context.DrawLine(new Pen(Brushes.YellowGreen, 1.5),
+                        new Point((_currentMousePosition.X - _currentMousePosition.X % (_widthOfBeat * Magnet)), 0),
+                        new Point((_currentMousePosition.X - _currentMousePosition.X % (_widthOfBeat * Magnet)),
+                            Height)
+                    );
+                }
+                else if(!_isDragging)
+                {
+                    context.DrawLine(new Pen(Brushes.YellowGreen, 1.5),
+                        new Point((_currentMousePosition.X - _currentMousePosition.X % (_widthOfBeat * Magnet) + _widthOfBeat * Magnet), 0),
+                        new Point((_currentMousePosition.X - _currentMousePosition.X % (_widthOfBeat * Magnet) + _widthOfBeat * Magnet),
+                            Height)
+                    );
                 }
             }
             
             for (int i = _noteRangeMin; i <= _noteRangeMax; i++)
             {
-                for (int note = 0; note < _Temperament; note++)
+                for (int note = 0; note < _temperament; note++)
                 {
-                    noteName = IndexToNoteName(i * _Temperament + note);
+                    noteName = i * _temperament + note;
                     
                     //渲染音符
                     foreach (Note existNote in Notes)
@@ -270,15 +321,16 @@ public partial class PianoRoll : UserControl
                         var start = existNote.StartTime * _widthOfBeat;
                         var end = existNote.EndTime * _widthOfBeat;
                         var color = existNote.Color;
+                        var velocity = existNote.Velocity;
                         if (noteName.Equals(existNote.Name))
                         {
-                            context.DrawRectangle(new SolidColorBrush(color),new Pen(Brushes.Black,1),
-                                new Rect(start, Height - (i * _Temperament + note + 1) * NoteHeight,end-start,NoteHeight * .9));
+                            context.DrawRectangle(new SolidColorBrush(color,velocity / 127.0),new Pen(Brushes.Black,1),
+                                new Rect(start, Height - (i * _temperament + note + 1) * NoteHeight,end-start,NoteHeight * .9));
                             
-                            context.DrawText(new FormattedText(existNote.Name,
+                            context.DrawText(new FormattedText(IndexToNoteName(existNote.Name),
                                     CultureInfo.CurrentCulture, FlowDirection.LeftToRight, Typeface.Default, NoteHeight * .6,
                                     Brushes.Black),
-                                new Point(start, Height - (i * _Temperament + note + 1) * NoteHeight));
+                                new Point(start, Height - (i * _temperament + note + 1) * NoteHeight));
 
                             
                             //Hover音符
@@ -290,13 +342,13 @@ public partial class PianoRoll : UserControl
                                 {
                                     //更改音符长度
                                     context.DrawLine(new Pen(Brushes.Red,2),
-                                        new Point(end-1, Height - (i * _Temperament + note + 1) * NoteHeight),
-                                        new Point(end-1, Height - (i * _Temperament + note + 1) * NoteHeight + NoteHeight * .9));
+                                        new Point(end-1, Height - (i * _temperament + note + 1) * NoteHeight),
+                                        new Point(end-1, Height - (i * _temperament + note + 1) * NoteHeight + NoteHeight * .9));
                                 }
                                 else
                                 {
                                     context.DrawRectangle(null,new Pen(Brushes.White,1),
-                                        new Rect(start, Height - (i * _Temperament + note + 1) * NoteHeight,end-start,NoteHeight * .9));
+                                        new Rect(start, Height - (i * _temperament + note + 1) * NoteHeight,end-start,NoteHeight * .9));
 
                                 }
                                 
@@ -317,7 +369,7 @@ public partial class PianoRoll : UserControl
                             if (noteName.Equals(_currentHoverNote))
                             {
                                 context.FillRectangle(new SolidColorBrush(color),
-                                    new Rect(start, Height - (i * _Temperament + note + 1) * NoteHeight, end - start,
+                                    new Rect(start, Height - (i * _temperament + note + 1) * NoteHeight, end - start,
                                         NoteHeight * .9));
                             }
                         }
@@ -326,11 +378,11 @@ public partial class PianoRoll : UserControl
                             if (noteName.Equals(_editingNote))
                             {
                                 context.FillRectangle(new SolidColorBrush(color),
-                                    new Rect(start, Height - (i * _Temperament + note + 1) * NoteHeight, end - start,
+                                    new Rect(start, Height - (i * _temperament + note + 1) * NoteHeight, end - start,
                                         NoteHeight * .9));
                                 context.DrawLine(new Pen(Brushes.Orange,1),
-                                    new Point(_currentMousePosition.X - _currentMousePosition.X % _widthOfBeat + _widthOfBeat, 0),
-                                    new Point(_currentMousePosition.X - _currentMousePosition.X % _widthOfBeat + _widthOfBeat, Width));
+                                    new Point(_currentMousePosition.X - _currentMousePosition.X % (_widthOfBeat * Magnet) + _widthOfBeat * Magnet, 0),
+                                    new Point(_currentMousePosition.X - _currentMousePosition.X % (_widthOfBeat * Magnet) + _widthOfBeat * Magnet, Width));
                             }
                         }
                     }
@@ -344,25 +396,24 @@ public partial class PianoRoll : UserControl
             }
             for (int i = _noteRangeMin; i <= _noteRangeMax; i++)
             {
-                for (int note = 0; note < _Temperament; note++)
+                for (int note = 0; note < _temperament; note++)
                 {
-                    noteName = IndexToNoteName(i * _Temperament + note);
+                    noteName = i * _temperament + note;
                     
                     //渲染选中音符
                     foreach (Note existNote in SelectedNotes)
                     {
                         var start = existNote.StartTime * _widthOfBeat;
                         var end = existNote.EndTime * _widthOfBeat;
-                        var color = existNote.Color;
                         if (noteName.Equals(existNote.Name))
                         {
                             context.DrawRectangle(Brushes.Black, new Pen(Brushes.White,1),
-                                new Rect(start, Height - (i * _Temperament + note + 1) * NoteHeight,end-start,NoteHeight * .9));
+                                new Rect(start, Height - (i * _temperament + note + 1) * NoteHeight,end-start,NoteHeight * .9));
                             
-                            context.DrawText(new FormattedText(existNote.Name,
+                            context.DrawText(new FormattedText(IndexToNoteName(existNote.Name),
                                     CultureInfo.CurrentCulture, FlowDirection.LeftToRight, Typeface.Default, NoteHeight * .6,
                                     Brushes.White),
-                                new Point(start, Height - (i * _Temperament + note + 1) * NoteHeight));
+                                new Point(start, Height - (i * _temperament + note + 1) * NoteHeight));
                             
                             //Hover音符
                             if (existNote.Name.Equals(_currentHoverNote) &&
@@ -372,13 +423,13 @@ public partial class PianoRoll : UserControl
                                 if (double.Abs(_currentMousePosition.X - existNote.EndTime * _widthOfBeat) < 5)
                                 {
                                     context.DrawLine(new Pen(Brushes.Red,2),
-                                        new Point(end-1, Height - (i * _Temperament + note + 1) * NoteHeight),
-                                        new Point(end-1, Height - (i * _Temperament + note + 1) * NoteHeight + NoteHeight * .9));
+                                        new Point(end-1, Height - (i * _temperament + note + 1) * NoteHeight),
+                                        new Point(end-1, Height - (i * _temperament + note + 1) * NoteHeight + NoteHeight * .9));
                                 }
                                 else
                                 {
                                     context.DrawRectangle(null,new Pen(Brushes.White,1),
-                                        new Rect(start, Height - (i * _Temperament + note + 1) * NoteHeight,end-start,NoteHeight * .9));
+                                        new Rect(start, Height - (i * _temperament + note + 1) * NoteHeight,end-start,NoteHeight * .9));
                             
                                 }
                                 
@@ -390,8 +441,8 @@ public partial class PianoRoll : UserControl
                     //渲染拖动的选中音符
                     if (_isDrawing || _isDragging || _isEditing && SelectedNotes.Count != 0)
                     {
-                        var start = _currentNoteStartTime * _widthOfBeat;
-                        var end = _currentNoteEndTime * _widthOfBeat;
+                        // var start = _currentNoteStartTime * _widthOfBeat;
+                        // var end = _currentNoteEndTime * _widthOfBeat;
                         var color = Colors.DimGray;
                         if(!_isEditing)
                         {
@@ -402,13 +453,23 @@ public partial class PianoRoll : UserControl
                                     ((_currentMousePosition.X - _dragPos.X) -
                                      (_currentMousePosition.X - _dragPos.X) %
                                      _widthOfBeat) / _widthOfBeat;
+                                var dragNoteName = (int)(-(_currentMousePosition.Y - _dragPos.Y) / NoteHeight +
+                                                     selectedNote.Name);
+                                if (dragNoteName > (_noteRangeMax * (_temperament + 1) + 2))
+                                {
+                                    dragNoteName = _noteRangeMax * (_temperament + 1) + 2;
+                                }
+
+                                if (dragNoteName < 0)
+                                {
+                                    dragNoteName = 0;
+                                }
                                 dragedSelectedNotes.Add(new Note
                                 {
                                     StartTime = selectedNote.StartTime + dragRelativePos,
                                     EndTime = dragRelativePos + selectedNote.EndTime,
-                                    Name = IndexToNoteName(
-                                        (int)(-(_currentMousePosition.Y - _dragPos.Y) / NoteHeight +
-                                              NoteNameToIndex(selectedNote.Name))),
+                                    Name = 
+                                        dragNoteName,
                                     Color = Colors.YellowGreen
                                 });
                             }
@@ -418,7 +479,7 @@ public partial class PianoRoll : UserControl
                                 {
                                     context.FillRectangle(new SolidColorBrush(color),
                                         new Rect(selectedNote.StartTime * _widthOfBeat,
-                                            Height - (i * _Temperament + note + 1) * NoteHeight,
+                                            Height - (i * _temperament + note + 1) * NoteHeight,
                                             (selectedNote.EndTime - selectedNote.StartTime) * _widthOfBeat,
                                             NoteHeight * .9));
                                 }
@@ -429,8 +490,8 @@ public partial class PianoRoll : UserControl
                         else
                         {
                             context.DrawLine(new Pen(Brushes.Orange,1),
-                                new Point(_currentMousePosition.X - _currentMousePosition.X % _widthOfBeat + _widthOfBeat, 0),
-                                new Point(_currentMousePosition.X - _currentMousePosition.X % _widthOfBeat + _widthOfBeat, Width));
+                                new Point(_currentMousePosition.X - _currentMousePosition.X % (_widthOfBeat * Magnet) + _widthOfBeat, 0),
+                                new Point(_currentMousePosition.X - _currentMousePosition.X % (_widthOfBeat * Magnet) + _widthOfBeat, Width));
                         }
                     }
                 }
@@ -441,20 +502,17 @@ public partial class PianoRoll : UserControl
     protected override void OnPointerMoved(PointerEventArgs e)
     {
         base.OnPointerMoved(e);
-        
-        
         {
-            var noteColor = _noteColor1;
-            var noteName = "";
+            var noteName = -1;
 
             for (int i = _noteRangeMin; i <= _noteRangeMax; i++)
             {
-                for (int note = 0; note < _Temperament; note++)
+                for (int note = 0; note < _temperament; note++)
                 {
-                    noteName = IndexToNoteName(i * _Temperament + note);
+                    noteName = i * _temperament + note;
 
                     var relativePos = e.GetPosition(this) -
-                                      new Point(0, Height - (i * _Temperament + note + 1) * NoteHeight);
+                                      new Point(0, Height - (i * _temperament + note + 1) * NoteHeight);
                     // Console.WriteLine(relativePos);
                     
                     if (relativePos.Y > 0 && relativePos.Y < NoteHeight)
@@ -473,21 +531,21 @@ public partial class PianoRoll : UserControl
                 if(_isDrawing)
                 {
                     _currentNoteEndTime =
-                        (e.GetPosition(this).X - (e.GetPosition(this).X) % _widthOfBeat + _widthOfBeat) / _widthOfBeat;
+                        (e.GetPosition(this).X - (e.GetPosition(this).X) % (_widthOfBeat * Magnet) + _widthOfBeat * Magnet) / _widthOfBeat;
                 }
 
                 if (_isDragging && SelectedNotes.Count == 0)
                 {
                     _currentNoteStartTime = _dragStartTime + ((e.GetPosition(this).X - _dragPos.X) -
-                                                              (e.GetPosition(this).X - _dragPos.X) % _widthOfBeat) / _widthOfBeat;
+                                                              (e.GetPosition(this).X - _dragPos.X) % (_widthOfBeat * Magnet)) / _widthOfBeat;
                     _currentNoteEndTime = _dragEndTime + ((e.GetPosition(this).X - _dragPos.X) -
-                                                          (e.GetPosition(this).X - _dragPos.X) % _widthOfBeat) / _widthOfBeat;
+                                                          (e.GetPosition(this).X - _dragPos.X) % (_widthOfBeat * Magnet)) / _widthOfBeat;
                 }
 
                 if (_isEditing)
                 {
                     _currentNoteEndTime =
-                        (e.GetPosition(this).X - (e.GetPosition(this).X) % _widthOfBeat + _widthOfBeat) / _widthOfBeat;
+                        (e.GetPosition(this).X - (e.GetPosition(this).X) % (_widthOfBeat * Magnet) + _widthOfBeat * Magnet) / _widthOfBeat;
                 }
 
                 foreach (Note note in Notes)
@@ -528,13 +586,9 @@ public partial class PianoRoll : UserControl
                         selectWidth, selectHeight);
                     
 
-                    
-                    var noteColor = _noteColor1;
-                    var noteName = "";
-
                     for (int i = _noteRangeMin; i <= _noteRangeMax; i++)
                     {
-                        for (int note = 0; note < _Temperament; note++)
+                        for (int note = 0; note < _temperament; note++)
                         {
                             
                             
@@ -550,8 +604,8 @@ public partial class PianoRoll : UserControl
                                      existNote.StartTime * _widthOfBeat &&
                                      ((Rect)_selectFrame).X + ((Rect)_selectFrame).Width <
                                      existNote.EndTime * _widthOfBeat) &&
-                                    ((Rect)_selectFrame).Y < (Height / NoteHeight - NoteNameToIndex(existNote.Name)) * NoteHeight &&
-                                    ((Rect)_selectFrame).Y + ((Rect)_selectFrame).Height > (Height / NoteHeight - NoteNameToIndex(existNote.Name)) * NoteHeight
+                                    ((Rect)_selectFrame).Y < (Height / NoteHeight - existNote.Name) * NoteHeight &&
+                                    ((Rect)_selectFrame).Y + ((Rect)_selectFrame).Height > (Height / NoteHeight - existNote.Name) * NoteHeight
                                     )
                                 {
                                     if (!SelectedNotes.Contains(existNote))
@@ -581,7 +635,7 @@ public partial class PianoRoll : UserControl
     protected override void OnPointerExited(PointerEventArgs e)
     {
         base.OnPointerExited(e);
-        _currentHoverNote =  null;
+        _currentHoverNote =  -1;
         InvalidateVisual();
     }
 
@@ -597,7 +651,7 @@ public partial class PianoRoll : UserControl
                 if(e.KeyModifiers == KeyModifiers.Control)
                 {
                     _currentNoteStartTime =
-                        (e.GetPosition(this).X - (e.GetPosition(this).X) % _widthOfBeat) / _widthOfBeat;
+                        (e.GetPosition(this).X - (e.GetPosition(this).X) % (_widthOfBeat * Magnet)) / _widthOfBeat;
                     _isDrawing = true;
                     _selectFrame = null;
                     SelectedNotes.Clear();
@@ -648,10 +702,6 @@ public partial class PianoRoll : UserControl
                             break;
                         }
                     }
-                }
-                else
-                {
-                    
                 }
             }
             if (removedNote != null)
@@ -731,13 +781,24 @@ public partial class PianoRoll : UserControl
                                                   ((e.GetPosition(this).X - _dragPos.X) -
                                                    (e.GetPosition(this).X - _dragPos.X) %
                                                    _widthOfBeat) / _widthOfBeat;
+
+                            var noteName = (int)(-(e.GetPosition(this).Y - _dragPos.Y) / NoteHeight +
+                                                 selectedNote.Name);
+                            if (noteName > (_noteRangeMax * (_temperament + 1) + 2))
+                            {
+                                noteName = _noteRangeMax * (_temperament + 1) + 2;
+                            }
+
+                            if (noteName < 0)
+                            {
+                                noteName = 0;
+                            }
                             dragedSelectedNotes.Add(new Note
                             {
                               StartTime = selectedNote.StartTime + dragRelativePos >= 0 ? selectedNote.StartTime + dragRelativePos : 0,
                               EndTime = dragRelativePos + selectedNote.EndTime,
-                              Name = IndexToNoteName(
-                                  (int)(-(e.GetPosition(this).Y - _dragPos.Y) / NoteHeight +
-                                             NoteNameToIndex(selectedNote.Name))),
+                              Name = 
+                                  noteName,
                               Color = Colors.YellowGreen
                             });
                         }
@@ -773,7 +834,7 @@ public partial class PianoRoll : UserControl
                             dragedSelectedNotes.Add(new Note
                             {
                                 StartTime = selectedNote.StartTime >= 0 ? selectedNote.StartTime : 0,
-                                EndTime = (e.GetPosition(this).X - e.GetPosition(this).X % _widthOfBeat + _widthOfBeat) / _widthOfBeat,
+                                EndTime = (e.GetPosition(this).X - e.GetPosition(this).X % (_widthOfBeat * Magnet) + _widthOfBeat) / _widthOfBeat,
                                 Name = selectedNote.Name,
                                 Color = Colors.YellowGreen
                             });
@@ -800,17 +861,16 @@ public partial class PianoRoll : UserControl
         {
             if (SelectedNotes.Count > 0)
             {
-                _isShowingOptions = true;
-                _ = ShowOptions();
+                // _isShowingOptions = true;
+                // _ = ShowOptions();
+                ShowOptions();
             }
             else
             {
-                _isShowingOptions = false;
-                _ = HideOptions();
+                // _isShowingOptions = false;
+                // _ = HideOptions();
+                HideOptions();
             }
-
-            
-            
         }
         
         SaveNotes();
@@ -819,42 +879,74 @@ public partial class PianoRoll : UserControl
         GC.Collect();
     }
 
-    private async Task ShowOptions()
+    private void ShowOptions()
     {
         var positionLeft = SelectedNotes[0].StartTime * _widthOfBeat;
-        var positionTop = Height - NoteNameToIndex(SelectedNotes[0].Name) * NoteHeight;
+        var positionTop = Height - SelectedNotes[0].Name * NoteHeight;
         foreach (Note selectedNote in SelectedNotes)
         {
             positionLeft = double.Min(positionLeft, selectedNote.StartTime * _widthOfBeat);
-            positionTop = double.Min(positionTop, Height - NoteNameToIndex(selectedNote.Name) * NoteHeight);
+            positionTop = double.Min(positionTop, Height - selectedNote.Name * NoteHeight);
         }
-
         Options.Margin = new Thickness(positionLeft, positionTop, 0, 0);
-            
-        while (Options.Opacity < 1 && _isShowingOptions)
+        Options.IsVisible = true;
+        MoveUpButton.IsEnabled = true;
+        MoveDownButton.IsEnabled = true;
+        foreach (var note in SelectedNotes)
         {
-            Options.IsVisible = true;
-            await Task.Delay(50);
-            Options.Opacity += .5;
-            Console.WriteLine("IsShowingOptions");
+            if (note.Name + 12 > _noteRangeMax * (_temperament + 1) + 2)
+            {
+                MoveUpButton.IsEnabled = false;
+            }
+
+            if (note.Name - 12 < 0)
+            {
+                MoveDownButton.IsEnabled = false;
+            }
         }
-        await Task.CompletedTask;
-        Console.WriteLine("ShowOptionsCompleted");
     }
-    private async Task HideOptions()
+
+    private void HideOptions()
     {
-        
-    while (Options.Opacity > 0 && !_isShowingOptions)
-    {
-        
-        await Task.Delay(50);
-        Options.Opacity -= .5;
-        Console.WriteLine("IsHidingOptions");
+        Options.IsVisible = false;
     }
-    await Task.CompletedTask;
-    Options.IsVisible = false;
-    Console.WriteLine("HidingOptionsCompleted");
-    }
+    
+    // private async Task ShowOptions()
+    // {
+    //     var positionLeft = SelectedNotes[0].StartTime * _widthOfBeat;
+    //     var positionTop = Height - SelectedNotes[0].Name * NoteHeight;
+    //     foreach (Note selectedNote in SelectedNotes)
+    //     {
+    //         positionLeft = double.Min(positionLeft, selectedNote.StartTime * _widthOfBeat);
+    //         positionTop = double.Min(positionTop, Height - selectedNote.Name * NoteHeight);
+    //     }
+    //
+    //     Options.Margin = new Thickness(positionLeft, positionTop, 0, 0);
+    //         
+    //     while (Options.Opacity < 1 && _isShowingOptions)
+    //     {
+    //         Options.IsVisible = true;
+    //         await Task.Delay(50);
+    //         lock(Options) Options.Opacity += .5;
+    //         Console.WriteLine("IsShowingOptions");
+    //     }
+    //     await Task.CompletedTask;
+    //     Console.WriteLine("ShowOptionsCompleted");
+    // }
+    // private async Task HideOptions()
+    // {
+    //     
+    // while (Options.Opacity > 0 && !_isShowingOptions)
+    // {
+    //     
+    //     await Task.Delay(50);
+    //     lock(Options) Options.Opacity -= .5;
+    //     Console.WriteLine("IsHidingOptions");
+    // }
+    // await Task.CompletedTask;
+    // Options.IsVisible = false;
+    // Console.WriteLine("HidingOptionsCompleted");
+    // }
     
 
     protected override void OnPointerWheelChanged(PointerWheelEventArgs e)
@@ -866,7 +958,7 @@ public partial class PianoRoll : UserControl
             {
                 double currentPosition = e.GetPosition(this).Y / NoteHeight;
                 NoteHeight = double.Clamp(NoteHeight + e.Delta.Y * ScalingSensitivity.Y, 10, 30);
-                Height = NoteHeight * (_noteRangeMax - _noteRangeMin + 1) * _Temperament;
+                Height = NoteHeight * (_noteRangeMax - _noteRangeMin + 1) * _temperament;
                 ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRight.Offset = new Vector(
                     ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRight.Offset.X,
                     currentPosition * NoteHeight -
@@ -893,7 +985,8 @@ public partial class PianoRoll : UserControl
                 // Console.WriteLine(e.GetPosition(ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRight));
             }
 
-            _ = ShowOptions();
+            // _ = ShowOptions();
+            // ShowOptions();
             InvalidateVisual();
             e.Handled = true;
         }
@@ -904,7 +997,7 @@ public partial class PianoRoll : UserControl
         string noteName = "";
         for (int i = _noteRangeMin; i <= _noteRangeMax; i++)
         {
-            for (int note = 0; note < _Temperament; note++)
+            for (int note = 0; note < _temperament; note++)
             {
                 switch (note)
                 {
@@ -948,7 +1041,7 @@ public partial class PianoRoll : UserControl
                 
                 if (name.Equals(noteName))
                 {
-                    return (i * _Temperament + note);
+                    return (i * _temperament + note);
                 }
                 
                 
@@ -962,7 +1055,7 @@ public partial class PianoRoll : UserControl
         string noteName = "";
         for (int i = _noteRangeMin - 1; i <= _noteRangeMax + 1; i++)
         {
-            for (int note = 0; note < _Temperament; note++)
+            for (int note = 0; note < _temperament; note++)
             {
                 switch (note)
                 {
@@ -1003,7 +1096,7 @@ public partial class PianoRoll : UserControl
                         noteName = $"B{i}";
                         break;
                 }
-                if (index.Equals(i * _Temperament + note))
+                if (index.Equals(i * _temperament + note))
                 {
                     return noteName;
                 }
@@ -1027,8 +1120,8 @@ public partial class PianoRoll : UserControl
 
     public void SaveNotes()
     {
-        ViewHelper.GetMainWindow().PatternPreview.Notes = Notes;
-        ViewHelper.GetMainWindow().PatternPreview.InvalidateVisual();
+        ViewHelper.GetMainWindow().PianoRollWindow.PatternPreview.Notes = Notes;
+        ViewHelper.GetMainWindow().PianoRollWindow.PatternPreview.InvalidateVisual();
     }
 
     private void SelectedNotesMoveUp(object? sender, RoutedEventArgs e)
@@ -1043,15 +1136,16 @@ public partial class PianoRoll : UserControl
                     Color = SelectedNotes[i].Color,
                     StartTime = SelectedNotes[i].StartTime,
                     EndTime = SelectedNotes[i].EndTime,
-                    Name = SelectedNotes[i].Name.Substring(0, SelectedNotes[i].Name.Length - 1)
-                    + (int.Parse(SelectedNotes[i].Name[^1].ToString()) + 1)
+                    Name = SelectedNotes[i].Name + 12,
+                    Velocity = SelectedNotes[i].Velocity
                 };
-                Console.WriteLine(SelectedNotes[i].Name);
+                // Console.WriteLine(SelectedNotes[i].Name);
                 Notes.Add(SelectedNotes[i]);
             }
         }
 
-        _ = ShowOptions();
+        // _ = ShowOptions();
+        ShowOptions();
         InvalidateVisual();
     }
     private void SelectedNotesMoveDown(object? sender, RoutedEventArgs e)
@@ -1066,15 +1160,62 @@ public partial class PianoRoll : UserControl
                     Color = SelectedNotes[i].Color,
                     StartTime = SelectedNotes[i].StartTime,
                     EndTime = SelectedNotes[i].EndTime,
-                    Name = SelectedNotes[i].Name.Substring(0, SelectedNotes[i].Name.Length - 1)
-                           + (int.Parse(SelectedNotes[i].Name[^1].ToString()) - 1)
+                    Name = SelectedNotes[i].Name - 12,
+                    Velocity = SelectedNotes[i].Velocity
                 };
-                Console.WriteLine(SelectedNotes[i].Name);
+                // Console.WriteLine(SelectedNotes[i].Name);
                 Notes.Add(SelectedNotes[i]);
             }
         }
 
-        _ = ShowOptions();
+        // _ = ShowOptions();
+        ShowOptions();
         InvalidateVisual();
+    }
+
+    public void ImportMidi()
+    {
+        {
+            var files = new Window().StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+            {
+                Title = "Import Midi file",
+                AllowMultiple = false,
+
+            }).GetAwaiter().GetResult();
+
+            if (files.Count >= 1)
+            {
+                var file = files[0].Path.LocalPath;
+                var midi = new MidiService();
+                midi.ImportMidi(file);
+                Notes.Clear();
+                for (int i = 1; i < midi.Data.Tracks; i++)
+                    foreach (var note in midi.Data[i])
+                    {
+                        if (note.GetType() == typeof(NoteOnEvent))
+                        {
+                            Notes.Add(new Note()
+                            {
+                                Name = ((NoteOnEvent)note).NoteNumber,
+                                Color = Colors.YellowGreen,
+                                StartTime = ((NoteOnEvent)note).AbsoluteTime /
+                                            (double)midi.Data.DeltaTicksPerQuarterNote * 4,
+                                EndTime = (((NoteOnEvent)note).AbsoluteTime + ((NoteOnEvent)note).NoteLength) /
+                                          (double)midi.Data.DeltaTicksPerQuarterNote * 4,
+                                Velocity = ((NoteOnEvent)note).Velocity
+                            });
+                        }
+                    }
+
+                Console.WriteLine($"IMPORT Notes: {Notes.Count}");
+                // foreach (var note in Notes)
+                // {
+                //     Console.WriteLine($"Start: {note.StartTime}; End: {note.EndTime}; Name: {note.Name}");
+                // }
+                SaveNotes();
+                InvalidateVisual();
+            }
+        }
+        Console.WriteLine($"Notes: {Notes.Count}");
     }
 }

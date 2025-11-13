@@ -2,10 +2,13 @@ using System;
 using Avalonia.Animation;
 using Avalonia.Animation.Easings;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Styling;
+using Muek.Models;
 using Muek.Services;
+using Muek.ViewModels;
 
 namespace Muek.Views;
 
@@ -18,6 +21,7 @@ public partial class Mixer : UserControl
         InitializeComponent();
         Width = 0;
         Console.WriteLine("Mixer Initialized");
+        
     }
 
     private void HideMixer(object? sender, RoutedEventArgs e)
@@ -120,10 +124,23 @@ public partial class Mixer : UserControl
                               $"Mixer Color: {MixerPan.ValuerColor}");
         }
     }
-    
-    
+
+    protected override void OnPointerEntered(PointerEventArgs e)
+    {
+        base.OnPointerEntered(e);
+        MixerColor.BoxShadow = BoxShadows.Parse($"0 0 25 2 {DataStateService.ActiveTrack.Color}");
+    }
+
+    protected override void OnPointerExited(PointerEventArgs e)
+    {
+        base.OnPointerExited(e);
+        MixerColor.BoxShadow = BoxShadows.Parse("0 0 0 0 transparent");
+    }
+
+
     public override void Render(DrawingContext context)
     {
         base.Render(context);
     }
+    
 }

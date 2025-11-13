@@ -23,7 +23,7 @@
         <Grid Background="#232323" RowDefinitions="40,40,*,24" Margin="0">
             <!-- 导航栏 -->
             <StackPanel Orientation="Horizontal">
-                <Button Background="Transparent">
+                <Button Background="Transparent" Click="SettingsButton">
                     <i:Icon Value="fa-bars" Foreground="White" />
                 </Button>
                 <Panel Width="40" />
@@ -53,7 +53,9 @@
             </StackPanel>
 
             <!-- 工作区 -->
-            <Grid Grid.Row="1" ColumnDefinitions="200,*">
+            <Grid Grid.Row="1" Grid.ColumnDefinitions="Auto,*">
+                <views:ProjectInfo Name="ProjectInfo"></views:ProjectInfo>
+                <Grid Grid.Column="1"  ColumnDefinitions="200,*">
                 <!-- 左侧轨道头 -->
                 <StackPanel Grid.Column="0" Background="Transparent" HorizontalAlignment="Right"
                             Orientation="Horizontal">
@@ -66,12 +68,17 @@
                 </StackPanel>
                 <!-- 右(顶部)刻度尺 -->
                 <Border Grid.Column="1" Background="#313131" Height="30" Margin="0" CornerRadius="8">
-                    <views:TimeRulerBar x:Name="TimeRulerBarControl"
-                                        HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
+                    
+                        
+                        <views:TimeRulerBar Grid.Column="1" x:Name="TimeRulerBarControl"
+                                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
                 </Border>
             </Grid>
-
-            <Grid Grid.Row="2" ColumnDefinitions="200,*,Auto">
+            </Grid>
+            <Grid Grid.Row="2" ColumnDefinitions="Auto,*">
+                <!-- 设置 -->
+                <views:Settings Name="Settings"></views:Settings>
+                <Grid Grid.Column="1" ColumnDefinitions="200,*,Auto">
                 <ScrollViewer VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Disabled">
                     <!-- 左侧轨道头 -->
                     <Grid Grid.Column="0" VerticalAlignment="Top">
@@ -242,7 +249,7 @@
                                     </Button>
                                 </Border>
                             </Border>
-                            <views:PatternPreview Name="PatternPreview"></views:PatternPreview>
+                            <!-- <views:PatternPreview Name="PatternPreview"></views:PatternPreview> -->
                         </StackPanel>
 
                         <views:LineDrawer x:Name="TrackLineDrawer" LineBrush="White" IsVisible="False"></views:LineDrawer>
@@ -254,11 +261,12 @@
                                      HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
 
                     <!-- 钢琴窗 -->
-                    <views:PianoRollWindow Grid.Row="1" Height="40" Name="PianoRollWindow"></views:PianoRollWindow>
+                    <views:PianoRollWindow Grid.Row="1" Name="PianoRollWindow" Height="90"></views:PianoRollWindow>
                 </Grid>
                 <Grid Grid.Column="2">
                     <views:Mixer x:Name="Mixer" IsVisible="False"></views:Mixer>
                 </Grid>
+            </Grid>
             </Grid>
 
         </Grid>
