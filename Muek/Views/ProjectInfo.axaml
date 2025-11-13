@@ -2,14 +2,18 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:avalonia="https://github.com/projektanker/icons.avalonia"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Muek.Views.ProjectInfo">
-    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Height="20">
-        <TextBlock Margin="20,0">Title</TextBlock>
-        <TextBox Height="20">
+    <StackPanel Orientation="Horizontal">
+        <TextBlock VerticalAlignment="Center" Margin="20,0">Title</TextBlock>
+        <TextBox Height="20" VerticalAlignment="Center">
         </TextBox>
-        <TextBlock Margin="20,0">Author</TextBlock>
-        <TextBox Height="20">
+        <TextBlock VerticalAlignment="Center" Margin="20,0">Author</TextBlock>
+        <TextBox Height="20" VerticalAlignment="Center">
         </TextBox>
+        <Button Margin="20,0" VerticalAlignment="Center" Click="SaveProject">
+            <avalonia:Icon Value="mdi-file"/>
+        </Button>
     </StackPanel>
 </UserControl>

@@ -6,21 +6,47 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Styling;
+using Muek.Models;
 
 namespace Muek.Views;
 
 public partial class PianoRollWindow : UserControl
 {
+    private bool _isShowing = false;
+    private double _maxSize = 400.0;
+    private bool _isDragging = false;
     public PianoRollWindow()
     {
         InitializeComponent();
         ClipToBounds = false;
+        TopBar.PointerPressed += (sender, args) =>
+        {
+            if(_isShowing)
+            {
+                _isDragging = true;
+                args.Handled = true;
+            }
+        };
+        TopBar.PointerMoved += (sender, args) =>
+        {
+            if (_isDragging)
+            {
+                _maxSize = double.Clamp(Height - args.GetPosition(this).Y,90,600);
+                Height = _maxSize;
+                args.Handled = true;
+            }
+        };
+        TopBar.PointerReleased += (sender, args) =>
+        {
+            _isDragging = false;
+        };
     }
 
     private void Hide(object? sender, RoutedEventArgs e)
     {
-        if(Height >= 400.0)
+        if(Height >= _maxSize)
         {
+            _isShowing = false;
             CloseButton.IsVisible = false;
             OpenButton.IsVisible = true;
             new Animation
@@ -51,6 +77,7 @@ public partial class PianoRollWindow : UserControl
     {
         if(Height <= PatternPreview.Height + TopBar.Height)
         {
+            _isShowing = true;
             CloseButton.IsVisible = true;
             OpenButton.IsVisible = false;
             new Animation
@@ -68,7 +95,7 @@ public partial class PianoRollWindow : UserControl
                             new Setter
                             {
                                 Property = HeightProperty,
-                                Value = 400.0
+                                Value = _maxSize
                             }
                         }
                     }
@@ -122,4 +149,5 @@ public partial class PianoRollWindow : UserControl
         EditArea.Magnet = MagnetSettingsWindow.SelectedGrid.Value;
         EditArea.InvalidateVisual();
     }
+    
 }

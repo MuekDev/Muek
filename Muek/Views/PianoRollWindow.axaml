@@ -8,7 +8,7 @@
              Background="Transparent"
              x:Class="Muek.Views.PianoRollWindow">
     <Grid RowDefinitions="Auto,*,Auto" Background="#232323">
-        <Border Height="50" Name="TopBar">
+        <Border Height="50" Name="TopBar" Background="#232323">
         <Grid>
             <StackPanel Orientation="Horizontal" Margin="5,0">
                 <Button Click="ImportMidiFile" Height="35" VerticalContentAlignment="Center">Import MIDI File</Button>

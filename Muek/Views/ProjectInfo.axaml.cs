@@ -3,6 +3,7 @@ using Avalonia;
 using Avalonia.Animation;
 using Avalonia.Animation.Easings;
 using Avalonia.Controls;
+using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Styling;
 using Muek.Services;
@@ -75,5 +76,10 @@ public partial class ProjectInfo : UserControl
             }.RunAsync(this);
             IsShowing = false;
         }
+    }
+
+    private void SaveProject(object? sender, RoutedEventArgs e)
+    {
+        //TODO
     }
 }
