@@ -69,7 +69,16 @@ public partial class MagnetSettingsWindow : UserControl
         }
 
         if (!_isPressed)
-            _selectedGridPosition = Bounds.Width / _grids.Count * _grids.IndexOf(SelectedGrid) + Bounds.Width / _grids.Count / 2;
+        {
+            _selectedGridPosition = Bounds.Width / _grids.Count * _grids.IndexOf(SelectedGrid) +
+                                    Bounds.Width / _grids.Count / 2;
+        }
+        else
+        {
+            context.DrawLine(new Pen(Brushes.Orange),
+                new Point(ClosestPosition(_selectedGridPosition), 0),
+                new Point(ClosestPosition(_selectedGridPosition), Bounds.Height * .4));
+        }
                 
         
         var selectedPen = new Pen(Brushes.YellowGreen, 2);
@@ -101,7 +110,12 @@ public partial class MagnetSettingsWindow : UserControl
     {
         base.OnPointerReleased(e);
         _isPressed = false;
-        
+        _selectedGridPosition = ClosestPosition(_selectedGridPosition);
+        InvalidateVisual();
+    }
+
+    private double ClosestPosition(double position)
+    {
         double closestDistance = double.MaxValue;
         double closestPosition = _selectedGridPosition;
 
@@ -117,8 +131,6 @@ public partial class MagnetSettingsWindow : UserControl
                 SelectedGrid = grid;
             }
         }
-
-        _selectedGridPosition = closestPosition;
-        InvalidateVisual();
+        return closestPosition;
     }
 }
