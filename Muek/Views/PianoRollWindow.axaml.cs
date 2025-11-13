@@ -21,11 +21,16 @@ public partial class PianoRollWindow : UserControl
         ClipToBounds = false;
         TopBar.PointerPressed += (sender, args) =>
         {
+            _isDragging = true;
             if(_isShowing)
             {
-                _isDragging = true;
-                args.Handled = true;
             }
+            else
+            {
+                _maxSize = 90;
+                Show(sender, args);
+            }
+            args.Handled = true;
         };
         TopBar.PointerMoved += (sender, args) =>
         {
@@ -39,6 +44,11 @@ public partial class PianoRollWindow : UserControl
         TopBar.PointerReleased += (sender, args) =>
         {
             _isDragging = false;
+            if (_maxSize <= 90)
+            {
+                Hide(sender, args);
+                _maxSize = 400;
+            }
         };
     }
 
@@ -75,7 +85,13 @@ public partial class PianoRollWindow : UserControl
 
     private void Show(object? sender, RoutedEventArgs e)
     {
-        if(Height <= PatternPreview.Height + TopBar.Height)
+        if (_isDragging)
+        {
+            _isShowing = true;
+            CloseButton.IsVisible = true;
+            OpenButton.IsVisible = false;
+        }
+        else if(Height <= PatternPreview.Height + TopBar.Height)
         {
             _isShowing = true;
             CloseButton.IsVisible = true;
