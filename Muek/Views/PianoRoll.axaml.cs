@@ -1212,25 +1212,9 @@ public partial class PianoRoll : UserControl
         InvalidateVisual();
     }
 
-    public void ImportMidi()
+    public void ImportMidi(string file)
     {
         {
-            var files = new Window().StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
-            {
-                Title = "Import Midi file",
-                FileTypeFilter =
-                [
-                    new FilePickerFileType("MIDI File")
-                    {
-                        Patterns = ["*.mid"]
-                    }
-                ],
-                AllowMultiple = false,
-            }).GetAwaiter().GetResult();
-
-            if (files.Count >= 1)
-            {
-                var file = files[0].Path.LocalPath;
                 var midi = new MidiService();
                 midi.ImportMidi(file);
                 Notes.Clear();
@@ -1259,7 +1243,6 @@ public partial class PianoRoll : UserControl
                 // }
                 SaveNotes();
                 InvalidateVisual();
-            }
         }
         Console.WriteLine($"Notes: {Notes.Count}");
     }

@@ -70,7 +70,7 @@
             </ScrollViewer>
         </Grid>
         <Grid Grid.Row="2" Margin="5,0">
-            <views:PatternPreview Height="40" Name="PatternPreview" PointerPressed="Show"></views:PatternPreview>
+            <views:PatternPreview Height="40" Name="PatternPreview"></views:PatternPreview>
         </Grid>
     </Grid>
 </UserControl>

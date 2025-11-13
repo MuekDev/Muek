@@ -28,6 +28,7 @@ public partial class PatternPreview : UserControl
     public List<PianoRoll.Note> Notes = new();
 
     private bool _isHover = false;
+    private bool _isPressed = false;
     private bool _isDragging = false;
     
     public PatternPreview()
@@ -105,8 +106,7 @@ public partial class PatternPreview : UserControl
         // {
         // Console.WriteLine(note.Name);
         // }
-
-        _isDragging = true;
+        _isPressed = true;
         // e.Handled = true;
     }
 
@@ -117,6 +117,21 @@ public partial class PatternPreview : UserControl
         InvalidateVisual();
         
         e.Handled = true;
+    }
+
+    protected override void OnPointerMoved(PointerEventArgs e)
+    {
+        base.OnPointerMoved(e);
+        if (_isPressed)
+        {
+            if (!_isDragging)
+            {
+                
+            }
+            _isDragging = true;
+            
+            InvalidateVisual();
+        }
     }
 
     protected override void OnPointerExited(PointerEventArgs e)

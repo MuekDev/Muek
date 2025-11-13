@@ -40,8 +40,8 @@ public partial class MagnetSettingsWindow : UserControl
     
     public record struct Grid(string name, double value)
     {
-        public double Value = value;
-        public string Name = name;
+        public readonly double Value = value;
+        public readonly string Name = name;
     }
     public MagnetSettingsWindow()
     {

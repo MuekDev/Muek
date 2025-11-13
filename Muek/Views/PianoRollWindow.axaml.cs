@@ -1,10 +1,13 @@
 using System;
+using System.IO;
+using System.Linq;
 using Avalonia;
 using Avalonia.Animation;
 using Avalonia.Animation.Easings;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Platform.Storage;
 using Avalonia.Styling;
 using Muek.Models;
 
@@ -50,6 +53,27 @@ public partial class PianoRollWindow : UserControl
                 _maxSize = 400;
             }
         };
+        EditArea.SetValue(DragDrop.AllowDropProperty, true);
+        EditArea.AddHandler(DragDrop.DragOverEvent,(sender, args)=>
+        {
+            args.DragEffects = DragDropEffects.Copy;
+            args.Handled = true;
+            InvalidateVisual();
+        });
+        EditArea.AddHandler(DragDrop.DropEvent, (sender, args) =>
+        {
+            if (args.Data.Contains(DataFormats.Files))
+            {
+                var files = args.Data.GetFileNames()?.ToList();
+                if (files == null) return;
+                foreach (var file in files)
+                {
+                    if (!Path.Exists(file)) continue;
+                    if (Path.GetExtension(file).ToLower() != ".mid") continue;
+                    EditArea.ImportMidi(file);
+                }
+            }
+        });
     }
 
     private void Hide(object? sender, RoutedEventArgs e)
@@ -156,7 +180,25 @@ public partial class PianoRollWindow : UserControl
 
     private void ImportMidiFile(object? sender, RoutedEventArgs e)
     {
-        EditArea.ImportMidi();
+        var files = new Window().StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = "Import Midi file",
+            FileTypeFilter =
+            [
+                new FilePickerFileType("MIDI File")
+                {
+                    Patterns = ["*.mid"]
+                }
+            ],
+            AllowMultiple = false,
+        }).GetAwaiter().GetResult();
+
+        if (files.Count >= 1)
+        {
+            var file = files[0].Path.LocalPath;
+            EditArea.ImportMidi(file);
+        }
+
         e.Handled = true;
     }
 
@@ -168,6 +210,7 @@ public partial class PianoRollWindow : UserControl
 
     private void ExportMidiFile(object? sender, RoutedEventArgs e)
     {
+        
         EditArea.ExportMidi();
     }
 }
