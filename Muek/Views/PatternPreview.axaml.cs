@@ -100,11 +100,11 @@ public partial class PatternPreview : UserControl
     protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
         base.OnPointerPressed(e);
-        Console.WriteLine("Pattern Notes:");
-        foreach (var note in Notes)
-        {
-            // Console.WriteLine(note.Name);
-        }
+        // Console.WriteLine("Pattern Notes:");
+        // foreach (var note in Notes)
+        // {
+        // Console.WriteLine(note.Name);
+        // }
 
         _isDragging = true;
         // e.Handled = true;
@@ -148,10 +148,10 @@ public partial class PatternPreview : UserControl
         e.Handled = true;
     }
 
-    public void OpenPianoRoll()
-    {
-        ViewHelper.GetMainWindow().PianoRollWindow.EditArea.Notes = Notes;
-    }
+    // public void OpenPianoRoll()
+    // {
+    //     ViewHelper.GetMainWindow().PianoRollWindow.EditArea.Notes = Notes;
+    // }
     
     
     

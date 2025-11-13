@@ -45,6 +45,11 @@ public class MidiService
         }
     }
 
+    public void ExportMidi(string filename)
+    {
+        MidiFile.Export(filename,Data);
+    }
+
     public void PlayNote(int noteNumber, int velocity)
     {
         //TODO

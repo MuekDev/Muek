@@ -165,5 +165,9 @@ public partial class PianoRollWindow : UserControl
         EditArea.Magnet = MagnetSettingsWindow.SelectedGrid.Value;
         EditArea.InvalidateVisual();
     }
-    
+
+    private void ExportMidiFile(object? sender, RoutedEventArgs e)
+    {
+        EditArea.ExportMidi();
+    }
 }

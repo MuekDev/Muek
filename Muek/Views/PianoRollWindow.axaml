@@ -12,6 +12,7 @@
         <Grid>
             <StackPanel Orientation="Horizontal" Margin="5,0">
                 <Button Click="ImportMidiFile" Height="35" VerticalContentAlignment="Center">Import MIDI File</Button>
+                <Button Click="ExportMidiFile" Height="35" VerticalContentAlignment="Center">Export MIDI File</Button>
                 <Button Height="35">
                     <avalonia:Icon Value="mdi-magnet"></avalonia:Icon>
                     <Button.Flyout>

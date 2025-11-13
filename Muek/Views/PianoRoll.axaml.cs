@@ -1218,6 +1218,13 @@ public partial class PianoRoll : UserControl
             var files = new Window().StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
             {
                 Title = "Import Midi file",
+                FileTypeFilter =
+                [
+                    new FilePickerFileType("MIDI File")
+                    {
+                        Patterns = ["*.mid"]
+                    }
+                ],
                 AllowMultiple = false,
             }).GetAwaiter().GetResult();
 
@@ -1255,5 +1262,45 @@ public partial class PianoRoll : UserControl
             }
         }
         Console.WriteLine($"Notes: {Notes.Count}");
+    }
+
+    public void ExportMidi()
+    {
+        {
+            var file = new Window().StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions()
+            {
+                Title = "Export Midi file",
+                FileTypeChoices =
+                [
+                    new FilePickerFileType("MIDI File")
+                    {
+                        Patterns = ["*.mid"]
+                    }
+                ]
+            }).GetAwaiter().GetResult();
+            var midi = new MidiService();
+            midi.Data.AddTrack();
+            foreach (var note in Notes)
+            {
+                midi.Data[1].Add(new NoteEvent((long)(note.StartTime * midi.Data.DeltaTicksPerQuarterNote / 4.0),
+                    1,MidiCommandCode.NoteOn,
+                    note.Name,
+                    note.Velocity
+                    ));
+                midi.Data[1].Add(new NoteEvent((int)(note.EndTime * midi.Data.DeltaTicksPerQuarterNote / 4.0),
+                    1,MidiCommandCode.NoteOff,
+                    note.Name,
+                    note.Velocity));
+            }
+
+            for (int i = 1; i < midi.Data.Tracks; i++)
+            {
+                var endTime = 0;
+                if (midi.Data[i].Count != 0) endTime = (int)midi.Data[i][^1].AbsoluteTime;
+                midi.Data[i].Add(new MetaEvent(MetaEventType.EndTrack, 0, endTime));
+            }
+
+            if (file != null) midi.ExportMidi(file.Path.LocalPath);
+        }
     }
 }
