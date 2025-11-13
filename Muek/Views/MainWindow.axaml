@@ -12,6 +12,7 @@
         Background="#232323"
         TransparencyLevelHint="Mica"
         ExtendClientAreaToDecorationsHint="True"
+        x:Name="Root"
         Title="MUEK">
 
     <Design.DataContext>
@@ -146,7 +147,12 @@
                                                             </Grid>
                                                         </ToggleButton>
                                                         <!-- TODO -->
-                                                        <Button Click="AddPlugin">AddPlugin</Button>
+                                                        <!-- <Button Click="AddPlugin">AddPlugin</Button> -->
+                                                        <!-- ReSharper disable once Xaml.PossibleNullReferenceException -->
+                                                        <Button
+                                                            Command="{Binding #Root.((vm:MainWindowViewModel)DataContext).ShowTrackPlugins}"
+                                                            CommandParameter="{Binding}" Content="Plugins">
+                                                        </Button>
                                                     </StackPanel>
                                                 </vm:TrackHeadViewModel>
                                                 <StackPanel Margin="10">

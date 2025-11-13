@@ -1,0 +1,33 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:Muek.ViewModels"
+        xmlns:models="clr-namespace:Muek.Models"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:DataType="vm:TrackPluginStackWindowViewModel"
+        x:Class="Muek.Views.TrackPluginStackWindow"
+        x:Name="Root"
+        Title="{Binding WindowTitle }"
+        Width="800" Height="400">
+    <Grid RowDefinitions="Auto,*"
+          x:DataType="vm:TrackPluginStackWindowViewModel">
+        <Design.DataContext>
+            <vm:TrackPluginStackWindowViewModel />
+        </Design.DataContext>
+
+        <StackPanel Grid.Row="0">
+            <Button Content="ADd pLuGin" Click="Button_OnClick"></Button>
+        </StackPanel>
+
+        <ListBox x:Name="PluginListBox" Grid.Row="1" ItemsSource="{Binding Plugins}">
+            <ListBox.ItemTemplate>
+                <DataTemplate DataType="models:VstPlugin">
+                    <StackPanel HorizontalAlignment="Stretch" VerticalAlignment="Stretch" DoubleTapped="InputElement_OnDoubleTapped" Background="Red">
+                        <TextBlock Text="{Binding Name}"></TextBlock>
+                    </StackPanel>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+    </Grid>
+</Window>

@@ -26,6 +26,7 @@
         <entry key="Muek/Views/RenameWindow.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/Views/Slider.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/Views/TimeRulerBar.axaml" value="Muek/Muek.csproj" />
+        <entry key="Muek/Views/TrackPluginStackWindow.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/Views/TrackView.axaml" value="Muek/Muek.csproj" />
       </map>
     </option>

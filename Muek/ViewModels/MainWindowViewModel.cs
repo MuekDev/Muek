@@ -52,4 +52,15 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         DataStateService.AddTrack();
     }
+
+    [RelayCommand]
+    public void ShowTrackPlugins(TrackViewModel tvm)
+    {
+        var vm = new TrackPluginStackWindowViewModel(tvm.Proto);
+        var window = new TrackPluginStackWindow(vm)
+        {
+            Topmost = true
+        };
+        window.Show();
+    }
 }

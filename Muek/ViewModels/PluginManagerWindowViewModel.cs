@@ -12,19 +12,30 @@ using Muek.Views;
 
 namespace Muek.ViewModels;
 
-public partial class PluginManagerWindowViewModel(PluginManagerWindow window) : ViewModelBase
+public partial class PluginManagerWindowViewModel : ViewModelBase
 {
-    public PluginManagerWindow Window { get; } = window;
+    public PluginManagerWindowViewModel(PluginManagerWindow window)
+    {
+        Window = window;
+    }
 
-    public ObservableCollection<VstPlugin> Plugins { get; } =
-    [
-        new VstPlugin() { Name = "ddd", Path = "omg" }
-    ];
+#pragma warning disable CS8618
+    public PluginManagerWindowViewModel()
+    {
+        Plugins =
+        [
+            new VstPlugin() { Name = "ddd", Path = "omg" }
+        ];
+    }
+#pragma warning restore CS8618
+
+    public PluginManagerWindow Window { get; }
+
+    public ObservableCollection<VstPlugin> Plugins { get; } = [];
 
     [RelayCommand]
     public async Task ReScan()
     {
-        VstHelper.ScanDir(@"C:\VST");
         Plugins.Clear();
 
         await foreach (var file in VstHelper.ScanDirAsync(@"C:\VST"))
@@ -36,7 +47,7 @@ public partial class PluginManagerWindowViewModel(PluginManagerWindow window) : 
             Plugins.Add(new VstPlugin() { Name = file.Name, Path = file.FullName });
         }
     }
-
+    
     [RelayCommand]
     public void TestPlugin(string path)
     {

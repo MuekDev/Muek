@@ -18,7 +18,10 @@
     <Grid RowDefinitions="Auto,*" Margin="12">
         <Grid VerticalAlignment="Center" Margin="0,0,0,10">
             <Label FontSize="24" FontWeight="Bold">VST Plugins</Label>
-            <Button HorizontalAlignment="Right" Command="{Binding ReScan}">Re-scan</Button>
+            <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                <Button Command="{Binding ReScan}" Margin="0,0,4,0">Re-scan</Button>
+                <Button Click="SubmitPlugin">Submit</Button>
+            </StackPanel>
         </Grid>
         <StackPanel Grid.Row="1">
             <!-- <ItemsControl ItemsSource="{Binding Plugins}"> -->
@@ -28,7 +31,8 @@
             <!--         </DataTemplate> -->
             <!--     </ItemsControl.ItemTemplate> -->
             <!-- </ItemsControl> -->
-            <DataGrid ItemsSource="{Binding Plugins}"
+            <DataGrid x:Name="PluginsDataGrid"
+                      ItemsSource="{Binding Plugins}"
                       IsReadOnly="True"
                       GridLinesVisibility="All"
                       BorderThickness="1" BorderBrush="Gray">

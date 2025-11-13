@@ -9,4 +9,5 @@ public class Track
     public string Name;
     public uint Index;
     public List<Clip> Clips = new List<Clip>();
+    public List<VstPlugin> Plugins = new List<VstPlugin>();
 }
