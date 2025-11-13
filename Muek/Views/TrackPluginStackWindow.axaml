@@ -23,7 +23,7 @@
         <ListBox x:Name="PluginListBox" Grid.Row="1" ItemsSource="{Binding Plugins}">
             <ListBox.ItemTemplate>
                 <DataTemplate DataType="models:VstPlugin">
-                    <StackPanel HorizontalAlignment="Stretch" VerticalAlignment="Stretch" DoubleTapped="InputElement_OnDoubleTapped" Background="Red">
+                    <StackPanel HorizontalAlignment="Stretch" VerticalAlignment="Stretch" DoubleTapped="InputElement_OnDoubleTapped">
                         <TextBlock Text="{Binding Name}"></TextBlock>
                     </StackPanel>
                 </DataTemplate>

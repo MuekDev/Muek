@@ -20,14 +20,15 @@ public partial class PluginManagerWindowViewModel : ViewModelBase
         Window = window;
     }
 
-    public List<string> VstPath = [
-    @"C:\Program Files\VstPlugins\",
-    @"C:\Program Files (x86)\VstPlugins\",
-    @"C:\Program Files (x86)\Steinberg\VstPlugins\",
-    @"C:\Program Files\Common Files\VST2\",
-    @"C:\Program Files\Steinberg\VstPlugins\",
-    @"C:\Program Files (x86)\Common Files\VST3\",
-    @"C:\Program Files\Common Files\VST3\",
+    public List<string> VstPath =
+    [
+        @"C:\Program Files\VstPlugins\",
+        @"C:\Program Files (x86)\VstPlugins\",
+        @"C:\Program Files (x86)\Steinberg\VstPlugins\",
+        @"C:\Program Files\Common Files\VST2\",
+        @"C:\Program Files\Steinberg\VstPlugins\",
+        @"C:\Program Files (x86)\Common Files\VST3\",
+        @"C:\Program Files\Common Files\VST3\",
     ];
 
 #pragma warning disable CS8618

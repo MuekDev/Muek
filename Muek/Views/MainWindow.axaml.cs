@@ -52,24 +52,17 @@ public partial class MainWindow : Window
 
     private void SettingsButton(object? sender, RoutedEventArgs e)
     {
-        if (Settings.IsShowing)
+        if (Settings.IsShowing && ProjectInfo.IsShowing)
         {
             Settings.Hide();
+            ProjectInfo.Hide();
             Console.WriteLine("HIDE SETTINGS");
         }
         else
         {
             Settings.Show();
-            Console.WriteLine("SHOW SETTINGS");
-        }
-
-        if (ProjectInfo.IsShowing)
-        {
-            ProjectInfo.Hide();
-        }
-        else
-        {
             ProjectInfo.Show();
+            Console.WriteLine("SHOW SETTINGS");
         }
     }
 }
