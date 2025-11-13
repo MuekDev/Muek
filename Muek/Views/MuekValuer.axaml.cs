@@ -15,7 +15,6 @@ namespace Muek.Views;
 
 public partial class MuekValuer : UserControl
 {
-    
     public static readonly StyledProperty<double> MinValueProperty = AvaloniaProperty.Register<MuekValuer, double>(
         nameof(MinValue));
 
@@ -64,7 +63,7 @@ public partial class MuekValuer : UserControl
         get => GetValue(ValuerWidthProperty);
         set => SetValue(ValuerWidthProperty, value);
     }
-    
+
 
     public static readonly StyledProperty<double> SpeedProperty = AvaloniaProperty.Register<MuekValuer, double>(
         nameof(Speed));
@@ -90,23 +89,24 @@ public partial class MuekValuer : UserControl
         Knob
     }
 
-    public static readonly StyledProperty<LayoutEnum> LayoutProperty = AvaloniaProperty.Register<MuekValuer, LayoutEnum>(
-        nameof(Layout));
+    public static readonly StyledProperty<LayoutEnum> LayoutProperty =
+        AvaloniaProperty.Register<MuekValuer, LayoutEnum>(
+            nameof(Layout));
 
     public LayoutEnum Layout
     {
         get => GetValue(LayoutProperty);
         set => SetValue(LayoutProperty, value);
     }
-    
+
     //TODO 普普通通的Value值，等待修改
     public double Value;
 
     private bool _hover;
     private bool _pressed;
-    
-    private Pen _stroke =  new Pen();
-    
+
+    private Pen _stroke = new Pen();
+
     public MuekValuer()
     {
         _hover = false;
@@ -137,10 +137,10 @@ public partial class MuekValuer : UserControl
         base.Render(context);
         ValuerHeight = Bounds.Height;
         ValuerWidth = Bounds.Width;
-        
-        
+
+
         _stroke.Brush = ValuerColor;
-        
+
         //Slider渲染逻辑
         if (Layout == LayoutEnum.Slider)
         {
@@ -153,14 +153,15 @@ public partial class MuekValuer : UserControl
             {
                 _ = StrokeThicknessDecrease(_stroke);
             }
-            
-            context.DrawRectangle(ValuerColor, _stroke, new Rect(1.5, 1.5, ValuerWidth-1, ValuerHeight-1));
-            context.DrawRectangle(Brush.Parse("#CC000000"), _stroke, new Rect(2, 2, ValuerWidth-2, ValuerHeight-2));
-            var percentValue = (Value - MinValue) /  (MaxValue - MinValue);
-            // context.DrawRectangle(Brushes.Black,null, new Rect(0,(1-percentValue)*(ValuerHeight-6)+2, ValuerWidth, 4));
-            context.DrawRectangle(ValuerColor,_stroke, new Rect(0,(1-percentValue)*(ValuerHeight-6)+2, ValuerWidth, 4));
 
+            context.DrawRectangle(ValuerColor, _stroke, new Rect(1.5, 1.5, ValuerWidth - 1, ValuerHeight - 1));
+            context.DrawRectangle(Brush.Parse("#CC000000"), _stroke, new Rect(2, 2, ValuerWidth - 2, ValuerHeight - 2));
+            var percentValue = (Value - MinValue) / (MaxValue - MinValue);
+            // context.DrawRectangle(Brushes.Black,null, new Rect(0,(1-percentValue)*(ValuerHeight-6)+2, ValuerWidth, 4));
+            context.DrawRectangle(ValuerColor, _stroke,
+                new Rect(1.4, (1 - percentValue) * (ValuerHeight - 6) + 2, ValuerWidth-1, 4));
         }
+
         //Knob渲染逻辑
         if (Layout == LayoutEnum.Knob)
         {
@@ -176,18 +177,22 @@ public partial class MuekValuer : UserControl
                 _ = StrokeThicknessDecrease(_stroke);
             }
 
-            context.DrawEllipse(ValuerColor, _stroke, new Point(ValuerHeight, ValuerHeight), ValuerHeight * .95, ValuerHeight * .95);
-            context.DrawEllipse(Brush.Parse("#CC000000"), _stroke, new Point(ValuerHeight, ValuerHeight), ValuerHeight * .9, ValuerHeight * .9);
+            context.DrawEllipse(ValuerColor, _stroke, new Point(ValuerHeight, ValuerHeight), ValuerHeight * .95,
+                ValuerHeight * .95);
+            context.DrawEllipse(Brush.Parse("#CC000000"), _stroke, new Point(ValuerHeight, ValuerHeight),
+                ValuerHeight * .9, ValuerHeight * .9);
             var percentValue = (Value - MinValue) / (MaxValue - MinValue);
             // context.DrawEllipse(Brushes.Black, null,
             //     new Point(ValuerHeight + ValuerHeight * .8 * -double.Sin(percentValue * Double.Pi * 2),
             //         ValuerHeight + ValuerHeight * .8 * double.Cos(percentValue * Double.Pi * 2)), ValuerHeight * .2, ValuerHeight * .2);
-            
+
             //通过三角函数渲染圆形控件
             context.DrawEllipse(ValuerColor, null,
                 new Point(ValuerHeight + ValuerHeight * .9 * -double.Sin(percentValue * Double.Pi * 2),
-                    ValuerHeight + ValuerHeight * .9 * double.Cos(percentValue * Double.Pi * 2)), ValuerHeight * .2, ValuerHeight * .2);
+                    ValuerHeight + ValuerHeight * .9 * double.Cos(percentValue * Double.Pi * 2)), ValuerHeight * .2,
+                ValuerHeight * .2);
         }
+
         Console.WriteLine($"pressed: {_pressed}\nhover: {_hover}");
     }
 
@@ -197,7 +202,7 @@ public partial class MuekValuer : UserControl
         _hover = true;
         e.Handled = true;
     }
-    
+
     protected override void OnPointerExited(PointerEventArgs e)
     {
         base.OnPointerExited(e);
@@ -206,6 +211,7 @@ public partial class MuekValuer : UserControl
     }
 
     private Point _tempPress;
+
     protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
         base.OnPointerPressed(e);
@@ -241,20 +247,32 @@ public partial class MuekValuer : UserControl
     protected override void OnPointerMoved(PointerEventArgs e)
     {
         base.OnPointerMoved(e);
-        
-        
-        if (_pressed)
-        {
-            // Console.WriteLine(e.GetPosition(this));
-            var relativePos = e.GetPosition(this) -  _tempPress;
 
-            Value -= relativePos.Y * Speed * (MaxValue - MinValue);
-            _tempPress = e.GetPosition(this);
-            Value = double.Clamp(Value, MinValue, MaxValue);
-            // Console.WriteLine(relativePos.ToString());
-            Console.WriteLine(Value);
-            
+        if (!_pressed)
+            return;
+
+        var pos = e.GetPosition(this);
+
+        switch (Layout)
+        {
+            case LayoutEnum.Knob:
+            {
+                var deltaY = pos.Y - _tempPress.Y;
+                Value -= deltaY * Speed * (MaxValue - MinValue);
+                _tempPress = pos;
+                break;
+            }
+            case LayoutEnum.Slider:
+            {
+                var ratio = 1.0 - (pos.Y / Bounds.Height);
+                Value = MinValue + ratio * (MaxValue - MinValue);
+                break;
+            }
+            default:
+                throw new ArgumentOutOfRangeException();
         }
+
+        Value = double.Clamp(Value, MinValue, MaxValue);
         InvalidateVisual();
     }
 
@@ -263,7 +281,7 @@ public partial class MuekValuer : UserControl
         while (stroke.Thickness < 1)
         {
             await Task.Delay(5);
-            lock(stroke) stroke.Thickness += .1;
+            lock (stroke) stroke.Thickness += .1;
             // Console.WriteLine("StrokeThicknessIncrease");
         }
     }
@@ -273,7 +291,7 @@ public partial class MuekValuer : UserControl
         while (stroke.Thickness > .5)
         {
             await Task.Delay(5);
-            lock(stroke) stroke.Thickness -= .1;
+            lock (stroke) stroke.Thickness -= .1;
             // Console.WriteLine("StrokeThicknessDecrease");
         }
     }
