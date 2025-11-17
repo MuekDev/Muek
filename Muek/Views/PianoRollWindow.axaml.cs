@@ -53,6 +53,14 @@ public partial class PianoRollWindow : UserControl
             }
             else
             {
+                if (_maxSize <= 90)
+                {
+                    CloseButton.IsVisible = false;
+                    OpenButton.IsVisible = true;
+                    _isShowing = false;
+                    _maxSize = 400;
+                }
+                else
                 if (_maxSize < 150)
                 {
                     Hide(sender, args);
