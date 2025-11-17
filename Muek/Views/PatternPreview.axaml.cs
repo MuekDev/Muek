@@ -59,6 +59,16 @@ public partial class PatternPreview : UserControl
                     ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRight.Bounds.Width / ViewHelper.GetMainWindow().PianoRollWindow.EditArea.Width
                     * Bounds.Width,
                     Bounds.Height));
+            if (_isHover)
+            {
+                context.DrawRectangle(null,new Pen(new SolidColorBrush(Colors.White)),
+                    new Rect(ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRight.Offset.X / ViewHelper.GetMainWindow().PianoRollWindow.EditArea.Width
+                             * Bounds.Width
+                        , 0, 
+                        ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRight.Bounds.Width / ViewHelper.GetMainWindow().PianoRollWindow.EditArea.Width
+                        * Bounds.Width,
+                        Bounds.Height));
+            }
         }
 
         if (_isDragging)
@@ -121,6 +131,7 @@ public partial class PatternPreview : UserControl
     }
 
     private double _pressedPosition;
+    private double _pressedScroll;
     protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
         base.OnPointerPressed(e);
@@ -152,7 +163,8 @@ public partial class PatternPreview : UserControl
                     ViewHelper.GetMainWindow().PianoRollWindow.EditArea.NoteHeight);
             }
         }
-        _pressedPosition =  e.GetPosition(this).X;
+        _pressedPosition = e.GetPosition(this).X;
+        _pressedScroll = ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRight.Offset.X;
         _isPressed = true;
         if(ViewHelper.GetMainWindow().PianoRollWindow.IsShowing)
         {
@@ -182,8 +194,9 @@ public partial class PatternPreview : UserControl
         if (_isPressed)
         {
             ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRight.Offset = new Vector(
-                (e.GetPosition(this).X - _pressedPosition) / Bounds.Width *  ViewHelper.GetMainWindow().PianoRollWindow.EditArea.Width,
-                ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRight.Offset.Y
+                (e.GetPosition(this).X - _pressedPosition) / Bounds.Width
+                * ViewHelper.GetMainWindow().PianoRollWindow.EditArea.Width + _pressedScroll
+                , ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRight.Offset.Y
             );
             if (!_isDragging)
             {
