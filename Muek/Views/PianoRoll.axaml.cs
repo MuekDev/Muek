@@ -240,7 +240,7 @@ public partial class PianoRoll : UserControl
                     }
                 }
 
-                if (Magnet <= 1 / 8.0)
+                if (Magnet <= 1 / 6.0)
                 {
                     for (int i = 0; i < Width / _widthOfBeat; i += 1)
                     {
@@ -254,7 +254,7 @@ public partial class PianoRoll : UserControl
                     }
                 }
 
-                if (Magnet <= 1 / 4.0)
+                if (Magnet <= 1 / 3.0)
                 {
                     for (int i = 0; i < Width / _widthOfBeat; i += 2)
                     {

@@ -117,12 +117,12 @@ public partial class MagnetSettingsWindow : UserControl
     private double ClosestPosition(double position)
     {
         double closestDistance = double.MaxValue;
-        double closestPosition = _selectedGridPosition;
+        double closestPosition = position;
 
         foreach (var grid in _grids)
         {
             double gridPosition = Bounds.Width / _grids.Count * _grids.IndexOf(grid) + Bounds.Width / _grids.Count / 2;
-            double distance = Math.Abs(_selectedGridPosition - gridPosition);
+            double distance = Math.Abs(position - gridPosition);
 
             if (distance < closestDistance)
             {
