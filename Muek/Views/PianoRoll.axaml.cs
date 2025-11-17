@@ -58,6 +58,8 @@ public partial class PianoRoll : UserControl
 
     private double _widthOfBeat;
 
+    public double WidthOfBeat => _widthOfBeat;
+
 
     private int _noteRangeMax = 9;
     private int _noteRangeMin = 0;
@@ -986,6 +988,12 @@ public partial class PianoRoll : UserControl
     protected override void OnPointerWheelChanged(PointerWheelEventArgs e)
     {
         base.OnPointerWheelChanged(e);
+        if (ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRight.Bounds.Width >= Width)
+        {
+            ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRight.Offset = new Vector(
+                Width - ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRight.Bounds.Width,
+                ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRight.Offset.Y);
+        }
         if (e.KeyModifiers.HasFlag(KeyModifiers.Control))
         {
             if (e.KeyModifiers.HasFlag(KeyModifiers.Shift))
@@ -1006,9 +1014,16 @@ public partial class PianoRoll : UserControl
             }
             else
             {
+                double trackEnd = 0;
+                foreach (var note in Notes)
+                {
+                    trackEnd = double.Max(trackEnd, note.EndTime);
+                }
+                trackEnd += 32;
                 double currentPosition = e.GetPosition(this).X / _widthOfBeat;
 
-                _widthOfBeat = double.Clamp(_widthOfBeat + e.Delta.Y * ScalingSensitivity.X, 10, Width * .1);
+                _widthOfBeat = double.Clamp(_widthOfBeat + e.Delta.Y * ScalingSensitivity.X,
+                    double.Max(10, ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRight.Bounds.Width / trackEnd), Width * .1);
 
                 ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRight.Offset = new Vector(
                     currentPosition * _widthOfBeat -
@@ -1021,6 +1036,7 @@ public partial class PianoRoll : UserControl
 
             // _ = ShowOptions();
             // ShowOptions();
+            SaveNotes();
             InvalidateVisual();
             e.Handled = true;
         }
@@ -1166,13 +1182,16 @@ public partial class PianoRoll : UserControl
             }
             trackEnd += 32;
             Width = trackEnd * _widthOfBeat;
-            Console.WriteLine($"Scroll:{ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRight.Offset.X+ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRight.Bounds.Width} Width:{Width}");
+            // Console.WriteLine($"Scroll:{ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRight.Offset.X+ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRight.Bounds.Width} Width:{Width}");
             if (ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRight.Offset.X+ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRight.Bounds.Width > Width)
             {
                 ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRight.Offset = new Vector(
                     Width - ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRight.Bounds.Width,
                     ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRight.Offset.Y);
             }
+
+            _widthOfBeat = double.Max(_widthOfBeat,
+                ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRight.Bounds.Width / trackEnd);
         }
         ViewHelper.GetMainWindow().PianoRollWindow.PatternPreview.InvalidateVisual();
     }

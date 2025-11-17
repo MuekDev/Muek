@@ -16,6 +16,7 @@ namespace Muek.Views;
 public partial class PianoRollWindow : UserControl
 {
     private bool _isShowing = false;
+    public bool IsShowing => _isShowing;
     private double _maxSize = 400.0;
     private bool _isDragging = false;
     public PianoRollWindow()
@@ -33,7 +34,6 @@ public partial class PianoRollWindow : UserControl
             else
             {
                 _maxSize = 90;
-                Show(sender, args);
             }
             args.Handled = true;
         };
@@ -44,16 +44,26 @@ public partial class PianoRollWindow : UserControl
                 _maxSize = double.Clamp(Height - args.GetPosition(this).Y,90,600);
                 Height = _maxSize;
                 args.Handled = true;
+                if(_maxSize > 150)
+                    Show(sender, args);
+                else
+                {
+                    _isShowing = false;
+                }
+            }
+            else
+            {
+                if (_maxSize < 150)
+                {
+                    Hide(sender, args);
+                    _maxSize = 400;
+                }
             }
         };
         TopBar.PointerReleased += (sender, args) =>
         {
             _isDragging = false;
-            if (_maxSize <= 90)
-            {
-                Hide(sender, args);
-                _maxSize = 400;
-            }
+            
         };
         EditArea.SetValue(DragDrop.AllowDropProperty, true);
         EditArea.AddHandler(DragDrop.DragOverEvent,(sender, args)=>
@@ -114,6 +124,8 @@ public partial class PianoRollWindow : UserControl
             OpenButton.IsVisible = true;
             _maxSize = 400;
         }
+        PatternPreview.InvalidateVisual();
+        e.Handled = true;
     }
 
     private void Show(object? sender, RoutedEventArgs e)
@@ -151,6 +163,8 @@ public partial class PianoRollWindow : UserControl
                 }
             }.RunAsync(this);
         }
+        PatternPreview.InvalidateVisual();
+        e.Handled = true;
     }
 
     private void ScrollChange(object? sender, ScrollChangedEventArgs e)
@@ -171,6 +185,7 @@ public partial class PianoRollWindow : UserControl
         }
         EditArea.ScrollOffset = PianoRollRight.Offset.Y;
         EditArea.ClampValue = PianoRollRight.Offset.X;
+        PatternPreview.InvalidateVisual();
     }
 
     protected override void OnPointerWheelChanged(PointerWheelEventArgs e)

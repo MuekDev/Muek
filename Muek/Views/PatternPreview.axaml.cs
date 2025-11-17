@@ -41,10 +41,24 @@ public partial class PatternPreview : UserControl
     public override void Render(DrawingContext context)
     {
         base.Render(context);
-        context.DrawRectangle(BackgroundColor, null, new Rect(0, 0, Bounds.Width, Bounds.Height));
-        if (_isHover)
+        if(!ViewHelper.GetMainWindow().PianoRollWindow.IsShowing)
         {
-            context.DrawRectangle(new SolidColorBrush(Colors.Black,.1), null, new Rect(0, 0, Bounds.Width, Bounds.Height), 10D, 15D);
+            context.DrawRectangle(BackgroundColor, null, new Rect(0, 0, Bounds.Width, Bounds.Height));
+            if (_isHover)
+            {
+                context.DrawRectangle(new SolidColorBrush(Colors.Black, .1), null,
+                    new Rect(0, 0, Bounds.Width, Bounds.Height), 10D, 15D);
+            }
+        }
+        else
+        {
+            context.DrawRectangle(new SolidColorBrush(Colors.White,.05),null,
+                new Rect(ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRight.Offset.X / ViewHelper.GetMainWindow().PianoRollWindow.EditArea.Width
+                    * Bounds.Width
+                    , 0, 
+                    ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRight.Bounds.Width / ViewHelper.GetMainWindow().PianoRollWindow.EditArea.Width
+                    * Bounds.Width,
+                    Bounds.Height));
         }
 
         if (_isDragging)
@@ -58,14 +72,14 @@ public partial class PatternPreview : UserControl
             double noteWidth;
             int noteMax = Notes[0].Name;
             int noteMin = noteMax;
-            double noteFirst = Notes[0].StartTime;
+            // double noteFirst = Notes[0].StartTime;
             double noteLast = Notes[0].EndTime;
             foreach (var note in Notes)
             {
                 var position = note.Name;
                 noteMin = int.Min(position, noteMin); //最低的音符
                 noteMax = int.Max(position, noteMax); //最高的音符
-                noteFirst = double.Min(noteFirst, note.StartTime); //最左边的音符
+                // noteFirst = double.Min(noteFirst, note.StartTime); //最左边的音符
                 noteLast = double.Max(noteLast, note.EndTime); //最右边的音符
             }
 
@@ -94,9 +108,9 @@ public partial class PatternPreview : UserControl
                 //     (float)(noteHeight * .1));
                 context.FillRectangle(background,
                     new Rect(
-                        noteWidth * .6 * (note.StartTime) + Bounds.Width*.2,
+                        note.StartTime *  noteWidth,
                         Bounds.Height*.6 - (position - noteMin + 1) * noteHeight * .6 + Bounds.Height*.2,
-                        noteWidth * (note.EndTime - note.StartTime) * .6,
+                        noteWidth * (note.EndTime - note.StartTime),
                         noteHeight * .6),
                     (float)(noteHeight * .1));
                 // Console.WriteLine("Drew");
@@ -106,6 +120,7 @@ public partial class PatternPreview : UserControl
         }
     }
 
+    private double _pressedPosition;
     protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
         base.OnPointerPressed(e);
@@ -114,8 +129,42 @@ public partial class PatternPreview : UserControl
         // {
         // Console.WriteLine(note.Name);
         // }
+        if (!ViewHelper.GetMainWindow().PianoRollWindow.IsShowing)
+        {
+            if (Notes.Count > 0)
+            {
+                int noteMax = Notes[0].Name;
+                int noteMin = noteMax;
+                double noteFirst = Notes[0].StartTime;
+                double noteLast = Notes[0].EndTime;
+                foreach (var note in Notes)
+                {
+                    var position = note.Name;
+                    noteMin = int.Min(position, noteMin); //最低的音符
+                    noteMax = int.Max(position, noteMax); //最高的音符
+                    noteFirst = double.Min(noteFirst, note.StartTime); //最左边的音符
+                    noteLast = double.Max(noteLast, note.EndTime); //最右边的音符
+                }
+
+                ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRight.Offset = new Vector(
+                    noteFirst * ViewHelper.GetMainWindow().PianoRollWindow.EditArea.WidthOfBeat,
+                    ViewHelper.GetMainWindow().PianoRollWindow.EditArea.Height - (noteMax + 1) *
+                    ViewHelper.GetMainWindow().PianoRollWindow.EditArea.NoteHeight);
+            }
+        }
+        _pressedPosition =  e.GetPosition(this).X;
         _isPressed = true;
-        // e.Handled = true;
+        if(ViewHelper.GetMainWindow().PianoRollWindow.IsShowing)
+        {
+            e.Handled = true;
+        }
+    }
+
+    protected override void OnPointerReleased(PointerReleasedEventArgs e)
+    {
+        base.OnPointerReleased(e);
+        _isPressed = false;
+        e.Handled = true;
     }
 
     protected override void OnPointerEntered(PointerEventArgs e)
@@ -132,12 +181,16 @@ public partial class PatternPreview : UserControl
         base.OnPointerMoved(e);
         if (_isPressed)
         {
+            ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRight.Offset = new Vector(
+                (e.GetPosition(this).X - _pressedPosition) / Bounds.Width *  ViewHelper.GetMainWindow().PianoRollWindow.EditArea.Width,
+                ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRight.Offset.Y
+            );
             if (!_isDragging)
             {
                 
             }
             _isDragging = true;
-            
+            e.Handled = true;
             InvalidateVisual();
         }
     }
