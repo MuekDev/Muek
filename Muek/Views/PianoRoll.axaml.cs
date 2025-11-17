@@ -64,9 +64,8 @@ public partial class PianoRoll : UserControl
 
     private int _temperament = 12;
 
-
-    //TODO 需要获取目前窗口大小
-    private double _renderSize = 2000;
+    
+    // private double _renderSize = 2000;
 
 
     private IBrush _noteColor1;
@@ -139,7 +138,7 @@ public partial class PianoRoll : UserControl
         _widthOfBeat = 50;
         if (!IsPianoBar)
         {
-            Width = 20000;
+            Width = 32*_widthOfBeat;
         }
     }
 
@@ -206,13 +205,13 @@ public partial class PianoRoll : UserControl
                     // Console.WriteLine(noteName);
                     context.DrawRectangle(Brush.Parse("#40232323"),
                         new Pen(new SolidColorBrush(new HslColor(1, 0, 0, 0).ToRgb(), .1)),
-                        new Rect(ClampValue, Height - (i * _temperament + note + 1) * NoteHeight, _renderSize,
+                        new Rect(ClampValue, Height - (i * _temperament + note + 1) * NoteHeight, Width,
                             NoteHeight));
                     // Console.WriteLine(new Rect(0, Height - (i * _Temperament + note +1) * NoteHeight,NoteWidth,NoteHeight));
                     if (!IndexToNoteName(noteName).Contains('#'))
                     {
                         context.DrawRectangle(new SolidColorBrush(Colors.White, .05), null,
-                            new Rect(ClampValue, Height - (i * _temperament + note + 1) * NoteHeight, _renderSize,
+                            new Rect(ClampValue, Height - (i * _temperament + note + 1) * NoteHeight, Width,
                                 NoteHeight));
                     }
 
@@ -220,7 +219,7 @@ public partial class PianoRoll : UserControl
                     if (noteName.Equals(_currentHoverNote))
                     {
                         context.FillRectangle(_noteHoverColor,
-                            new Rect(ClampValue, Height - (i * _temperament + note + 1) * NoteHeight, _renderSize,
+                            new Rect(ClampValue, Height - (i * _temperament + note + 1) * NoteHeight, Width,
                                 NoteHeight));
                         // Console.WriteLine($"HOVERING: {_currentHoverNote}");
                     }
@@ -232,7 +231,7 @@ public partial class PianoRoll : UserControl
                 for (double i = 0; i < Width / _widthOfBeat; i += Magnet)
                 {
                     var gridLinePen = new Pen(new SolidColorBrush(Colors.White, .2), _widthOfBeat * .01);
-                    if (i * _widthOfBeat > ClampValue && i * _widthOfBeat < _renderSize + ClampValue)
+                    if (i * _widthOfBeat > ClampValue && i * _widthOfBeat < Width + ClampValue)
                     {
                         context.DrawLine(gridLinePen,
                             new Point(i * _widthOfBeat, 0),
@@ -245,7 +244,7 @@ public partial class PianoRoll : UserControl
                     for (int i = 0; i < Width / _widthOfBeat; i += 1)
                     {
                         var gridLinePen = new Pen(new SolidColorBrush(Colors.MediumPurple), _widthOfBeat * .02);
-                        if (i * _widthOfBeat > ClampValue && i * _widthOfBeat < _renderSize + ClampValue)
+                        if (i * _widthOfBeat > ClampValue && i * _widthOfBeat < Width + ClampValue)
                         {
                             context.DrawLine(gridLinePen,
                                 new Point(i * _widthOfBeat, 0),
@@ -259,7 +258,7 @@ public partial class PianoRoll : UserControl
                     for (int i = 0; i < Width / _widthOfBeat; i += 2)
                     {
                         var gridLinePen = new Pen(new SolidColorBrush(Colors.LightSkyBlue), _widthOfBeat * .02);
-                        if (i * _widthOfBeat > ClampValue && i * _widthOfBeat < _renderSize + ClampValue)
+                        if (i * _widthOfBeat > ClampValue && i * _widthOfBeat < Width + ClampValue)
                         {
                             context.DrawLine(gridLinePen,
                                 new Point(i * _widthOfBeat, 0),
@@ -272,7 +271,7 @@ public partial class PianoRoll : UserControl
             for (int i = 0; i < Width / _widthOfBeat; i++)
             {
                 var gridLinePen = new Pen(Brushes.White, _widthOfBeat * .02);
-                if (i * _widthOfBeat > ClampValue && i * _widthOfBeat < _renderSize + ClampValue)
+                if (i * _widthOfBeat > ClampValue && i * _widthOfBeat < Width + ClampValue)
                 {
                     if (i % 4 == 0)
                     {
@@ -1009,7 +1008,7 @@ public partial class PianoRoll : UserControl
             {
                 double currentPosition = e.GetPosition(this).X / _widthOfBeat;
 
-                _widthOfBeat = double.Clamp(_widthOfBeat + e.Delta.Y * ScalingSensitivity.X, 10, _renderSize * .1);
+                _widthOfBeat = double.Clamp(_widthOfBeat + e.Delta.Y * ScalingSensitivity.X, 10, Width * .1);
 
                 ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRight.Offset = new Vector(
                     currentPosition * _widthOfBeat -
@@ -1159,6 +1158,22 @@ public partial class PianoRoll : UserControl
     public void SaveNotes()
     {
         ViewHelper.GetMainWindow().PianoRollWindow.PatternPreview.Notes = Notes;
+        {
+            double trackEnd = 0;
+            foreach (var note in Notes)
+            {
+                trackEnd = double.Max(trackEnd, note.EndTime);
+            }
+            trackEnd += 32;
+            Width = trackEnd * _widthOfBeat;
+            Console.WriteLine($"Scroll:{ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRight.Offset.X+ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRight.Bounds.Width} Width:{Width}");
+            if (ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRight.Offset.X+ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRight.Bounds.Width > Width)
+            {
+                ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRight.Offset = new Vector(
+                    Width - ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRight.Bounds.Width,
+                    ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRight.Offset.Y);
+            }
+        }
         ViewHelper.GetMainWindow().PianoRollWindow.PatternPreview.InvalidateVisual();
     }
 

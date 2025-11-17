@@ -27,6 +27,8 @@ public partial class PianoRollWindow : UserControl
             _isDragging = true;
             if(_isShowing)
             {
+                CloseButton.IsVisible = true;
+                OpenButton.IsVisible = false;
             }
             else
             {
@@ -104,6 +106,13 @@ public partial class PianoRollWindow : UserControl
                     }
                 }
             }.RunAsync(this);
+        }
+        else
+        {
+            _isShowing = false;
+            CloseButton.IsVisible = false;
+            OpenButton.IsVisible = true;
+            _maxSize = 400;
         }
     }
 

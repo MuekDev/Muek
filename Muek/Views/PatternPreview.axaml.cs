@@ -49,7 +49,7 @@ public partial class PatternPreview : UserControl
 
         if (_isDragging)
         {
-            
+            //TODO 拖拽功能
         }
         
         if (Notes.Count > 0)
@@ -63,14 +63,15 @@ public partial class PatternPreview : UserControl
             foreach (var note in Notes)
             {
                 var position = note.Name;
-                noteMin = int.Min(position, noteMin);
-                noteMax = int.Max(position, noteMax);
-                noteFirst = double.Min(noteFirst, note.StartTime);
-                noteLast = double.Max(noteLast, note.EndTime);
+                noteMin = int.Min(position, noteMin); //最低的音符
+                noteMax = int.Max(position, noteMax); //最高的音符
+                noteFirst = double.Min(noteFirst, note.StartTime); //最左边的音符
+                noteLast = double.Max(noteLast, note.EndTime); //最右边的音符
             }
 
             noteHeight = Bounds.Height / (noteMax + 1 - noteMin);
-            noteWidth = Bounds.Width / (noteLast - noteFirst);
+            // noteWidth = Bounds.Width / (noteLast - noteFirst);
+            noteWidth = Bounds.Width / (noteLast + 32);
             // Console.WriteLine($"noteWidth:{noteWidth}");
             // Console.WriteLine($"noteHeight:{noteHeight}");
             
@@ -84,9 +85,16 @@ public partial class PatternPreview : UserControl
                 };
                 background.GradientStops.Add(new GradientStop(Colors.White, 0.0));
                 background.GradientStops.Add(new GradientStop(Colors.Transparent, 1.0));
+                // context.FillRectangle(background,
+                //     new Rect(
+                //         noteWidth * .6 * (note.StartTime - noteFirst) + Bounds.Width*.2,
+                //         Bounds.Height*.6 - (position - noteMin + 1) * noteHeight * .6 + Bounds.Height*.2,
+                //         noteWidth * (note.EndTime - note.StartTime) * .6,
+                //         noteHeight * .6),
+                //     (float)(noteHeight * .1));
                 context.FillRectangle(background,
                     new Rect(
-                        noteWidth * .6 * (note.StartTime - noteFirst) + Bounds.Width*.2,
+                        noteWidth * .6 * (note.StartTime) + Bounds.Width*.2,
                         Bounds.Height*.6 - (position - noteMin + 1) * noteHeight * .6 + Bounds.Height*.2,
                         noteWidth * (note.EndTime - note.StartTime) * .6,
                         noteHeight * .6),
@@ -139,27 +147,6 @@ public partial class PatternPreview : UserControl
         base.OnPointerExited(e);
         _isHover = false;
         InvalidateVisual();
-            new Animation
-            {
-                Duration = TimeSpan.FromMilliseconds(500),
-                FillMode = FillMode.Forward,
-                Easing = Easing.Parse("CubicEaseOut"),
-                Children =
-                {
-                    new KeyFrame
-                    {
-                        Cue = new Cue(1),
-                        Setters =
-                        {
-                            new Setter
-                            {
-                                Property = TranslateTransform.XProperty,
-                                Value = 0.0
-                            }
-                        }
-                    }
-                }
-            }.RunAsync(this);
         e.Handled = true;
     }
 
