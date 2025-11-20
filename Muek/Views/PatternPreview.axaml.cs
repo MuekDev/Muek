@@ -142,26 +142,7 @@ public partial class PatternPreview : UserControl
         // }
         if (!ViewHelper.GetMainWindow().PianoRollWindow.IsShowing)
         {
-            if (Notes.Count > 0)
-            {
-                int noteMax = Notes[0].Name;
-                int noteMin = noteMax;
-                double noteFirst = Notes[0].StartTime;
-                double noteLast = Notes[0].EndTime;
-                foreach (var note in Notes)
-                {
-                    var position = note.Name;
-                    noteMin = int.Min(position, noteMin); //最低的音符
-                    noteMax = int.Max(position, noteMax); //最高的音符
-                    noteFirst = double.Min(noteFirst, note.StartTime); //最左边的音符
-                    noteLast = double.Max(noteLast, note.EndTime); //最右边的音符
-                }
-
-                ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRight.Offset = new Vector(
-                    noteFirst * ViewHelper.GetMainWindow().PianoRollWindow.EditArea.WidthOfBeat,
-                    ViewHelper.GetMainWindow().PianoRollWindow.EditArea.Height - (noteMax + 1) *
-                    ViewHelper.GetMainWindow().PianoRollWindow.EditArea.NoteHeight);
-            }
+            ScrollToNoteFirst();
         }
         _pressedPosition = e.GetPosition(this).X;
         _pressedScroll = ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRight.Offset.X;
@@ -169,6 +150,28 @@ public partial class PatternPreview : UserControl
         if(ViewHelper.GetMainWindow().PianoRollWindow.IsShowing)
         {
             e.Handled = true;
+        }
+    }
+
+    public void ScrollToNoteFirst()
+    {
+        if (Notes.Count > 0)
+        {
+            PianoRoll.Note noteFirst = Notes[0];
+            foreach (var note in Notes)
+            {
+                var position = note.Name;
+                // noteMin = int.Min(position, noteMin); //最低的音符
+                // noteMax = int.Max(position, noteMax); //最高的音符
+                // noteFirst = double.Min(noteFirst, note.StartTime); //最左边的音符
+                // noteLast = double.Max(noteLast, note.EndTime); //最右边的音符
+                noteFirst = noteFirst.StartTime < note.StartTime ? noteFirst : note;
+            }
+
+            ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRight.Offset = new Vector(
+                noteFirst.StartTime * ViewHelper.GetMainWindow().PianoRollWindow.EditArea.WidthOfBeat,
+                ViewHelper.GetMainWindow().PianoRollWindow.EditArea.Height - (noteFirst.Name + 1) *
+                ViewHelper.GetMainWindow().PianoRollWindow.EditArea.NoteHeight);
         }
     }
 
