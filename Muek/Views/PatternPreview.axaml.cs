@@ -9,6 +9,7 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Styling;
 using Muek.Models;
+using Muek.Services;
 
 namespace Muek.Views;
 
@@ -35,7 +36,7 @@ public partial class PatternPreview : UserControl
     {
         InitializeComponent();
         ClipToBounds = false;
-        BackgroundColor = Brushes.YellowGreen;
+        BackgroundColor = new SolidColorBrush(DataStateService.MuekColor);
     }
     
     public override void Render(DrawingContext context)

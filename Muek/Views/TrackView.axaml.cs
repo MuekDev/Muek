@@ -245,7 +245,7 @@ public partial class TrackView : UserControl
                     continue; // 跳过可视区域外的片段
 
                 var rect = new Rect(x, i * TrackHeight, width, TrackHeight);
-                _ = Color.TryParse(track.Color, out var color) ? color : Colors.YellowGreen;
+                _ = Color.TryParse(track.Color, out var color) ? color : DataStateService.MuekColor;
                 var background = new SolidColorBrush(color);
 
                 context.FillRectangle(background, rect);

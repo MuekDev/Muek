@@ -10,10 +10,12 @@ namespace Muek.Services;
 
 public static class DataStateService
 {
+    public static Color MuekColor = new Color(255,100, 200, 150);
+    
     public static ObservableCollection<TrackViewModel> Tracks { get; private set; } =
     [
         new TrackViewModel(new Track
-            { Color = Colors.YellowGreen.ToString(), Id = Guid.NewGuid().ToString(), Name = "Master" })
+            { Color = DataStateService.MuekColor.ToString(), Id = Guid.NewGuid().ToString(), Name = "Master" })
     ];
 
     public static float Bpm { get; set; } = 120f;

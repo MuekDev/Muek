@@ -41,7 +41,6 @@
                                HorizontalAlignment="Right" />
             </Button>
             <Button HorizontalAlignment="Right" VerticalAlignment="Center" Margin="10"
-                    Background="YellowGreen"
                     Height="20" Width="20" CornerRadius="20"
                     Padding="2" Click="Show" IsVisible="True"
                     Name="OpenButton">

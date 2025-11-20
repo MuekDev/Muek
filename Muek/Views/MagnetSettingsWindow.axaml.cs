@@ -9,6 +9,7 @@ using Avalonia.Input;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Threading;
+using Muek.Services;
 
 namespace Muek.Views;
 
@@ -63,7 +64,7 @@ public partial class MagnetSettingsWindow : UserControl
               );
             context.DrawText(new FormattedText(grid.Name,
                     CultureInfo.CurrentCulture, FlowDirection.LeftToRight, Typeface.Default,
-                    12, Brushes.YellowGreen),
+                    12, new SolidColorBrush(DataStateService.MuekColor)),
                 new Point(Bounds.Width / _grids.Count *  _grids.IndexOf(grid) + Bounds.Width / _grids.Count / 2 - grid.name.Length * 3,Bounds.Height - Bounds.Height * .6)
             );
         }
@@ -81,7 +82,7 @@ public partial class MagnetSettingsWindow : UserControl
         }
                 
         
-        var selectedPen = new Pen(Brushes.YellowGreen, 2);
+        var selectedPen = new Pen(new SolidColorBrush(DataStateService.MuekColor), 2);
         context.DrawLine(selectedPen,
             new Point(_selectedGridPosition,0),
             new Point(_selectedGridPosition,Bounds.Height * .4)

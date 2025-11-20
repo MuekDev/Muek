@@ -132,10 +132,10 @@ public partial class PianoRoll : UserControl
 
         _noteColor1 = Brushes.White;
         _noteColor2 = Brushes.Black;
-        _noteColor3 = Brushes.YellowGreen;
+        _noteColor3 = new SolidColorBrush(DataStateService.MuekColor);
 
 
-        _noteHoverColor = new SolidColorBrush(Colors.YellowGreen, .1);
+        _noteHoverColor = new SolidColorBrush(DataStateService.MuekColor, .1);
 
         _widthOfBeat = 50;
         if (!IsPianoBar)
@@ -293,7 +293,7 @@ public partial class PianoRoll : UserControl
             {
                 if (!_isDrawing && !_isEditing && !_isDragging)
                 {
-                    context.DrawLine(new Pen(Brushes.YellowGreen, 1.5),
+                    context.DrawLine(new Pen(_noteColor3, 1.5),
                         new Point((_currentMousePosition.X - _currentMousePosition.X % (_widthOfBeat * Magnet)), 0),
                         new Point((_currentMousePosition.X - _currentMousePosition.X % (_widthOfBeat * Magnet)),
                             Height)
@@ -301,7 +301,7 @@ public partial class PianoRoll : UserControl
                 }
                 else if (!_isDragging)
                 {
-                    context.DrawLine(new Pen(Brushes.YellowGreen, 1.5),
+                    context.DrawLine(new Pen(_noteColor3, 1.5),
                         new Point(
                             (_currentMousePosition.X - _currentMousePosition.X % (_widthOfBeat * Magnet) +
                              _widthOfBeat * Magnet), 0),
@@ -489,7 +489,7 @@ public partial class PianoRoll : UserControl
                                     EndTime = dragRelativePos + selectedNote.EndTime,
                                     Name =
                                         dragNoteName,
-                                    Color = Colors.YellowGreen
+                                    Color = DataStateService.MuekColor
                                 });
                             }
 
@@ -805,7 +805,7 @@ public partial class PianoRoll : UserControl
                             StartTime = _currentNoteStartTime >= 0 ? _currentNoteStartTime : 0,
                             EndTime = _currentNoteEndTime,
                             Name = _currentHoverNote,
-                            Color = Colors.YellowGreen
+                            Color = DataStateService.MuekColor
                         });
                     }
                     else
@@ -838,7 +838,7 @@ public partial class PianoRoll : UserControl
                                 EndTime = dragRelativePos + selectedNote.EndTime,
                                 Name =
                                     noteName,
-                                Color = Colors.YellowGreen
+                                Color = DataStateService.MuekColor
                             });
                         }
 
@@ -863,7 +863,7 @@ public partial class PianoRoll : UserControl
                             StartTime = _currentNoteStartTime >= 0 ? _currentNoteStartTime : 0,
                             EndTime = _currentNoteEndTime,
                             Name = _editingNote,
-                            Color = Colors.YellowGreen
+                            Color = DataStateService.MuekColor
                         });
                     }
                     else
@@ -877,7 +877,7 @@ public partial class PianoRoll : UserControl
                                 EndTime = (e.GetPosition(this).X - e.GetPosition(this).X % (_widthOfBeat * Magnet) +
                                            _widthOfBeat) / _widthOfBeat,
                                 Name = selectedNote.Name,
-                                Color = Colors.YellowGreen
+                                Color = DataStateService.MuekColor
                             });
                         }
 
@@ -1269,7 +1269,7 @@ public partial class PianoRoll : UserControl
                             Notes.Add(new Note()
                             {
                                 Name = ((NoteOnEvent)note).NoteNumber,
-                                Color = Colors.YellowGreen,
+                                Color = DataStateService.MuekColor,
                                 StartTime = ((NoteOnEvent)note).AbsoluteTime /
                                     (double)midi.Data.DeltaTicksPerQuarterNote * 4,
                                 EndTime = (((NoteOnEvent)note).AbsoluteTime + ((NoteOnEvent)note).NoteLength) /

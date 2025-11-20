@@ -11,6 +11,7 @@ using Avalonia.Media;
 using Avalonia.Platform.Storage;
 using Avalonia.Styling;
 using Muek.Models;
+using Muek.Services;
 
 namespace Muek.Views;
 
@@ -102,6 +103,7 @@ public partial class PianoRollWindow : UserControl
             DropDisplay.IsVisible = false;
         });
         DropDisplay.IsVisible = false;
+        OpenButton.Background = new SolidColorBrush(DataStateService.MuekColor);
     }
 
     private void Hide(object? sender, RoutedEventArgs e)
