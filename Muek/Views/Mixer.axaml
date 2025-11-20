@@ -38,16 +38,16 @@
             
             </StackPanel>
             <StackPanel Grid.Row="1" Orientation="Horizontal">
-                <Grid RowDefinitions="80,*" HorizontalAlignment="Center" Width="40" Margin="20,10,0,0">
+                <Grid RowDefinitions="80,*" HorizontalAlignment="Center" Width="40" Margin="25,25,0,0">
                     <!-- 调整左右声道 -->
-                    <Grid Grid.RowDefinitions="*,Auto">
+                    <Grid RowDefinitions="*,Auto">
                         <views:MuekValuer Name="MixerPan"
                                           Layout="Knob"
                                           MinValue="-100" MaxValue="100" DefaultValue="0"></views:MuekValuer>
-                        <Label Grid.Row="1" HorizontalAlignment="Center" Margin="10,0,0,5">Pan</Label>
+                        <Label Grid.Row="1" HorizontalAlignment="Center">Pan</Label>
                     </Grid>
                     <!-- 调整电平 -->
-                    <Grid Grid.Row="1" Grid.RowDefinitions="*,Auto" Margin="10,0,0,0">
+                    <Grid Grid.Row="1" RowDefinitions="*,Auto">
                         <views:MuekValuer Name="MixerVol"
                                           MaxValue="100" DefaultValue="90"
                                           Layout="Slider"></views:MuekValuer>
