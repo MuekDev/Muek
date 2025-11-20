@@ -551,6 +551,15 @@ public partial class PianoRoll : UserControl
         {
             if (!IsPianoBar)
             {
+                if (e.KeyModifiers == KeyModifiers.Control && _isDragging)
+                {
+                    Magnet = 1 / 32f;
+                }
+                else
+                {
+                    Magnet = ViewHelper.GetMainWindow().PianoRollWindow.MagnetSettingsWindow.SelectedGrid.Value;
+                }
+                
                 _currentMousePosition = e.GetPosition(this);
                 if (_isDrawing)
                 {
