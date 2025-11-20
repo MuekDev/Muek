@@ -1285,6 +1285,7 @@ public partial class PianoRoll : UserControl
                 //     Console.WriteLine($"Start: {note.StartTime}; End: {note.EndTime}; Name: {note.Name}");
                 // }
                 SaveNotes();
+                ViewHelper.GetMainWindow().PianoRollWindow.PatternPreview.ScrollToNoteFirst();
                 InvalidateVisual();
         }
         Console.WriteLine($"Notes: {Notes.Count}");
