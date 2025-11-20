@@ -7,6 +7,7 @@ using Avalonia.Animation.Easings;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Media;
 using Avalonia.Platform.Storage;
 using Avalonia.Styling;
 using Muek.Models;
@@ -77,8 +78,13 @@ public partial class PianoRollWindow : UserControl
         EditArea.AddHandler(DragDrop.DragOverEvent,(sender, args)=>
         {
             args.DragEffects = DragDropEffects.Copy;
+            DropDisplay.IsVisible = true;
             args.Handled = true;
             InvalidateVisual();
+        });
+        EditArea.AddHandler(DragDrop.DragLeaveEvent, (sender, args) =>
+        {
+            DropDisplay.IsVisible = false;
         });
         EditArea.AddHandler(DragDrop.DropEvent, (sender, args) =>
         {
@@ -93,7 +99,9 @@ public partial class PianoRollWindow : UserControl
                     EditArea.ImportMidi(file);
                 }
             }
+            DropDisplay.IsVisible = false;
         });
+        DropDisplay.IsVisible = false;
     }
 
     private void Hide(object? sender, RoutedEventArgs e)
