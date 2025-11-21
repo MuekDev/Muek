@@ -273,13 +273,13 @@ public partial class PianoRoll : UserControl
 
             for (int i = 0; i < Width / _widthOfBeat; i++)
             {
-                var gridLinePen = new Pen(new SolidColorBrush(Colors.White,.2), _widthOfBeat * .02,new DashStyle([15d,10d,5d,10d],0));
+                var gridLinePen = new Pen(new SolidColorBrush(Colors.White,.2), _widthOfBeat * .02,new DashStyle([500d/_widthOfBeat,500d/_widthOfBeat],0));
                 IBrush textColor = new SolidColorBrush(Colors.White, .2);
                 if (i * _widthOfBeat > ClampValue && i * _widthOfBeat < Width + ClampValue)
                 {
                     if(i%16==0)
                     {
-                        gridLinePen = new Pen(_noteColor3, _widthOfBeat * .02, new DashStyle([15d,10d,5d,10d], 0));
+                        gridLinePen = new Pen(_noteColor3, _widthOfBeat * .02, new DashStyle([500d/_widthOfBeat,500d/_widthOfBeat], 0));
                         textColor = Brushes.White;
                     }
                     if (i % 4 == 0)
