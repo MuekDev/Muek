@@ -354,12 +354,13 @@ public partial class PianoRoll : UserControl
                                 new Pen(Brushes.Black, 1),
                                 new Rect(start, Height - (i * _temperament + note + 1) * NoteHeight, end - start,
                                     NoteHeight * .9));
-
-                            context.DrawText(new FormattedText(IndexToNoteName(existNote.Name),
-                                    CultureInfo.CurrentCulture, FlowDirection.LeftToRight, Typeface.Default,
-                                    NoteHeight * .6,
-                                    Brushes.Black),
-                                new Point(start, Height - (i * _temperament + note + 1) * NoteHeight));
+                            
+                            if((existNote.EndTime - existNote.StartTime)*_widthOfBeat > NoteHeight)
+                                context.DrawText(new FormattedText(IndexToNoteName(existNote.Name),
+                                        CultureInfo.CurrentCulture, FlowDirection.LeftToRight, Typeface.Default,
+                                        NoteHeight * .6,
+                                        Brushes.Black),
+                                    new Point(start, Height - (i * _temperament + note + 1) * NoteHeight));
 
 
                             //Hover音符
