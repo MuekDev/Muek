@@ -358,7 +358,8 @@ public partial class TrackView : UserControl
         if (_isDropping)
         {
             var x = _mousePosition.X;
-            x = double.Round(x*Subdivisions/_scaleFactor,0)/Subdivisions * ScaleFactor;
+            x = double.Round(x*Subdivisions/_scaleFactor,0)/Subdivisions * ScaleFactor - OffsetX%
+                (ScaleFactor / (double)Subdivisions);
             var y = Math.Floor(_mousePosition.Y / TrackHeight) * TrackHeight;
             var index = (int)y /  TrackHeight;
             if((DataStateService.Tracks.Count) >= index)
