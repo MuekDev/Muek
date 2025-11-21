@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Muek.Helpers;
+using Muek.ViewModels;
 using NAudio.CoreAudioApi;
 using NAudio.Utils;
 using NAudio.Wave;
@@ -108,54 +110,7 @@ public static class AudioService
 
         foreach (var track in tracks)
         {
-            // TODO: 这里用 List<float> 临时存储长度不确定的轨道
-            // 最终 ToArray()
-            var currentTrack = new List<float>();
-
-            foreach (var clip in track.Clips)
-            {
-                if (clip.CachedWaveform == null || clip.CachedWaveform.Length == 0)
-                    continue;
-
-                var sss = clip.CachedWaveform; // 交错 stereo L R L R
-
-                // ===== 计算 offset 和 duration（单声道样本长度） =====
-                int durationSamplesMono = (int)Math.Round(((clip.Duration * 60.0) / bpm) * sampleRate) * beatsPerBar;
-                int offsetSamplesMono = (int)Math.Round(((clip.Offset * 60.0) / bpm) * sampleRate);
-
-                // 转换为交错数组索引
-                long offsetIndex = (long)offsetSamplesMono * channels;
-                long durationCount = (long)durationSamplesMono * channels;
-
-                if (offsetIndex >= sss.Length)
-                    continue; // 完全脱出！
-
-                long endIndex = Math.Min(offsetIndex + durationCount, sss.Length);
-                int copyLen = (int)(endIndex - offsetIndex);
-                if (copyLen <= 0) continue;
-
-                // 切片（交错 stereo）
-                var clipSamplesInterleaved = new float[copyLen];
-                Array.Copy(sss, (int)offsetIndex, clipSamplesInterleaved, 0, copyLen);
-
-                // ===== 计算 clip 在整轨中的起始位置 =====
-                int startSample =
-                    (int)Math.Round(((clip.StartBeat * 60.0) / bpm) * sampleRate)
-                    * beatsPerBar * channels;
-
-                // 补齐前导 0
-                if (currentTrack.Count < startSample)
-                {
-                    int padLen = startSample - currentTrack.Count;
-                    if (padLen > 0)
-                        currentTrack.AddRange(new float[padLen]);
-                }
-
-                // 加入轨道
-                currentTrack.AddRange(clipSamplesInterleaved);
-            }
-
-            var trackArray = currentTrack.ToArray();
+            var trackArray = GetTrackBuffer(track, bpm, beatsPerBar, channels, sampleRate);
             maxLength = Math.Max(maxLength, trackArray.Length);
             trackBuffers.Add(trackArray);
         }
@@ -172,6 +127,56 @@ public static class AudioService
         }
 
         return finalBuffer; // float[]
+    }
+
+    public static float[] GetTrackBuffer(TrackViewModel track, double bpm, int sampleRate, int beatsPerBar, int channels)
+    {
+        // TODO: 这里用 List<float> 临时存储长度不确定的轨道
+        // 最终 ToArray()
+        var currentTrack = new List<float>();
+
+        foreach (var clip in track.Clips)
+        {
+            if (clip.CachedWaveform == null || clip.CachedWaveform.Length == 0)
+                continue;
+
+            var sss = clip.CachedWaveform; // 交错 stereo L R L R
+
+            // ===== 计算 offset 和 duration（单声道样本长度） =====
+            int durationSamplesMono = (int)Math.Round(((clip.Duration * 60.0) / bpm) * sampleRate) * beatsPerBar;
+            int offsetSamplesMono = (int)Math.Round(((clip.Offset * 60.0) / bpm) * sampleRate);
+
+            // 转换为交错数组索引
+            long offsetIndex = (long)offsetSamplesMono * channels;
+            long durationCount = (long)durationSamplesMono * channels;
+
+            if (offsetIndex >= sss.Length)
+                continue; // 完全脱出！
+
+            long endIndex = Math.Min(offsetIndex + durationCount, sss.Length);
+            int copyLen = (int)(endIndex - offsetIndex);
+            if (copyLen <= 0) continue;
+
+            // 切片（交错 stereo）
+            var clipSamplesInterleaved = new float[copyLen];
+            Array.Copy(sss, (int)offsetIndex, clipSamplesInterleaved, 0, copyLen);
+
+            // ===== 计算 clip 在整轨中的起始位置 =====
+            int startSample =
+                (int)Math.Round(((clip.StartBeat * 60.0) / bpm) * sampleRate)
+                * beatsPerBar * channels;
+
+            // 补齐前导 0
+            if (currentTrack.Count < startSample)
+            {
+                int padLen = startSample - currentTrack.Count;
+                if (padLen > 0)
+                    currentTrack.AddRange(new float[padLen]);
+            }
+            // 加入轨道
+            currentTrack.AddRange(clipSamplesInterleaved);
+        }
+        return currentTrack.ToArray();
     }
 
 
