@@ -45,6 +45,7 @@ public static class DataStateService
         var track = Tracks.FirstOrDefault(x => x.Id == trackId);
         if (track != null)
             Tracks.Remove(track);
+        ViewHelper.GetMainWindow().TrackViewControl.InvalidateVisual();
     }
     
     public static TrackViewModel GetSelectedTrack()
