@@ -67,9 +67,12 @@
                           Name="PianoRollRight" ScrollChanged="ScrollChange" Margin="2">
                 <views:PianoRoll IsPianoBar="False" HorizontalAlignment="Left" Name="EditArea"></views:PianoRoll>
             </ScrollViewer>
-        </Grid>
-        <Grid Grid.Row="1" Name="DropDisplay" IsVisible="False">
-            <avalonia:Icon Value="mdi-file-music-outline" Foreground="White" FontSize="50"></avalonia:Icon>
+            <Grid Grid.Column="1" Name="DropDisplay" IsVisible="False">
+                <StackPanel VerticalAlignment="Center">
+                    <avalonia:Icon Value="mdi-file-music-outline" Foreground="White" FontSize="50"/>
+                    <TextBlock FontSize="15" TextAlignment="Center">Drop MIDI File</TextBlock>
+                </StackPanel>
+            </Grid>
         </Grid>
         <Grid Grid.Row="2" Margin="5,0">
             <views:PatternPreview Height="40" Name="PatternPreview" PointerPressed="Show"></views:PatternPreview>

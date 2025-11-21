@@ -75,19 +75,27 @@ public partial class PianoRollWindow : UserControl
             _isDragging = false;
             
         };
+        DropDisplay.IsVisible = false;
+        DropDisplay.Background = new SolidColorBrush(Colors.Black, .5);
         EditArea.SetValue(DragDrop.AllowDropProperty, true);
-        EditArea.AddHandler(DragDrop.DragOverEvent,(sender, args)=>
+        EditArea.AddHandler(DragDrop.DragOverEvent,((sender, args) =>
         {
-            args.DragEffects = DragDropEffects.Copy;
             DropDisplay.IsVisible = true;
-            args.Handled = true;
-            InvalidateVisual();
-        });
-        EditArea.AddHandler(DragDrop.DragLeaveEvent, (sender, args) =>
+        }));
+        // EditArea.AddHandler(DragDrop.DropEvent, MidiDragDrop());
+        DropDisplay.SetValue(DragDrop.AllowDropProperty, true);
+        DropDisplay.AddHandler(DragDrop.DragOverEvent, MidiDragOver());
+        DropDisplay.AddHandler(DragDrop.DragLeaveEvent, (sender, args) =>
         {
             DropDisplay.IsVisible = false;
         });
-        EditArea.AddHandler(DragDrop.DropEvent, (sender, args) =>
+        DropDisplay.AddHandler(DragDrop.DropEvent, MidiDragDrop());
+        OpenButton.Background = new SolidColorBrush(DataStateService.MuekColor);
+    }
+
+    private EventHandler<DragEventArgs>? MidiDragDrop()
+    {
+        return (sender, args) =>
         {
             if (args.Data.Contains(DataFormats.Files))
             {
@@ -101,9 +109,18 @@ public partial class PianoRollWindow : UserControl
                 }
             }
             DropDisplay.IsVisible = false;
-        });
-        DropDisplay.IsVisible = false;
-        OpenButton.Background = new SolidColorBrush(DataStateService.MuekColor);
+        };
+    }
+
+    private EventHandler<DragEventArgs>? MidiDragOver()
+    {
+        return (sender, args)=>
+        {
+            args.DragEffects = DragDropEffects.Copy;
+            DropDisplay.IsVisible = true;
+            args.Handled = true;
+            InvalidateVisual();
+        };
     }
 
     private void Hide(object? sender, RoutedEventArgs e)
