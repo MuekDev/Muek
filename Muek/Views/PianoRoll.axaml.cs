@@ -583,7 +583,9 @@ public partial class PianoRoll : UserControl
         {
             if (!IsPianoBar)
             {
-                if (e.KeyModifiers == KeyModifiers.Control && _isDragging)
+                
+                //TODO 应该实现按住Alt可以自由拖动音符
+                if (e.KeyModifiers == KeyModifiers.Alt && _isDragging)
                 {
                     Magnet = 1 / 32f;
                 }
