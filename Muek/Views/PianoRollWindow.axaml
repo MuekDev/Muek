@@ -72,6 +72,7 @@
                     <avalonia:Icon Value="mdi-file-music-outline" Foreground="White" FontSize="50"/>
                     <TextBlock FontSize="15" TextAlignment="Center">Drop MIDI File</TextBlock>
                 </StackPanel>
+                <Grid Background="Black" Opacity="0"/>
             </Grid>
         </Grid>
         <Grid Grid.Row="2" Margin="5,0">
