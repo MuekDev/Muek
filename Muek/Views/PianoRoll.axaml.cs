@@ -231,9 +231,10 @@ public partial class PianoRoll : UserControl
 
             if (_widthOfBeat > 20)
             {
-                for (double i = 0; i < Width / _widthOfBeat; i += Magnet)
+                for (double i = 0; i < Width / _widthOfBeat; i += double.Clamp(Magnet,1/8d,2d))
                 {
-                    var gridLinePen = new Pen(new SolidColorBrush(Colors.White, .2), _widthOfBeat * .01);
+                    if (i % 4 == 0) continue;
+                    var gridLinePen = new Pen(new SolidColorBrush(Colors.White, .1), _widthOfBeat * .005);
                     if (i * _widthOfBeat > ClampValue && i * _widthOfBeat < Width + ClampValue)
                     {
                         context.DrawLine(gridLinePen,
@@ -244,9 +245,10 @@ public partial class PianoRoll : UserControl
 
                 if (Magnet <= 1 / 6.0)
                 {
-                    for (int i = 0; i < Width / _widthOfBeat; i += 1)
+                    for (int i = 1; i < Width / _widthOfBeat; i += 2)
                     {
-                        var gridLinePen = new Pen(new SolidColorBrush(Colors.MediumPurple), _widthOfBeat * .02);
+                        var gridLinePen = new Pen(new SolidColorBrush(Colors.MediumPurple,.5));
+                        if (_widthOfBeat < 50) gridLinePen.Thickness = .5;
                         if (i * _widthOfBeat > ClampValue && i * _widthOfBeat < Width + ClampValue)
                         {
                             context.DrawLine(gridLinePen,
@@ -258,9 +260,10 @@ public partial class PianoRoll : UserControl
 
                 if (Magnet <= 1 / 3.0)
                 {
-                    for (int i = 0; i < Width / _widthOfBeat; i += 2)
+                    for (int i =2; i < Width / _widthOfBeat; i += 4)
                     {
-                        var gridLinePen = new Pen(new SolidColorBrush(Colors.LightSkyBlue), _widthOfBeat * .02);
+                        var gridLinePen = new Pen(new SolidColorBrush(Colors.LightSkyBlue,.5));
+                        if (_widthOfBeat < 50) gridLinePen.Thickness = .5;
                         if (i * _widthOfBeat > ClampValue && i * _widthOfBeat < Width + ClampValue)
                         {
                             context.DrawLine(gridLinePen,
@@ -273,13 +276,19 @@ public partial class PianoRoll : UserControl
 
             for (int i = 0; i < Width / _widthOfBeat; i++)
             {
-                var gridLinePen = new Pen(new SolidColorBrush(Colors.White,.2), _widthOfBeat * .02,new DashStyle([500d/_widthOfBeat,500d/_widthOfBeat],0));
+                var gridLinePen = new Pen(new SolidColorBrush(Colors.White,.5), 1,new DashStyle([NoteHeight,NoteHeight*.5],0));
+                if(_widthOfBeat < 20)
+                {
+                    gridLinePen.Thickness = .5;
+                    gridLinePen.Brush = new SolidColorBrush(Colors.White,.2);
+                }
                 IBrush textColor = new SolidColorBrush(Colors.White, .2);
                 if (i * _widthOfBeat > ClampValue && i * _widthOfBeat < Width + ClampValue)
                 {
                     if(i%16==0)
                     {
-                        gridLinePen = new Pen(_noteColor3, _widthOfBeat * .02, new DashStyle([500d/_widthOfBeat,500d/_widthOfBeat], 0));
+                        gridLinePen.Brush = _noteColor3;
+                        if(_widthOfBeat < 20)  gridLinePen.Thickness = .5;
                         textColor = Brushes.White;
                     }
                     if (i % 4 == 0)
@@ -287,10 +296,10 @@ public partial class PianoRoll : UserControl
                         //小节数
                         if(_widthOfBeat > 20)
                         {
-                            context.DrawText(new FormattedText($"{i / 16} : {(1 + (i / 4) % 4)}",
-                                    CultureInfo.CurrentCulture, FlowDirection.LeftToRight, Typeface.Default, 15,
+                            context.DrawText(new FormattedText(i%16==0 ? $"{i / 16}" : $"{i / 16} : {(1 + (i / 4) % 4)}",
+                                    CultureInfo.CurrentCulture, FlowDirection.LeftToRight, Typeface.Default, i%16==0?15:12,
                                     textColor),
-                                new Point(6 + i * _widthOfBeat, ScrollOffset));
+                                new Point(6 + i * _widthOfBeat + 1, ScrollOffset));
                         }
                         else
                         {
@@ -299,7 +308,7 @@ public partial class PianoRoll : UserControl
                                 context.DrawText(new FormattedText($"{i / 16}",
                                         CultureInfo.CurrentCulture, FlowDirection.LeftToRight, Typeface.Default, 15,
                                         textColor),
-                                    new Point(6 + i * _widthOfBeat, ScrollOffset));
+                                    new Point(6 + i * _widthOfBeat + 1, ScrollOffset));
                             }
                         }
                         context.DrawLine(gridLinePen,
@@ -1031,7 +1040,7 @@ public partial class PianoRoll : UserControl
             if (e.KeyModifiers.HasFlag(KeyModifiers.Shift))
             {
                 double currentPosition = e.GetPosition(this).Y / NoteHeight;
-                NoteHeight = double.Clamp(NoteHeight + e.Delta.Y * ScalingSensitivity.Y, 10, 30);
+                NoteHeight = double.Clamp(NoteHeight + e.Delta.Y * NoteHeight / 20d * ScalingSensitivity.Y, 10, 30);
                 Height = NoteHeight * (_noteRangeMax - _noteRangeMin + 1) * _temperament;
                 ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRight.Offset = new Vector(
                     ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRight.Offset.X,
@@ -1054,8 +1063,8 @@ public partial class PianoRoll : UserControl
                 trackEnd += LengthIncreasement;
                 double currentPosition = e.GetPosition(this).X / _widthOfBeat;
 
-                _widthOfBeat = double.Clamp(_widthOfBeat + e.Delta.Y * ScalingSensitivity.X,
-                    double.Max(1, ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRight.Bounds.Width / trackEnd), Width * .1);
+                _widthOfBeat = double.Clamp(_widthOfBeat + e.Delta.Y * _widthOfBeat / 50d * ScalingSensitivity.X,
+                    double.Max(1, ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRight.Bounds.Width / trackEnd), 500);
 
                 ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRight.Offset = new Vector(
                     currentPosition * _widthOfBeat -
