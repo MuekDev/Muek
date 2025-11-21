@@ -134,6 +134,7 @@ public partial class TrackView : UserControl
             // var beat = (int)Math.Floor(x / ScaleFactor);
             x = e.GetPosition(this).X + OffsetX;
             var beat = x / ScaleFactor;
+            beat = double.Round(beat * Subdivisions, 0) / Subdivisions;
 
             var trackIndex = (int)Math.Floor(y / TrackHeight);
 
@@ -357,6 +358,7 @@ public partial class TrackView : UserControl
         if (_isDropping)
         {
             var x = _mousePosition.X;
+            x = double.Round(x*Subdivisions/_scaleFactor,0)/Subdivisions * ScaleFactor;
             var y = Math.Floor(_mousePosition.Y / TrackHeight) * TrackHeight;
             var index = (int)y /  TrackHeight;
             if((DataStateService.Tracks.Count) >= index)
@@ -428,6 +430,8 @@ public partial class TrackView : UserControl
         // pointer.X 是当前控件内部位置，+ OffsetX 得到全局位置
         var globalX = Math.Max(0, point.X + OffsetX);
         PlayHeadPosX = globalX / ScaleFactor;
+        PlayHeadPosX = double.Round(PlayHeadPosX *Subdivisions,0) /Subdivisions;
+        Console.WriteLine($"PlayHeadPosX: {PlayHeadPosX}");
         UiStateService.GlobalPlayHeadPosX = PlayHeadPosX;
 
         // TODO: 同步节拍
@@ -656,6 +660,7 @@ public partial class TrackView : UserControl
 
         var globalX = Math.Max(0, point.X + OffsetX);
         var pointerBeat = globalX / ScaleFactor - _lastClickedBeatOfClip;
+        pointerBeat = double.Round(pointerBeat*Subdivisions,0)/Subdivisions;
         if (pointerBeat > 0)
             _activeClip.Proto.StartBeat = pointerBeat;
         
