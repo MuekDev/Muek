@@ -96,7 +96,7 @@ public partial class PatternPreview : UserControl
 
             noteHeight = Bounds.Height / (noteMax + 1 - noteMin);
             // noteWidth = Bounds.Width / (noteLast - noteFirst);
-            noteWidth = Bounds.Width / (noteLast + 32);
+            noteWidth = Bounds.Width / (noteLast + ViewHelper.GetMainWindow().PianoRollWindow.EditArea.LengthIncreasement);
             // Console.WriteLine($"noteWidth:{noteWidth}");
             // Console.WriteLine($"noteHeight:{noteHeight}");
             

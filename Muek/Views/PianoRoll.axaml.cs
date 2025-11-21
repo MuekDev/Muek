@@ -116,6 +116,7 @@ public partial class PianoRoll : UserControl
 
     // private bool _isShowingOptions = false;
     public double Magnet = 1.0;
+    public readonly double LengthIncreasement = 128d;
 
     public PianoRoll()
     {
@@ -140,7 +141,7 @@ public partial class PianoRoll : UserControl
         _widthOfBeat = 50;
         if (!IsPianoBar)
         {
-            Width = 32*_widthOfBeat;
+            Width = LengthIncreasement*_widthOfBeat;
         }
     }
 
@@ -272,28 +273,49 @@ public partial class PianoRoll : UserControl
 
             for (int i = 0; i < Width / _widthOfBeat; i++)
             {
-                var gridLinePen = new Pen(Brushes.White, _widthOfBeat * .02);
+                var gridLinePen = new Pen(new SolidColorBrush(Colors.White,.2), _widthOfBeat * .02,new DashStyle([15d,10d,5d,10d],0));
+                IBrush textColor = new SolidColorBrush(Colors.White, .2);
                 if (i * _widthOfBeat > ClampValue && i * _widthOfBeat < Width + ClampValue)
                 {
+                    if(i%16==0)
+                    {
+                        gridLinePen = new Pen(_noteColor3, _widthOfBeat * .02, new DashStyle([15d,10d,5d,10d], 0));
+                        textColor = Brushes.White;
+                    }
                     if (i % 4 == 0)
                     {
                         //小节数
-                        context.DrawText(new FormattedText((i / 4).ToString(),
-                                CultureInfo.CurrentCulture, FlowDirection.LeftToRight, Typeface.Default, 15,
-                                Brushes.White),
-                            new Point(6 + i * _widthOfBeat, ScrollOffset));
+                        if(_widthOfBeat > 20)
+                        {
+                            context.DrawText(new FormattedText($"{i / 16} : {(1 + (i / 4) % 4)}",
+                                    CultureInfo.CurrentCulture, FlowDirection.LeftToRight, Typeface.Default, 15,
+                                    textColor),
+                                new Point(6 + i * _widthOfBeat, ScrollOffset));
+                        }
+                        else
+                        {
+                            if (i % 16 == 0)
+                            {
+                                context.DrawText(new FormattedText($"{i / 16}",
+                                        CultureInfo.CurrentCulture, FlowDirection.LeftToRight, Typeface.Default, 15,
+                                        textColor),
+                                    new Point(6 + i * _widthOfBeat, ScrollOffset));
+                            }
+                        }
                         context.DrawLine(gridLinePen,
                             new Point(i * _widthOfBeat, 0),
                             new Point(i * _widthOfBeat, Height));
                     }
                 }
             }
-
+            
+            
+            //绘制位置
             if (_currentHoverNote != -1)
             {
                 if (!_isDrawing && !_isEditing && !_isDragging)
                 {
-                    context.DrawLine(new Pen(_noteColor3, 1.5),
+                    context.DrawLine(new Pen(_noteColor3,.5),
                         new Point((_currentMousePosition.X - _currentMousePosition.X % (_widthOfBeat * Magnet)), 0),
                         new Point((_currentMousePosition.X - _currentMousePosition.X % (_widthOfBeat * Magnet)),
                             Height)
@@ -301,7 +323,7 @@ public partial class PianoRoll : UserControl
                 }
                 else if (!_isDragging)
                 {
-                    context.DrawLine(new Pen(_noteColor3, 1.5),
+                    context.DrawLine(new Pen(_noteColor3,.5),
                         new Point(
                             (_currentMousePosition.X - _currentMousePosition.X % (_widthOfBeat * Magnet) +
                              _widthOfBeat * Magnet), 0),
@@ -1028,11 +1050,11 @@ public partial class PianoRoll : UserControl
                 {
                     trackEnd = double.Max(trackEnd, note.EndTime);
                 }
-                trackEnd += 32;
+                trackEnd += LengthIncreasement;
                 double currentPosition = e.GetPosition(this).X / _widthOfBeat;
 
                 _widthOfBeat = double.Clamp(_widthOfBeat + e.Delta.Y * ScalingSensitivity.X,
-                    double.Max(10, ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRight.Bounds.Width / trackEnd), Width * .1);
+                    double.Max(1, ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRight.Bounds.Width / trackEnd), Width * .1);
 
                 ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRight.Offset = new Vector(
                     currentPosition * _widthOfBeat -
@@ -1189,7 +1211,7 @@ public partial class PianoRoll : UserControl
             {
                 trackEnd = double.Max(trackEnd, note.EndTime);
             }
-            trackEnd += 32;
+            trackEnd += LengthIncreasement;
             Width = trackEnd * _widthOfBeat;
             // Console.WriteLine($"Scroll:{ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRight.Offset.X+ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRight.Bounds.Width} Width:{Width}");
             if (ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRight.Offset.X+ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRight.Bounds.Width > Width)
