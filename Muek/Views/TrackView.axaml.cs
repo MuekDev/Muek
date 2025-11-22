@@ -138,14 +138,14 @@ public partial class TrackView : UserControl
 
             var trackIndex = (int)Math.Floor(y / TrackHeight);
 
-            
+
             //如果在最后一行，则创建新轨道
             if (trackIndex == DataStateService.Tracks.Count)
             {
                 new MainWindowViewModel().AddTrack();
             }
-            
-            
+
+
             Console.WriteLine($"Dropped at beat: {beat}, track: {trackIndex}");
 
             foreach (var file in files)
@@ -166,7 +166,7 @@ public partial class TrackView : UserControl
                     Duration = durationBeats,
                     Path = file,
                     Id = Guid.NewGuid().ToString(),
-                    CachedWaveform = AudioService.DecodeFromFile(file,48000,2).ToArray()
+                    CachedWaveform = AudioService.DecodeFromFile(file, 48000, 2).ToArray()
                 };
 
                 // 确保轨道存在
@@ -233,56 +233,74 @@ public partial class TrackView : UserControl
             context.FillRectangle(brush, new Rect(x1, 0, x2 - x1, renderSize.Height));
         }
 
+        // 将画笔缓存到循环外，减少GC压力
+        var waveformPen = new Pen(Brushes.Black, 0.8);
+        var rectBorderPen = new Pen(Brushes.Black);
+
         //// 绘制片段
         for (var i = 0; i < DataStateService.Tracks.Count; i++)
         {
             var track = DataStateService.Tracks[i];
+
+            // 每一轨的中间Y轴和高度
+            var trackY = i * TrackHeight;
+            var centerY = trackY + TrackHeight / 2;
+            var scaleY = (TrackHeight / 2.0) * 0.95;
+
+            _ = Color.TryParse(track.Color, out var color) ? color : DataStateService.MuekColor;
+            var background = new SolidColorBrush(color);
+
             foreach (var clip in track.Clips)
             {
                 var x = clip.StartBeat * ScaleFactor - OffsetX;
                 var width = clip.Duration * ScaleFactor;
 
+                // 跳过可视区域外的片段
                 if (x + width < 0 || x > renderSize.Width)
-                    continue; // 跳过可视区域外的片段
+                    continue;
 
-                var rect = new Rect(x, i * TrackHeight, width, TrackHeight);
-                _ = Color.TryParse(track.Color, out var color) ? color : DataStateService.MuekColor;
-                var background = new SolidColorBrush(color);
-
+                // 片段背景框
+                var rect = new Rect(x, trackY, width, TrackHeight);
                 context.FillRectangle(background, rect);
-                context.DrawRectangle(new Pen(Brushes.Black), rect);
+                context.DrawRectangle(rectBorderPen, rect);
 
                 // 渲染波形
                 if (clip.CachedWaveform is { Length: > 1 })
                 {
                     var waveform = clip.CachedWaveform;
+                    var totalSamples = waveform.Length;
 
-                    // 根据 clip.Duration 和 clip.Offset 裁剪波形（单位: 样本）
-                    int totalSamples = waveform.Length;
+                    // 计算裁剪区间
                     var durationRatio = (float)clip.Duration / clip.SourceDuration;
                     var offsetRatio = (float)clip.Offset / clip.SourceDuration;
 
+                    var sliceStart = (int)(offsetRatio * totalSamples);
+                    var sliceEnd = (int)((offsetRatio + durationRatio) * totalSamples);
 
-                    int startSample = (int)(offsetRatio * totalSamples);
-                    int endSample = (int)((offsetRatio + durationRatio) * totalSamples);
-                    startSample = Math.Clamp(startSample, 0, totalSamples - 1);
-                    endSample = Math.Clamp(endSample, 0, totalSamples);
+                    // 安全钳制
+                    sliceStart = Math.Clamp(sliceStart, 0, totalSamples - 1);
+                    sliceEnd = Math.Clamp(sliceEnd, sliceStart, totalSamples); // 确保 end >= start
 
-                    waveform = waveform.Slice(startSample, endSample - startSample);
+                    var sliceLength = sliceEnd - sliceStart;
+                    if (sliceLength <= 0) continue;
 
+                    // TODO/HACK/FIXME:
+                    // 获取切片数据（注意：如果是）
+                    // 将waveform改为ReadOnlySpan<float>可能会更好（尚且不明C#的这个是 Span/引用 否，后期修复）
+                    // Slice可能会给一首歌分配将近10GB的数据，原因尚且不明，可能跟拷贝有关
+                    var currentWaveform = waveform.Slice(sliceStart, sliceLength);
 
-                    var centerY = i * TrackHeight + TrackHeight / 2;
-                    var scaleY = (TrackHeight / 2.0) * 0.95;
+                    var pixelWidthInt = (int)Math.Ceiling(width);
+                    if (pixelWidthInt <= 0) continue;
 
-                    var pixelWidth = (int)Math.Ceiling(width);
-                    if (pixelWidth <= 1) return;
-
-                    var samplesPerPixel = waveform.Length / pixelWidth;
-                    samplesPerPixel = Math.Max(1, samplesPerPixel);
+                    // 使用 double 计算比率
+                    // 很重要的说（可以防止抖动）！！
+                    var samplesPerPixel = (double)currentWaveform.Length / pixelWidthInt;
 
                     var geometry = new StreamGeometry();
                     using (var ctx = geometry.Open())
                     {
+                        // 精细折线
                         if (samplesPerPixel <= 50)
                         {
                             // 高分辨率精细一点，用折线图（此乃盗窃reaper之秘术
@@ -298,6 +316,7 @@ public partial class TrackView : UserControl
                             visibleEndSample = Math.Clamp(visibleEndSample, 0, waveformCount - 1);
 
                             var visibleSampleCount = visibleEndSample - visibleStartSample + 1;
+
                             if (visibleSampleCount <= 1) return;
 
                             var stepX = width / (waveformCount - 1);
@@ -315,42 +334,79 @@ public partial class TrackView : UserControl
                         }
                         else
                         {
-                            // 低分辨率乃Min-Max 模式，压缩采样段（TODO: 有时候会一闪一闪的
+                            // Min-Max 大几把修剪树
+
+                            // Viewport裁剪中。。
                             var renderStartPx = Math.Max(0, (int)Math.Floor(-x));
-                            var renderEndPx = Math.Min(pixelWidth, (int)Math.Ceiling(renderSize.Width - x));
-                            if (renderStartPx >= renderEndPx) return;
+                            var renderEndPx = Math.Min(pixelWidthInt, (int)Math.Ceiling(renderSize.Width - x));
 
-                            for (var px = renderStartPx; px < renderEndPx; px++)
+                            if (renderStartPx < renderEndPx)
                             {
-                                var start = px * samplesPerPixel;
-                                var end = Math.Min(start + samplesPerPixel, waveform.Length);
-
-                                float min = 0, max = 0;
-                                for (var j = start; j < end; j++)
+                                for (var px = renderStartPx; px < renderEndPx; px++)
                                 {
-                                    var s = waveform[j];
-                                    if (j == start || s > max) max = s;
-                                    if (j == start || s < min) min = s;
+                                    // 谨慎修改（？）
+                                    // (int)(px * rate) 和 (int)((px+1) * rate) 确定当前像素覆盖的样本区间。
+                                    // 保证了区间的连续性（没有空隙，也没有重叠）
+                                    var sStart = (int)(px * samplesPerPixel);
+                                    var sEnd = (int)((px + 1) * samplesPerPixel);
+
+                                    // 边界保护
+                                    sStart = Math.Clamp(sStart, 0, currentWaveform.Length - 1);
+                                    sEnd = Math.Clamp(sEnd, sStart + 1, currentWaveform.Length);
+
+                                    // 寻找 Min/Max
+                                    float min = 0, max = 0;
+                                    bool firstSample = true;
+
+                                    // 总次数 = 波形总长，应该不会浪费性能
+                                    for (var j = sStart; j < sEnd; j++)
+                                    {
+                                        var val = currentWaveform[j];
+                                        if (firstSample)
+                                        {
+                                            min = val;
+                                            max = val;
+                                            firstSample = false;
+                                        }
+                                        else
+                                        {
+                                            if (val > max) max = val;
+                                            else if (val < min) min = val;
+                                        }
+                                    }
+
+                                    // 极少数情况区间为空（比如 float 精度问题），兜底处理
+                                    if (firstSample && sStart < currentWaveform.Length)
+                                    {
+                                        min = max = currentWaveform[sStart];
+                                    }
+
+                                    var drawX = x + px;
+                                    var y1 = centerY - max * scaleY;
+                                    var y2 = centerY - min * scaleY;
+
+                                    // 可能的优化（？）
+                                    // 只有当高度有意义时才绘制，或者至少绘制一个点
+                                    // 如果 y1 和 y2 非常接近，LineTo 可能画不出东西，可以略微偏移
+                                    if (Math.Abs(y1 - y2) < 0.1) y2 += 0.1;
+
+                                    ctx.BeginFigure(new Point(drawX, y1), false);
+                                    ctx.LineTo(new Point(drawX, y2));
                                 }
-
-                                var drawX = x + px;
-                                var y1 = centerY - max * scaleY;
-                                var y2 = centerY - min * scaleY;
-
-                                ctx.BeginFigure(new Point(drawX, y1), false);
-                                ctx.LineTo(new Point(drawX, y2));
                             }
                         }
                     }
 
-                    context.DrawGeometry(null, new Pen(Brushes.Black, 0.8), geometry);
+                    // 绘制最终几何图形
+                    // TODO：freeze geometry 或缓存它
+                    context.DrawGeometry(null, waveformPen, geometry);
                 }
 
-
+                // 绘制文字
                 context.DrawText(
                     new FormattedText(clip.Name, CultureInfo.CurrentCulture, FlowDirection.LeftToRight,
                         Typeface.Default, 10, Brushes.Black),
-                    new Point(x, i * TrackHeight));
+                    new Point(x, trackY));
             }
         }
 
@@ -358,18 +414,17 @@ public partial class TrackView : UserControl
         if (_isDropping)
         {
             var x = _mousePosition.X;
-            x = double.Round(x*Subdivisions/_scaleFactor,0)/Subdivisions * ScaleFactor - OffsetX%
+            x = double.Round(x * Subdivisions / _scaleFactor, 0) / Subdivisions * ScaleFactor - OffsetX %
                 (ScaleFactor / (double)Subdivisions);
             var y = Math.Floor(_mousePosition.Y / TrackHeight) * TrackHeight;
-            var index = (int)y /  TrackHeight;
-            if((DataStateService.Tracks.Count) >= index)
+            var index = (int)y / TrackHeight;
+            if ((DataStateService.Tracks.Count) >= index)
             {
-                
                 var rect = new Rect(x, y, 100, TrackHeight);
                 var background = new LinearGradientBrush();
                 background.StartPoint = new RelativePoint(0.0, 0.5, RelativeUnit.Relative);
                 background.EndPoint = new RelativePoint(1.0, 0.5, RelativeUnit.Relative);
-                if(DataStateService.Tracks.Count != index)
+                if (DataStateService.Tracks.Count != index)
                 {
                     background.GradientStops.Add(
                         new GradientStop(Color.Parse(DataStateService.Tracks[index].Color), 0.0));
@@ -431,7 +486,7 @@ public partial class TrackView : UserControl
         // pointer.X 是当前控件内部位置，+ OffsetX 得到全局位置
         var globalX = Math.Max(0, point.X + OffsetX);
         PlayHeadPosX = globalX / ScaleFactor;
-        PlayHeadPosX = double.Round(PlayHeadPosX *Subdivisions,0) /Subdivisions;
+        PlayHeadPosX = double.Round(PlayHeadPosX * Subdivisions, 0) / Subdivisions;
         Console.WriteLine($"PlayHeadPosX: {PlayHeadPosX}");
         UiStateService.GlobalPlayHeadPosX = PlayHeadPosX;
 
@@ -626,8 +681,8 @@ public partial class TrackView : UserControl
                     _activeClip.Proto.Duration = newDuration;
 
                     // if (DataStateService.ActiveTrack?.Proto != null)
-                        // TODO
-                        // ReOffsetCommand.Execute(DataStateService.ActiveTrack.Proto, _activeClip.Proto);
+                    // TODO
+                    // ReOffsetCommand.Execute(DataStateService.ActiveTrack.Proto, _activeClip.Proto);
 
                     InvalidateVisual();
                 }
@@ -649,7 +704,7 @@ public partial class TrackView : UserControl
             _activeClip.Proto.Duration = newDuration;
             // TODO
             // if (DataStateService.ActiveTrack?.Proto != null)
-                // ReDurationCommand.Execute(DataStateService.ActiveTrack.Proto, _activeClip.Proto, _activeClip.Duration);
+            // ReDurationCommand.Execute(DataStateService.ActiveTrack.Proto, _activeClip.Proto, _activeClip.Duration);
             InvalidateVisual();
         }
     }
@@ -661,13 +716,13 @@ public partial class TrackView : UserControl
 
         var globalX = Math.Max(0, point.X + OffsetX);
         var pointerBeat = globalX / ScaleFactor - _lastClickedBeatOfClip;
-        pointerBeat = double.Round(pointerBeat*Subdivisions,0)/Subdivisions;
+        pointerBeat = double.Round(pointerBeat * Subdivisions, 0) / Subdivisions;
         if (pointerBeat > 0)
             _activeClip.Proto.StartBeat = pointerBeat;
-        
+
         // TODO
         // if (DataStateService.ActiveTrack?.Proto != null)
-            // MoveCommand.Execute(DataStateService.ActiveTrack.Proto, _activeClip.Proto);
+        // MoveCommand.Execute(DataStateService.ActiveTrack.Proto, _activeClip.Proto);
 
         InvalidateVisual();
     }
