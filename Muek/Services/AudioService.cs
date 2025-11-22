@@ -20,7 +20,7 @@ public static class AudioService
 {
     private static WasapiOut? _wasapiOut;
 
-    private static int MasterSampleRate = 44100; // 临时值
+    public static int MasterSampleRate = 44100; // 临时值
 
     public static void Play()
     {

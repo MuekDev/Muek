@@ -19,44 +19,46 @@
             </Border>
         </Grid>
         <Grid Grid.Row="1"  ColumnDefinitions="*,Auto">
-        <Grid Grid.Column="0">
-        <Grid Grid.RowDefinitions="Auto,*">
-            
-            <StackPanel Orientation="Horizontal" VerticalAlignment="Top">
-            <!-- 不知道为什么要有一个button，但是感觉要有 -->
-            <ToggleButton Height="20" Width="20" CornerRadius="20" HorizontalAlignment="Left"
-                          VerticalAlignment="Center" Margin="5">
-                <ToggleButton.Styles>
-                    <Style
-                        Selector="ToggleButton:checked/template/ContentPresenter">
-                        <Setter Property="Background" Value="#ff5656"></Setter>
-                    </Style>
-                </ToggleButton.Styles>
-            </ToggleButton>
-            <Label VerticalAlignment="Center" Name="MixerName"></Label>
-            
-            
-            </StackPanel>
-            <StackPanel Grid.Row="1" Orientation="Horizontal">
-                <Grid RowDefinitions="80,*" HorizontalAlignment="Center" Width="40" Margin="25,25,0,0">
-                    <!-- 调整左右声道 -->
-                    <Grid RowDefinitions="*,Auto">
-                        <views:MuekValuer Name="MixerPan"
-                                          Layout="Knob"
-                                          MinValue="-100" MaxValue="100" DefaultValue="0"></views:MuekValuer>
-                        <Label Grid.Row="1" HorizontalAlignment="Center">Pan</Label>
-                    </Grid>
-                    <!-- 调整电平 -->
-                    <Grid Grid.Row="1" RowDefinitions="*,Auto">
-                        <views:MuekValuer Name="MixerVol"
-                                          MaxValue="100" DefaultValue="90"
-                                          Layout="Slider"></views:MuekValuer>
-                        <Label Grid.Row="1" HorizontalAlignment="Center">Vol</Label>
-                    </Grid>
-                </Grid>
-                </StackPanel>
+        <Grid Grid.Column="0" ColumnDefinitions="Auto,20,*">
+            <Grid Grid.RowDefinitions="Auto,*">
                 
-        </Grid>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Top">
+                <!-- 不知道为什么要有一个button，但是感觉要有 -->
+                <ToggleButton Height="20" Width="20" CornerRadius="20" HorizontalAlignment="Left"
+                              VerticalAlignment="Center" Margin="5">
+                    <ToggleButton.Styles>
+                        <Style
+                            Selector="ToggleButton:checked/template/ContentPresenter">
+                            <Setter Property="Background" Value="#ff5656"></Setter>
+                        </Style>
+                    </ToggleButton.Styles>
+                </ToggleButton>
+                <Label VerticalAlignment="Center" Name="MixerName"></Label>
+                
+                
+                </StackPanel>
+                <StackPanel Grid.Row="1" Orientation="Horizontal">
+                    <Grid RowDefinitions="80,*" HorizontalAlignment="Center" Width="30" Margin="25,25,0,0">
+                        <!-- 调整左右声道 -->
+                        <Grid RowDefinitions="*,Auto">
+                            <views:MuekValuer Name="MixerPan"
+                                              Layout="Knob"
+                                              MinValue="-100" MaxValue="100" DefaultValue="0"/>
+                            <Label Grid.Row="1" HorizontalAlignment="Center">Pan</Label>
+                        </Grid>
+                        <!-- 调整电平 -->
+                            <Grid Grid.Row="1" RowDefinitions="*,Auto">
+                                <Grid Grid.Row="0" ColumnDefinitions="10,*">
+                                    <views:MuekValuer Name="MixerVol"
+                                                      MaxValue="100" DefaultValue="90"
+                                                      Layout="Slider" Margin="0,0,5,0"/>
+                                    <views:MixerLevelMeter Name="LevelMeter" Grid.Column="1"/>
+                                </Grid>
+                                <Label Grid.Row="1" HorizontalAlignment="Center">Vol</Label>
+                            </Grid>
+                        </Grid>
+                    </StackPanel>
+            </Grid>
         </Grid>
             <!-- 删除 -->
         <Grid Grid.Column="1">
