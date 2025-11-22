@@ -11,13 +11,25 @@
         <Border Height="50" Name="TopBar" Background="#232323">
         <Grid>
             <StackPanel Orientation="Horizontal" Margin="5,0">
-                <Button Click="ImportMidiFile" Height="35" VerticalContentAlignment="Center">Import MIDI File</Button>
-                <Button Click="ExportMidiFile" Height="35" VerticalContentAlignment="Center">Export MIDI File</Button>
-                <Button Height="35">
-                    <avalonia:Icon Value="mdi-magnet"></avalonia:Icon>
+                
+                <Button Background="Transparent">
+                    <avalonia:Icon Value="mdi-arrow-down-drop-circle-outline" FontSize="20"/>
+                    <Button.Flyout>
+                        <MenuFlyout>
+                            <MenuItem Header="MIDI">
+                                <MenuItem Header="Import MIDI File" Click="ImportMidiFile"/>
+                                <MenuItem Header="Export MIDI File" Click="ExportMidiFile"/>
+                            </MenuItem>
+                        </MenuFlyout>
+                    </Button.Flyout>
+                </Button>
+                <!-- <Button Click="ImportMidiFile">Import MIDI File</Button> -->
+                <!-- <Button Click="ExportMidiFile">Export MIDI File</Button> -->
+                <Button Background="Transparent">
+                    <avalonia:Icon Value="mdi-magnet" FontSize="20"></avalonia:Icon>
                     <Button.Flyout>
                         <Flyout>
-                            <views:MagnetSettingsWindow Width="250" Height="40" PropertyChanged="MagnetPropertyChange" Name="MagnetSettingsWindow"></views:MagnetSettingsWindow>
+                            <views:MagnetSettingsWindow Width="250" Height="40" PropertyChanged="MagnetPropertyChange" Name="MagnetSettingsWindow"/>
                         </Flyout>
                     </Button.Flyout>
                 </Button>
