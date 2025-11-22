@@ -154,18 +154,29 @@ public partial class MuekValuer : UserControl
                 StrokeThicknessDecrease(_stroke);
             }
 
-            context.DrawRectangle(ValuerColor, _stroke, new Rect(0, 0, ValuerWidth, ValuerHeight));
-            context.DrawRectangle(Brush.Parse("#CC000000"), _stroke, new Rect(0, 0, ValuerWidth, ValuerHeight));
+            context.DrawRectangle(new SolidColorBrush(Colors.Black,0), _stroke, new Rect(0, 0, ValuerWidth, ValuerHeight));
+            // context.DrawRectangle(Brush.Parse("#CC000000"), _stroke, new Rect(0, 0, ValuerWidth, ValuerHeight));
             var percentValue = (Value - MinValue) / (MaxValue - MinValue);
             // context.DrawRectangle(Brushes.Black,null, new Rect(0,(1-percentValue)*(ValuerHeight-6)+2, ValuerWidth, 4));
+            
+            var defaultPercentValue = (DefaultValue - MinValue) / (MaxValue - MinValue);
+            
             context.DrawRectangle(ValuerColor, _stroke,
-                new Rect(0, (1 - percentValue) * (ValuerHeight-4), ValuerWidth, 4));
+                new Rect(-ValuerWidth/2, (1 - percentValue) * (ValuerHeight-2), ValuerWidth * 2, 2));
+
+            if(_hover || _pressed)
+            {
+                //默认值
+                context.DrawEllipse(new SolidColorBrush(Colors.White, .2), null,
+                    new Point(-10, (1 - defaultPercentValue) * (ValuerHeight) + 1), 2, 2);
+            }
         }
 
         //Knob渲染逻辑
         if (Layout == LayoutEnum.Knob)
         {
-            ValuerHeight = ValuerHeight < ValuerWidth ? ValuerHeight / 2 : ValuerWidth / 2;
+            var radius = (ValuerHeight < ValuerWidth ? ValuerHeight / 2 : ValuerWidth / 2)*1.5;
+            var center = new Point(Bounds.Width / 2, Bounds.Height / 2);
             if (_hover || _pressed)
             {
                 StrokeThicknessIncrease(_stroke);
@@ -175,24 +186,55 @@ public partial class MuekValuer : UserControl
             {
                 StrokeThicknessDecrease(_stroke);
             }
-
-            var radius = ValuerHeight*1.5;
-            context.DrawEllipse(ValuerColor, _stroke, new Point(ValuerHeight, ValuerHeight), radius,
+            context.DrawEllipse(new SolidColorBrush(Colors.Black,0), _stroke, center, radius,
                 radius);
-            context.DrawEllipse(Brush.Parse("#CC000000"), _stroke, new Point(ValuerHeight, ValuerHeight),
-                radius-.05, radius-.05);
+            // context.DrawEllipse(Brush.Parse("#CC000000"), _stroke, center,
+            //     radius-.05, radius-.05);
+
+            //左右边缘的值
+            var border = .16;
+            //百分比
             var percentValue = (Value - MinValue) / (MaxValue - MinValue);
+            percentValue = border +  percentValue * (1 - 2 * border);
+            
             // context.DrawEllipse(Brushes.Black, null,
             //     new Point(ValuerHeight + ValuerHeight * .8 * -double.Sin(percentValue * Double.Pi * 2),
             //         ValuerHeight + ValuerHeight * .8 * double.Cos(percentValue * Double.Pi * 2)), ValuerHeight * .2, ValuerHeight * .2);
 
-            //通过三角函数渲染圆形控件
-            var position = ValuerHeight * 1.5;
-            var positionSize = ValuerHeight * .2;
-            context.DrawEllipse(ValuerColor, null,
-                new Point(ValuerHeight + position * -double.Sin(percentValue * Double.Pi * 2),
-                    ValuerHeight + position * double.Cos(percentValue * Double.Pi * 2)), positionSize,
-                positionSize);
+            var defaultPercentValue = (DefaultValue - MinValue) / (MaxValue - MinValue);
+            defaultPercentValue = border + defaultPercentValue * (1 - 2 * border);
+            
+            if(_hover || _pressed)
+            {
+                //默认值
+                context.DrawEllipse(new SolidColorBrush(Colors.White, .2), null,
+                    new Point(center.X + radius * 1.2 * -double.Sin(defaultPercentValue * Double.Pi * 2),
+                        center.Y + radius * 1.2 * double.Cos(defaultPercentValue * Double.Pi * 2)), 2,
+                    2);
+
+                //边缘值
+                context.DrawEllipse(new SolidColorBrush(Colors.White, .2), null,
+                    new Point(center.X + radius * 1.2 * -double.Sin(border * Double.Pi * 2),
+                        center.Y + radius * 1.2 * double.Cos(border * Double.Pi * 2)), 2,
+                    2);
+                context.DrawEllipse(new SolidColorBrush(Colors.White, .2), null,
+                    new Point(center.X + radius * 1.2 * -double.Sin((1 - border) * Double.Pi * 2),
+                        center.Y + radius * 1.2 * double.Cos((1 - border) * Double.Pi * 2)), 2,
+                    2);
+            }
+            
+            //通过三角函数渲染位置
+            context.DrawLine(new Pen(ValuerColor, 2),
+                new Point(
+                    center.X + radius * .7 *
+                    -double.Sin(percentValue * Double.Pi * 2),
+                    center.Y + radius * .7 *
+                    double.Cos(percentValue * Double.Pi * 2)),
+                new Point(
+                    center.X + radius *
+                    -double.Sin(percentValue * Double.Pi * 2),
+                    center.Y + radius *
+                    double.Cos(percentValue * Double.Pi * 2)));
         }
 
         Console.WriteLine($"pressed: {_pressed}\nhover: {_hover}");
@@ -288,7 +330,7 @@ public partial class MuekValuer : UserControl
 
     private void StrokeThicknessIncrease(Pen stroke)
     {
-        stroke.Thickness = 1;
+        stroke.Thickness = 1.5;
     }
 
     // private async Task StrokeThicknessDecrease(Pen stroke)
@@ -303,6 +345,6 @@ public partial class MuekValuer : UserControl
 
     private void StrokeThicknessDecrease(Pen stroke)
     {
-        stroke.Thickness = .5;
+        stroke.Thickness = 1;
     }
 }
