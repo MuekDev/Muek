@@ -7,6 +7,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
+using Avalonia.Threading;
 using Muek.Services;
 using Muek.ViewModels;
 
@@ -19,11 +20,19 @@ public partial class MixerLevelMeter : UserControl
     private const float MaxDb = 6f;
 
     private const float CompressionFactor = 0.15f;
+    
+    public float CurrentLevel => AudioService.CurrentDb;
 
     public MixerLevelMeter()
     {
         InitializeComponent();
         ClipToBounds = false;
+        AudioService.DbChanged += AudioServiceOnDbChanged;
+    }
+
+    private void AudioServiceOnDbChanged(object? sender, EventArgs e)
+    {
+        Dispatcher.UIThread.Post(InvalidateVisual, DispatcherPriority.Render);
     }
 
     public override void Render(DrawingContext context)
@@ -47,7 +56,7 @@ public partial class MixerLevelMeter : UserControl
         
         context.DrawRectangle(null,new Pen(Brush.Parse(Track.Color)),new Rect(0,0,Bounds.Width,Bounds.Height));
         context.DrawRectangle(Brush.Parse(Track.Color), null,new Rect(
-            0, (1 - NormalizeDb(GetLevel(Track))) * Bounds.Height,Bounds.Width,Bounds.Height * NormalizeDb(GetLevel(Track))));
+            0, (1 - NormalizeDb(CurrentLevel)) * Bounds.Height,Bounds.Width,Bounds.Height * NormalizeDb(CurrentLevel)));
 
         
         //-3 0以外的参考线
@@ -58,36 +67,27 @@ public partial class MixerLevelMeter : UserControl
                 new Point(Bounds.Width, (1 - NormalizeDb(i))*Bounds.Height));
         }
         
-        if (GetLevel(Track) > -3)
+        if (CurrentLevel > -3)
         {
             context.DrawRectangle(Brushes.Orange, null,new Rect(
-                0, (1 - NormalizeDb(GetLevel(Track))) * Bounds.Height,Bounds.Width,Bounds.Height *
-                (NormalizeDb(GetLevel(Track)) - NormalizeDb(-3))));
+                0, (1 - NormalizeDb(CurrentLevel)) * Bounds.Height,Bounds.Width,Bounds.Height *
+                (NormalizeDb(CurrentLevel) - NormalizeDb(-3))));
         }
 
-        if (GetLevel(Track) > 0)
+        if (CurrentLevel > 0)
         {
             context.DrawRectangle(Brushes.Red, null,new Rect(
-                0, (1 - NormalizeDb(GetLevel(Track))) * Bounds.Height,Bounds.Width,Bounds.Height *
-                (NormalizeDb(GetLevel(Track)) - NormalizeDb(0))));
+                0, (1 - NormalizeDb(CurrentLevel)) * Bounds.Height,Bounds.Width,Bounds.Height *
+                (NormalizeDb(CurrentLevel) - NormalizeDb(0))));
         }
-    }
-
-    private float GetLevel(TrackViewModel track)
-    {
-        // var buffer = AudioService.GetTrackBuffer(track, DataStateService.Bpm, AudioService.MasterSampleRate, 4, 2);
-        // float currentLevelDb = CalculateLevelDb(buffer);
-        // Console.WriteLine($"LevelDb: {currentLevelDb}");
-        // return currentLevelDb;
-        return 0f;
+        
     }
 
     protected override void OnPointerMoved(PointerEventArgs e)
     {
         base.OnPointerMoved(e);
-        InvalidateVisual();
+        // InvalidateVisual();
     }
-
 
     //唉又是AI编程
     public float CalculateLevelDb(float[] buffer)

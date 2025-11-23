@@ -1,11 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Muek.Helpers;
-using Muek.ViewModels;
 using NAudio.CoreAudioApi;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
@@ -17,6 +14,21 @@ public static class AudioService
     private static WasapiOut? _wasapiOut;
     private static CancellationTokenSource? _playbackCts;
     private static int _cachedSampleRate = 0;
+
+    private static float[] _activeMixBuffer = [];
+    private static float _currentDb = -160f;
+
+    public static float CurrentDb
+    {
+        get => _currentDb;
+        private set
+        {
+            DbChanged?.Invoke(null, EventArgs.Empty);
+            _currentDb = value;
+        }
+    }
+
+    public static event EventHandler? DbChanged;
 
     public static int MasterSampleRate { get; private set; } = 44100;
     private const int Channels = 2;
@@ -36,18 +48,19 @@ public static class AudioService
 
         EnsureAllClipsCached(MasterSampleRate);
 
-        var mixedSamples = RenderMix(MasterSampleRate);
-        if (mixedSamples.Length == 0) return;
+        _activeMixBuffer = RenderMix(MasterSampleRate);
+        
+        if (_activeMixBuffer.Length == 0) return;
 
         var waveFormat = WaveFormat.CreateIeeeFloatWaveFormat(MasterSampleRate, Channels);
         var waveProvider = new BufferedWaveProvider(waveFormat)
         {
-            BufferLength = mixedSamples.Length * sizeof(float),
+            BufferLength = _activeMixBuffer.Length * sizeof(float),
             DiscardOnBufferOverflow = true
         };
 
-        var byteBuffer = new byte[mixedSamples.Length * sizeof(float)];
-        Buffer.BlockCopy(mixedSamples, 0, byteBuffer, 0, byteBuffer.Length);
+        var byteBuffer = new byte[_activeMixBuffer.Length * sizeof(float)];
+        Buffer.BlockCopy(_activeMixBuffer, 0, byteBuffer, 0, byteBuffer.Length);
         waveProvider.AddSamples(byteBuffer, 0, byteBuffer.Length);
 
         Stop();
@@ -67,6 +80,7 @@ public static class AudioService
         _wasapiOut?.Stop();
         _wasapiOut?.Dispose();
         _wasapiOut = null;
+        CurrentDb = -160f; // 停止时重置为静音
     }
 
     private static void ClearAllCache()
@@ -113,7 +127,6 @@ public static class AudioService
 
                 long sourceOffsetIdx = (long)(clip.Offset * sampleRate) * Channels;
 
-                // 对齐偶数
                 globalStartIndex -= globalStartIndex % 2;
                 sourceOffsetIdx -= sourceOffsetIdx % 2;
                 needSamples -= needSamples % 2;
@@ -189,17 +202,72 @@ public static class AudioService
         double bpm = DataStateService.Bpm;
         int bytesPerFrame = sizeof(float) * Channels;
 
+        // rms窗口
+        int rmsWindowSize = (int)(sampleRate * 0.05) * Channels; 
+
         while (output != null && output.PlaybackState == PlaybackState.Playing && !token.IsCancellationRequested)
         {
             long bytesPlayed = output.GetPosition();
             long framesPlayed = bytesPlayed / bytesPerFrame;
 
+            // playhead
             double currentSec = (double)framesPlayed / sampleRate / BeatsPerBar;
-
             double currentBeats = currentSec / (60.0 / bpm);
-
             UiStateService.InvokeUpdatePlayheadPos(currentBeats);
-            Thread.Sleep(16);
+
+            // rms/db
+            CalculateRms(bytesPlayed, rmsWindowSize);
+
+            Thread.Sleep(16); 
         }
+        
+        CurrentDb = -160f; // 结束重置
+    }
+
+    private static void CalculateRms(long bytesPlayedPosition, int windowSize)
+    {
+        if (_activeMixBuffer == null || _activeMixBuffer.Length == 0) 
+        {
+            CurrentDb = -160f;
+            return;
+        }
+
+        // 将字节位置转换为 float 数组的索引
+        long startIndex = bytesPlayedPosition / sizeof(float);
+        
+        if (startIndex >= _activeMixBuffer.Length)
+        {
+            CurrentDb = -160f;
+            return;
+        }
+
+        // 确定计算结束点
+        long endIndex = Math.Min(startIndex + windowSize, _activeMixBuffer.Length);
+        int count = (int)(endIndex - startIndex);
+
+        if (count <= 0)
+        {
+            CurrentDb = -160f;
+            return;
+        }
+
+        double sumSquare = 0;
+        for (long i = startIndex; i < endIndex; i++)
+        {
+            float sample = _activeMixBuffer[i];
+            sumSquare += sample * sample;
+        }
+
+        // RMS = sqrt( sum(x^2) / N )
+        double rms = Math.Sqrt(sumSquare / count);
+
+        // dB = 20 * log10(RMS)
+        // 加上极小值 1e-9 防止 log(0) 变成 -Infinity
+        double db = 20 * Math.Log10(rms + 1e-9);
+
+        // 限制最小 dB
+        if (db < -160) db = -160;
+
+        CurrentDb = (float)db;
     }
 }
