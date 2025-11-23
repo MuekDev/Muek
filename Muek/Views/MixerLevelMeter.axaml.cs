@@ -75,10 +75,11 @@ public partial class MixerLevelMeter : UserControl
 
     private float GetLevel(TrackViewModel track)
     {
-        var buffer = AudioService.GetTrackBuffer(track, DataStateService.Bpm, AudioService.MasterSampleRate, 4, 2);
-        float currentLevelDb = CalculateLevelDb(buffer);
-        Console.WriteLine($"LevelDb: {currentLevelDb}");
-        return currentLevelDb;
+        // var buffer = AudioService.GetTrackBuffer(track, DataStateService.Bpm, AudioService.MasterSampleRate, 4, 2);
+        // float currentLevelDb = CalculateLevelDb(buffer);
+        // Console.WriteLine($"LevelDb: {currentLevelDb}");
+        // return currentLevelDb;
+        return 0f;
     }
 
     protected override void OnPointerMoved(PointerEventArgs e)
