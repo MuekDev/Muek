@@ -12,9 +12,7 @@ public class ViewHelper
         {
             return desktop.MainWindow as MainWindow ?? throw new NullReferenceException();
         }
-        else
-        {
-            throw new NotSupportedException();
-        }
+
+        throw new NotSupportedException();
     }
 }
