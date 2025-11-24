@@ -38,11 +38,14 @@
       <None Update="muek_engine.dll">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
+      <None Update="RingBuffer.dll">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
     
     <ItemGroup>
       <Reference Include="RingBuffer">
-        <HintPath>..\..\..\..\Downloads\RingBuffer.dll</HintPath>
+        <HintPath>RingBuffer.dll</HintPath>
       </Reference>
     </ItemGroup>
     
