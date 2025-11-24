@@ -132,6 +132,8 @@ public partial class MuekValuer : UserControl
         StrokeThicknessDecrease(_stroke);
     }
 
+    private readonly Brush _whiteBrush = new SolidColorBrush(Colors.White, .2);
+    private readonly Brush _transparentBrush = new SolidColorBrush(Colors.Black, 0);
     public override void Render(DrawingContext context)
     {
         base.Render(context);
@@ -142,6 +144,8 @@ public partial class MuekValuer : UserControl
         _stroke.Brush = ValuerColor;
 
         //Slider渲染逻辑
+
+        
         if (Layout == LayoutEnum.Slider)
         {
             if (_hover || _pressed)
@@ -154,7 +158,7 @@ public partial class MuekValuer : UserControl
                 StrokeThicknessDecrease(_stroke);
             }
 
-            context.DrawRectangle(new SolidColorBrush(Colors.Black,0), _stroke, new Rect(0, 0, ValuerWidth, ValuerHeight));
+            context.DrawRectangle(_transparentBrush, _stroke, new Rect(0, 0, ValuerWidth, ValuerHeight));
             // context.DrawRectangle(Brush.Parse("#CC000000"), _stroke, new Rect(0, 0, ValuerWidth, ValuerHeight));
             var percentValue = (Value - MinValue) / (MaxValue - MinValue);
             // context.DrawRectangle(Brushes.Black,null, new Rect(0,(1-percentValue)*(ValuerHeight-6)+2, ValuerWidth, 4));
@@ -167,7 +171,7 @@ public partial class MuekValuer : UserControl
             if(_hover || _pressed)
             {
                 //默认值
-                context.DrawEllipse(new SolidColorBrush(Colors.White, .2), null,
+                context.DrawEllipse(_whiteBrush, null,
                     new Point(-10, (1 - defaultPercentValue) * (ValuerHeight) + 1), 2, 2);
             }
         }
@@ -186,7 +190,7 @@ public partial class MuekValuer : UserControl
             {
                 StrokeThicknessDecrease(_stroke);
             }
-            context.DrawEllipse(new SolidColorBrush(Colors.Black,0), _stroke, center, radius,
+            context.DrawEllipse(_transparentBrush, _stroke, center, radius,
                 radius);
             // context.DrawEllipse(Brush.Parse("#CC000000"), _stroke, center,
             //     radius-.05, radius-.05);
@@ -207,17 +211,17 @@ public partial class MuekValuer : UserControl
             if(_hover || _pressed)
             {
                 //默认值
-                context.DrawEllipse(new SolidColorBrush(Colors.White, .2), null,
+                context.DrawEllipse(_whiteBrush, null,
                     new Point(center.X + radius * 1.2 * -double.Sin(defaultPercentValue * Double.Pi * 2),
                         center.Y + radius * 1.2 * double.Cos(defaultPercentValue * Double.Pi * 2)), 2,
                     2);
 
                 //边缘值
-                context.DrawEllipse(new SolidColorBrush(Colors.White, .2), null,
+                context.DrawEllipse(_whiteBrush, null,
                     new Point(center.X + radius * 1.2 * -double.Sin(border * Double.Pi * 2),
                         center.Y + radius * 1.2 * double.Cos(border * Double.Pi * 2)), 2,
                     2);
-                context.DrawEllipse(new SolidColorBrush(Colors.White, .2), null,
+                context.DrawEllipse(_whiteBrush, null,
                     new Point(center.X + radius * 1.2 * -double.Sin((1 - border) * Double.Pi * 2),
                         center.Y + radius * 1.2 * double.Cos((1 - border) * Double.Pi * 2)), 2,
                     2);
