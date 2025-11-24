@@ -233,17 +233,18 @@ public partial class PianoRoll : UserControl
                 }
             }
 
-            var gridLinePen = new Pen(new SolidColorBrush(Colors.White, .1), _widthOfBeat * .005);
+            var whiteGridPen = new Pen(new SolidColorBrush(Colors.White, .2), _widthOfBeat * .005);
+            var purpleGridPen = new Pen(new SolidColorBrush(Colors.MediumPurple, .5));
+            var blueGridPen = new Pen(new SolidColorBrush(Colors.LightSkyBlue, .5));
             if (_widthOfBeat > 20)
             {
-                gridLinePen.Brush = new SolidColorBrush(Colors.White, .1);
                 for (double i = 0; i < Width / _widthOfBeat; i += double.Clamp(Magnet,1/8d,2d))
                 {
                     if (i % 4 == 0) continue;
                     // var gridLinePen = new Pen(new SolidColorBrush(Colors.White, .1), _widthOfBeat * .005);
                     if (i * _widthOfBeat > ClampValue && i * _widthOfBeat < Width + ClampValue)
                     {
-                        context.DrawLine(gridLinePen,
+                        context.DrawLine(whiteGridPen,
                             new Point(i * _widthOfBeat, 0),
                             new Point(i * _widthOfBeat, Height));
                     }
@@ -251,13 +252,14 @@ public partial class PianoRoll : UserControl
 
                 if (Magnet <= 1 / 6.0)
                 {
-                    gridLinePen = new Pen(new SolidColorBrush(Colors.MediumPurple,.5));
+                    purpleGridPen.Thickness = 1;
+                    // gridLinePen = new Pen(new SolidColorBrush(Colors.MediumPurple,.5));
                     for (int i = 1; i < Width / _widthOfBeat; i += 2)
                     {
-                        if (_widthOfBeat < 50) gridLinePen.Thickness = .5;
+                        if (_widthOfBeat < 50) purpleGridPen.Thickness = .5;
                         if (i * _widthOfBeat > ClampValue && i * _widthOfBeat < Width + ClampValue)
                         {
-                            context.DrawLine(gridLinePen,
+                            context.DrawLine(purpleGridPen,
                                 new Point(i * _widthOfBeat, 0),
                                 new Point(i * _widthOfBeat, Height));
                         }
@@ -266,13 +268,14 @@ public partial class PianoRoll : UserControl
 
                 if (Magnet <= 1 / 3.0)
                 {
-                    gridLinePen = new Pen(new SolidColorBrush(Colors.LightSkyBlue,.5));
+                    blueGridPen.Thickness = 1;
+                    // gridLinePen = new Pen(new SolidColorBrush(Colors.LightSkyBlue,.5));
                     for (int i =2; i < Width / _widthOfBeat; i += 4)
                     {
-                        if (_widthOfBeat < 50) gridLinePen.Thickness = .5;
+                        if (_widthOfBeat < 50) blueGridPen.Thickness = .5;
                         if (i * _widthOfBeat > ClampValue && i * _widthOfBeat < Width + ClampValue)
                         {
-                            context.DrawLine(gridLinePen,
+                            context.DrawLine(blueGridPen,
                                 new Point(i * _widthOfBeat, 0),
                                 new Point(i * _widthOfBeat, Height));
                         }
@@ -280,7 +283,7 @@ public partial class PianoRoll : UserControl
                 }
             }
 
-            gridLinePen = new Pen(new SolidColorBrush(Colors.White, .5),1,new DashStyle([NoteHeight,NoteHeight*.5],0));
+            var gridLinePen = new Pen(new SolidColorBrush(Colors.White, .5),1,new DashStyle([NoteHeight,NoteHeight*.5],0));
             for (int i = 0; i < Width / _widthOfBeat; i++)
             {
                 gridLinePen.Brush = new SolidColorBrush(Colors.White, .5);
