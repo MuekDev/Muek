@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using NAudio.CoreAudioApi;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
+using RingBuffer; 
 
 namespace Muek.Services;
 
@@ -15,20 +16,24 @@ public static class AudioService
     private static CancellationTokenSource? _playbackCts;
     private static int _cachedSampleRate = 0;
 
-    private static float[] _activeMixBuffer = [];
-    private static float _currentDb = -160f;
+    private static RingBuffer<float>? _ringBuffer;
+    private static long _currentMixSamplePosition = 0; // 当前混音到了第几个样本
+    private static long _totalSongSamples = 0;         // 歌曲总长度
+    
+    private const int RingBufferCapacity = 176400; 
 
+    private static float _currentDb = -160f;
     public static float CurrentDb
     {
         get => _currentDb;
         private set
         {
-            DbChanged?.Invoke(null, EventArgs.Empty);
             _currentDb = value;
+            DbChanged?.Invoke(null, value);
         }
     }
 
-    public static event EventHandler? DbChanged;
+    public static event EventHandler<float>? DbChanged;
 
     public static int MasterSampleRate { get; private set; } = 44100;
     private const int Channels = 2;
@@ -48,39 +53,198 @@ public static class AudioService
 
         EnsureAllClipsCached(MasterSampleRate);
 
-        _activeMixBuffer = RenderMix(MasterSampleRate);
+        Stop(); 
         
-        if (_activeMixBuffer.Length == 0) return;
+        CalculateTotalDurationSamples();
+        _currentMixSamplePosition = 0;
 
-        var waveFormat = WaveFormat.CreateIeeeFloatWaveFormat(MasterSampleRate, Channels);
-        var waveProvider = new BufferedWaveProvider(waveFormat)
-        {
-            BufferLength = _activeMixBuffer.Length * sizeof(float),
-            DiscardOnBufferOverflow = true
-        };
-
-        var byteBuffer = new byte[_activeMixBuffer.Length * sizeof(float)];
-        Buffer.BlockCopy(_activeMixBuffer, 0, byteBuffer, 0, byteBuffer.Length);
-        waveProvider.AddSamples(byteBuffer, 0, byteBuffer.Length);
-
-        Stop();
-        _wasapiOut = new WasapiOut(device, AudioClientShareMode.Shared, false, 100);
-        _wasapiOut.Init(waveProvider);
-        _wasapiOut.Play();
+        _ringBuffer = new RingBuffer<float>(RingBufferCapacity);
 
         _playbackCts = new CancellationTokenSource();
+
+        var producerThread = new Thread(ProducerLoop)
+        {
+            Priority = ThreadPriority.Highest, // 关键：设为最高优先级
+            IsBackground = true,
+            Name = "AudioMixerThread"
+        };
+        producerThread.Start(_playbackCts.Token);
+
+        Console.WriteLine("正在预缓冲...");
+        int retry = 0;
+        while (_ringBuffer.Size < _ringBuffer.Capacity / 2 && retry < 100)
+        {
+            Thread.Sleep(10);
+            retry++;
+        }
+
+        var waveFormat = WaveFormat.CreateIeeeFloatWaveFormat(MasterSampleRate, Channels);
+        var provider = new RingBufferSampleProvider(_ringBuffer, waveFormat);
+        provider.OnRmsCalculated += db => CurrentDb = db;
+
+        _wasapiOut = new WasapiOut(device, AudioClientShareMode.Shared, false, 100); // 建议 latency 改为 100-200 比较稳
+        _wasapiOut.Init(provider);
+        _wasapiOut.Play();
+
         Task.Run(() => UpdatePlayheadLoop(_wasapiOut, MasterSampleRate, _playbackCts.Token));
 
-        Console.WriteLine($"播放中... Rate: {MasterSampleRate}");
+        Console.WriteLine($"实时流播放中... Rate: {MasterSampleRate}");
     }
 
     public static void Stop()
     {
         _playbackCts?.Cancel();
+        
+        Thread.Sleep(50); 
+        
         _wasapiOut?.Stop();
         _wasapiOut?.Dispose();
         _wasapiOut = null;
-        CurrentDb = -160f; // 停止时重置为静音
+        
+        _ringBuffer = null;
+        CurrentDb = -160f;
+    }
+
+    private static void ProducerLoop(object? obj)
+    {
+        var token = (CancellationToken)obj!;
+        int processChunkSize = 1024; 
+        float[] mixChunk = new float[processChunkSize];
+
+        while (!token.IsCancellationRequested)
+        {
+            if (_ringBuffer == null) break;
+
+            int availableSpace = _ringBuffer.Capacity - _ringBuffer.Size;
+
+            if (availableSpace >= processChunkSize)
+            {
+                if (_currentMixSamplePosition >= _totalSongSamples)
+                {
+                    try { _ringBuffer.Put(0); } catch { } 
+                    Thread.Sleep(10);
+                    continue;
+                }
+
+                MixNextBlock(mixChunk, _currentMixSamplePosition);
+                
+                foreach (var sample in mixChunk)
+                {
+                    try 
+                    {
+                        _ringBuffer.Put(sample); 
+                    }
+                    catch (InvalidOperationException) 
+                    {
+                        // 防止 buffer 突然满了抛出异常
+                        break; 
+                    }
+                }
+
+                _currentMixSamplePosition += processChunkSize;
+                
+                // 【关键】：这里不要 Sleep！
+                // 循环会立刻回到开头检查 availableSpace。
+                // 如果空间还很大，会继续填下一个块，直到把 Buffer 填满。
+            }
+            else
+            {
+                // 只有当 Buffer 确实满了（塞不进去了），才休息一小会儿
+                // 1ms 足够了，让出 CPU 给消费者
+                Thread.Sleep(1); 
+            }
+        }
+    }
+
+    private static void MixNextBlock(float[] chunkBuffer, long startSampleIndex)
+    {
+        Array.Clear(chunkBuffer, 0, chunkBuffer.Length);
+
+        var tracks = DataStateService.Tracks;
+        double bpm = DataStateService.Bpm;
+        int sampleRate = MasterSampleRate;
+        int chunkLen = chunkBuffer.Length;
+
+        foreach (var track in tracks)
+        {
+            foreach (var clip in track.Clips)
+            {
+                if (clip.CachedWaveform is not { Length: > 0 }) continue;
+                var sourceData = clip.CachedWaveform;
+
+                double startSeconds = clip.StartBeat / bpm * 60.0;
+                long clipGlobalStartIdx = (long)(startSeconds * sampleRate) * BeatsPerBar * Channels;
+                
+                clipGlobalStartIdx -= clipGlobalStartIdx % 2;
+
+                double durationSeconds = clip.Duration / bpm * 60.0;
+                long clipTotalLen = (long)(durationSeconds * sampleRate) * BeatsPerBar * Channels;
+                clipTotalLen -= clipTotalLen % 2;
+
+                long clipGlobalEndIdx = clipGlobalStartIdx + clipTotalLen;
+
+                if (clipGlobalStartIdx >= startSampleIndex + chunkLen || clipGlobalEndIdx <= startSampleIndex)
+                    continue;
+
+                long writeStartInChunk = Math.Max(0, clipGlobalStartIdx - startSampleIndex);
+                long writeEndInChunk = Math.Min(chunkLen, clipGlobalEndIdx - startSampleIndex);
+
+                long sourceOffsetIdx = (long)(clip.Offset * sampleRate) * Channels;
+                sourceOffsetIdx -= sourceOffsetIdx % 2;
+
+                long samplesIntoClip = (startSampleIndex + writeStartInChunk) - clipGlobalStartIdx;
+                
+                // 真正的读取指针
+                long readPtr = sourceOffsetIdx + samplesIntoClip;
+
+                // 循环拷贝并累加
+                for (long i = writeStartInChunk; i < writeEndInChunk; i++)
+                {
+                    if (readPtr < sourceData.Length)
+                    {
+                        chunkBuffer[i] += sourceData[readPtr];
+                        readPtr++;
+                    }
+                }
+            }
+        }
+    }
+
+    private static void CalculateTotalDurationSamples()
+    {
+        double maxDurationBeats = 0;
+        foreach (var track in DataStateService.Tracks)
+        {
+            foreach (var clip in track.Clips)
+            {
+                double endBeat = clip.StartBeat + clip.Duration;
+                if (endBeat > maxDurationBeats) maxDurationBeats = endBeat;
+            }
+        }
+        _totalSongSamples = (long)(maxDurationBeats / DataStateService.Bpm * 60.0 * MasterSampleRate) * BeatsPerBar * Channels;
+        // 加一点缓冲尾部
+        _totalSongSamples += 44100 * Channels; 
+    }
+
+    private static void UpdatePlayheadLoop(WasapiOut output, int sampleRate, CancellationToken token)
+    {
+        double bpm = DataStateService.Bpm;
+        int bytesPerFrame = sizeof(float) * Channels;
+
+        while (output != null && output.PlaybackState == PlaybackState.Playing && !token.IsCancellationRequested)
+        {
+            long bytesPlayed = output.GetPosition();
+            long framesPlayed = bytesPlayed / bytesPerFrame;
+
+            double currentSec = (double)framesPlayed / sampleRate / BeatsPerBar;
+            double currentBeats = currentSec / (60.0 / bpm);
+            
+            UiStateService.InvokeUpdatePlayheadPos(currentBeats);
+
+            
+            Thread.Sleep(16);
+        }
+        CurrentDb = -160f;
     }
 
     private static void ClearAllCache()
@@ -91,63 +255,20 @@ public static class AudioService
         }
     }
 
-    private static float[] RenderMix(int sampleRate)
+    private static void EnsureAllClipsCached(int targetRate)
     {
-        var tracks = DataStateService.Tracks;
-        double bpm = DataStateService.Bpm;
-
-        double maxDurationBeats = 0;
-        foreach (var track in tracks)
+        foreach (var track in DataStateService.Tracks)
         {
             foreach (var clip in track.Clips)
             {
-                double endBeat = clip.StartBeat + clip.Duration;
-                if (endBeat > maxDurationBeats) maxDurationBeats = endBeat;
-            }
-        }
-
-        long totalOutputSamples = (long)(maxDurationBeats / bpm * 60.0 * sampleRate) * BeatsPerBar * Channels;
-
-        if (totalOutputSamples <= 0) return Array.Empty<float>();
-
-        var mixBuffer = new float[totalOutputSamples];
-
-        foreach (var track in tracks)
-        {
-            foreach (var clip in track.Clips)
-            {
-                if (clip.CachedWaveform is not { Length: > 0 }) continue;
-                var sourceData = clip.CachedWaveform;
-
-                double startSeconds = clip.StartBeat / bpm * 60.0;
-                long globalStartIndex = (long)(startSeconds * sampleRate) * BeatsPerBar * Channels;
-
-                double durationSeconds = clip.Duration / bpm * 60.0;
-                long needSamples = (long)(durationSeconds * sampleRate) * BeatsPerBar * Channels;
-
-                long sourceOffsetIdx = (long)(clip.Offset * sampleRate) * Channels;
-
-                globalStartIndex -= globalStartIndex % 2;
-                sourceOffsetIdx -= sourceOffsetIdx % 2;
-                needSamples -= needSamples % 2;
-
-                if (sourceOffsetIdx >= sourceData.Length) continue;
-
-                long copyLength = Math.Min(needSamples, sourceData.Length - sourceOffsetIdx);
-
-                if (globalStartIndex + copyLength > mixBuffer.Length)
-                    copyLength = mixBuffer.Length - globalStartIndex;
-
-                if (copyLength <= 0) continue;
-
-                for (int i = 0; i < copyLength; i++)
+                if (string.IsNullOrEmpty(clip.Path)) continue;
+                if (clip.CachedWaveform == null || clip.CachedWaveform.Length == 0)
                 {
-                    mixBuffer[globalStartIndex + i] += sourceData[sourceOffsetIdx + i];
+                    try { clip.CachedWaveform = LoadAndResample(clip.Path, targetRate); }
+                    catch { /* log */ }
                 }
             }
         }
-
-        return mixBuffer;
     }
 
     private static float[] LoadAndResample(string path, int targetRate)
@@ -173,101 +294,5 @@ public static class AudioService
         }
 
         return data.ToArray();
-    }
-
-    private static void EnsureAllClipsCached(int targetRate)
-    {
-        foreach (var track in DataStateService.Tracks)
-        {
-            foreach (var clip in track.Clips)
-            {
-                if (string.IsNullOrEmpty(clip.Path)) continue;
-                if (clip.CachedWaveform == null || clip.CachedWaveform.Length == 0)
-                {
-                    try
-                    {
-                        clip.CachedWaveform = LoadAndResample(clip.Path, targetRate);
-                    }
-                    catch
-                    {
-                        Console.WriteLine("[AudioService] cached wave panic!");
-                    }
-                }
-            }
-        }
-    }
-
-    private static void UpdatePlayheadLoop(WasapiOut output, int sampleRate, CancellationToken token)
-    {
-        double bpm = DataStateService.Bpm;
-        int bytesPerFrame = sizeof(float) * Channels;
-
-        // rms窗口
-        int rmsWindowSize = (int)(sampleRate * 0.05) * Channels; 
-
-        while (output != null && output.PlaybackState == PlaybackState.Playing && !token.IsCancellationRequested)
-        {
-            long bytesPlayed = output.GetPosition();
-            long framesPlayed = bytesPlayed / bytesPerFrame;
-
-            // playhead
-            double currentSec = (double)framesPlayed / sampleRate / BeatsPerBar;
-            double currentBeats = currentSec / (60.0 / bpm);
-            UiStateService.InvokeUpdatePlayheadPos(currentBeats);
-
-            // rms/db
-            CalculateRms(bytesPlayed, rmsWindowSize);
-
-            Thread.Sleep(16); 
-        }
-        
-        CurrentDb = -160f; // 结束重置
-    }
-
-    private static void CalculateRms(long bytesPlayedPosition, int windowSize)
-    {
-        if (_activeMixBuffer == null || _activeMixBuffer.Length == 0) 
-        {
-            CurrentDb = -160f;
-            return;
-        }
-
-        // 将字节位置转换为 float 数组的索引
-        long startIndex = bytesPlayedPosition / sizeof(float);
-        
-        if (startIndex >= _activeMixBuffer.Length)
-        {
-            CurrentDb = -160f;
-            return;
-        }
-
-        // 确定计算结束点
-        long endIndex = Math.Min(startIndex + windowSize, _activeMixBuffer.Length);
-        int count = (int)(endIndex - startIndex);
-
-        if (count <= 0)
-        {
-            CurrentDb = -160f;
-            return;
-        }
-
-        double sumSquare = 0;
-        for (long i = startIndex; i < endIndex; i++)
-        {
-            float sample = _activeMixBuffer[i];
-            sumSquare += sample * sample;
-        }
-
-        // RMS = sqrt( sum(x^2) / N )
-        double rms = Math.Sqrt(sumSquare / count);
-
-        // dB = 20 * log10(RMS)
-        // 加上极小值 1e-9 防止 log(0) 变成 -Infinity
-        double db = 20 * Math.Log10(rms + 1e-9);
-
-        // 限制最小 dB
-        if (db < -160) db = -160;
-
-        CurrentDb = (float)db;
     }
 }

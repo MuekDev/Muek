@@ -30,7 +30,7 @@ public partial class MixerLevelMeter : UserControl
         AudioService.DbChanged += AudioServiceOnDbChanged;
     }
 
-    private void AudioServiceOnDbChanged(object? sender, EventArgs e)
+    private void AudioServiceOnDbChanged(object? sender, float f)
     {
         Dispatcher.UIThread.Post(InvalidateVisual, DispatcherPriority.Render);
     }
