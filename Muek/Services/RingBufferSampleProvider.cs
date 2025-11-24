@@ -11,6 +11,7 @@ public class RingBufferSampleProvider : ISampleProvider
 
     // 用于 RMS 计算
     public event Action<float>? OnRmsCalculated;
+    public event Action<float>? OnPeakCalculated;
 
     public RingBufferSampleProvider(RingBuffer<float> buffer, WaveFormat format)
     {
@@ -43,6 +44,7 @@ public class RingBufferSampleProvider : ISampleProvider
 
         // 3. 计算这一帧的 RMS (供电平表使用)
         CalculateRms(buffer, offset, count);
+        CalculatePeak(buffer, offset, count);
 
         return samplesRead;
     }
@@ -61,5 +63,39 @@ public class RingBufferSampleProvider : ISampleProvider
         if (db < -160) db = -160;
         
         OnRmsCalculated?.Invoke((float)db);
+    }
+    
+    private void CalculatePeak(float[] buffer, int offset, int count)
+    {
+        // 1. 参数校验
+        if (count <= 0) return;
+
+        // 2. 找到指定范围内的峰值（绝对值最大的值）
+        float peak = 0.0f;
+        for (int i = 0; i < count; i++)
+        {
+            // 从 offset 开始索引
+            float absoluteValue = Math.Abs(buffer[offset + i]);
+            if (absoluteValue > peak)
+            {
+                peak = absoluteValue;
+            }
+        }
+
+        // 3. 防止 log10(0) 导致的无穷大
+        // if (peak < 1e-9) // 使用与RMS函数中类似的小值，保持一致性
+        // {
+        //     OnPeakCalculated?.Invoke(MinDb);
+        //     return;
+        // }
+
+        // 4. 转换为峰值分贝
+        float peakDb = 20 * float.Log10(peak);
+
+        // 5. 确保结果在设定的范围内
+        // float resultDb = (float)Math.Max(peakDb, MinDb);
+
+        // 6. 通过事件回调结果
+        OnPeakCalculated?.Invoke(peakDb);
     }
 }

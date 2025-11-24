@@ -19,22 +19,34 @@ public static class AudioService
     private static RingBuffer<float>? _ringBuffer;
     private static long _currentMixSamplePosition = 0; // 当前混音到了第几个样本
     private static long _totalSongSamples = 0;         // 歌曲总长度
-    
-    private const int RingBufferCapacity = 176400; 
 
+    private const int RingBufferCapacity = 176400;
 
-    private static float _currentDb = -160f;
-    public static float CurrentDb
+    private static float _currentRmsDb = -160f;
+    private static float _currentPeakDb = -160f;
+
+    public static float CurrentRmsDb
     {
-        get => _currentDb;
+        get => _currentRmsDb;
         private set
         {
-            _currentDb = value;
-            DbChanged?.Invoke(null, value);
+            _currentRmsDb = value;
+            RmsDbChanged?.Invoke(null, value);
         }
     }
 
-    public static event EventHandler<float>? DbChanged;
+    public static float CurrentPeakDb
+    {
+        get => _currentPeakDb;
+        private set
+        {
+            _currentPeakDb = value;
+            PeakDbChanged?.Invoke(null, value);
+        }
+    }
+
+    public static event EventHandler<float>? RmsDbChanged;
+    public static event EventHandler<float>? PeakDbChanged;
 
     public static int MasterSampleRate { get; private set; } = 44100;
     private const int Channels = 2;
@@ -81,7 +93,8 @@ public static class AudioService
 
         var waveFormat = WaveFormat.CreateIeeeFloatWaveFormat(MasterSampleRate, Channels);
         var provider = new RingBufferSampleProvider(_ringBuffer, waveFormat);
-        provider.OnRmsCalculated += db => CurrentDb = db;
+        provider.OnRmsCalculated += db => CurrentRmsDb = db;
+        provider.OnPeakCalculated += db => CurrentPeakDb = db;
 
         _wasapiOut = new WasapiOut(device, AudioClientShareMode.Shared, false, 100); // 建议 latency 改为 100-200 比较稳
         _wasapiOut.Init(provider);
@@ -103,7 +116,7 @@ public static class AudioService
         _wasapiOut = null;
         
         _ringBuffer = null;
-        CurrentDb = -160f;
+        CurrentRmsDb = -160f;
     }
 
     private static void ProducerLoop(object? obj)
@@ -245,7 +258,7 @@ public static class AudioService
             
             Thread.Sleep(16);
         }
-        CurrentDb = -160f;
+        CurrentRmsDb = -160f;
     }
 
     private static void ClearAllCache()

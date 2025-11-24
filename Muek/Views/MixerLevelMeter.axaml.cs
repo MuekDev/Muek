@@ -22,13 +22,15 @@ public partial class MixerLevelMeter : UserControl
 
     private const float CompressionFactor = 0.15f;
     
-    public float CurrentLevel => AudioService.CurrentDb;
+    public float CurrentRmsLevel => AudioService.CurrentRmsDb;
+    public float CurrentPeakLevel => AudioService.CurrentPeakDb;
 
     public MixerLevelMeter()
     {
         InitializeComponent();
         ClipToBounds = false;
-        AudioService.DbChanged += AudioServiceOnDbChanged;
+        AudioService.RmsDbChanged += AudioServiceOnRmsDbChanged;
+        AudioService.PeakDbChanged += AudioServiceOnPeakDbChanged;
     }
 
     protected override void OnInitialized()
@@ -37,7 +39,12 @@ public partial class MixerLevelMeter : UserControl
         
     }
 
-    private void AudioServiceOnDbChanged(object? sender, float f)
+    private void AudioServiceOnRmsDbChanged(object? sender, float f)
+    {
+        Dispatcher.UIThread.Post(InvalidateVisual, DispatcherPriority.Render);
+    }
+
+    private void AudioServiceOnPeakDbChanged(object? sender, float f)
     {
         Dispatcher.UIThread.Post(InvalidateVisual, DispatcherPriority.Render);
     }
@@ -62,7 +69,9 @@ public partial class MixerLevelMeter : UserControl
     private readonly Pen _whitePen = new Pen(new SolidColorBrush(Colors.White, .2));
     
     private List<Point[]> _gridList = new();
-    
+
+    private readonly IBrush _orangeBrush = new SolidColorBrush(Colors.Orange, .5);
+    private readonly IBrush _redBrush = new SolidColorBrush(Colors.Red, .5);
     
     public override void Render(DrawingContext context)
     {
@@ -107,11 +116,50 @@ public partial class MixerLevelMeter : UserControl
             _warningPoint1);
         context.DrawText(_warningText2,
             _warningPoint2);
-        
-        context.DrawRectangle(null,new Pen(Brush.Parse(Track.Color)),_backgroundRect);
-        context.DrawRectangle(Brush.Parse(Track.Color), null,new Rect(
-            0, (1 - NormalizeDb(CurrentLevel)) * Bounds.Height,Bounds.Width,Bounds.Height * NormalizeDb(CurrentLevel)));
 
+        var colorBrush = new SolidColorBrush(Color.Parse(Track.Color),.5);
+        context.DrawRectangle(null,new Pen(colorBrush),_backgroundRect);
+        
+        //PEAK
+        {
+            context.DrawRectangle(colorBrush, null, new Rect(
+                0, (1 - NormalizeDb(CurrentPeakLevel)) * Bounds.Height, Bounds.Width,
+                Bounds.Height * NormalizeDb(CurrentPeakLevel)));
+            if (CurrentPeakLevel > -3)
+            {
+                context.DrawRectangle(_orangeBrush, null, new Rect(
+                    0, (1 - NormalizeDb(CurrentPeakLevel)) * Bounds.Height, Bounds.Width, Bounds.Height *
+                    (NormalizeDb(CurrentPeakLevel) - NormalizeDb(-3))));
+            }
+
+            if (CurrentPeakLevel > 0)
+            {
+                context.DrawRectangle(_redBrush, null, new Rect(
+                    0, (1 - NormalizeDb(CurrentPeakLevel)) * Bounds.Height, Bounds.Width, Bounds.Height *
+                    (NormalizeDb(CurrentPeakLevel) - NormalizeDb(0))));
+            }
+        }
+        //RMS
+        {
+            context.DrawRectangle(colorBrush, null, new Rect(
+                0, (1 - NormalizeDb(CurrentRmsLevel)) * Bounds.Height, Bounds.Width,
+                Bounds.Height * NormalizeDb(CurrentRmsLevel)));
+            if (CurrentRmsLevel > -3)
+            {
+                context.DrawRectangle(_orangeBrush, null, new Rect(
+                    0, (1 - NormalizeDb(CurrentRmsLevel)) * Bounds.Height, Bounds.Width, Bounds.Height *
+                    (NormalizeDb(CurrentRmsLevel) - NormalizeDb(-3))));
+            }
+        
+            if (CurrentRmsLevel > 0)
+            {
+                context.DrawRectangle(_redBrush, null, new Rect(
+                    0, (1 - NormalizeDb(CurrentRmsLevel)) * Bounds.Height, Bounds.Width, Bounds.Height *
+                    (NormalizeDb(CurrentRmsLevel) - NormalizeDb(0))));
+            }
+        }
+        
+        
         
         //-3 0以外的参考线
         // for (int i = -6; i > MinDb; i -= 3)
@@ -124,20 +172,6 @@ public partial class MixerLevelMeter : UserControl
         {
             context.DrawLine(_whitePen,
                 item[0],item[1]);
-        }
-        
-        if (CurrentLevel > -3)
-        {
-            context.DrawRectangle(Brushes.Orange, null,new Rect(
-                0, (1 - NormalizeDb(CurrentLevel)) * Bounds.Height,Bounds.Width,Bounds.Height *
-                (NormalizeDb(CurrentLevel) - NormalizeDb(-3))));
-        }
-
-        if (CurrentLevel > 0)
-        {
-            context.DrawRectangle(Brushes.Red, null,new Rect(
-                0, (1 - NormalizeDb(CurrentLevel)) * Bounds.Height,Bounds.Width,Bounds.Height *
-                (NormalizeDb(CurrentLevel) - NormalizeDb(0))));
         }
         
     }
