@@ -144,5 +144,26 @@ public partial class Mixer : UserControl
     {
         base.Render(context);
     }
-    
+
+    private void PeakRmsSelected(object? sender, RoutedEventArgs e)
+    {
+        MeterModeButton.Content = "Peak/RMS";
+        LevelMeter.Mode = MixerLevelMeter.LevelMeterMode.PeakRms;
+        InvalidateVisual();
+        LevelMeter.InvalidateVisual();
+    }
+
+    private void PeakSelected(object? sender, RoutedEventArgs e)
+    {
+        MeterModeButton.Content = "Peak";
+        LevelMeter.Mode =  MixerLevelMeter.LevelMeterMode.Peak;
+        InvalidateVisual();
+    }
+
+    private void RmsSelected(object? sender, RoutedEventArgs e)
+    {
+        MeterModeButton.Content = "RMS";
+        LevelMeter.Mode = MixerLevelMeter.LevelMeterMode.Rms;
+        InvalidateVisual();
+    }
 }

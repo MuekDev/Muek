@@ -9,6 +9,7 @@ using Avalonia.Input;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Threading;
+using CommunityToolkit.Mvvm.ComponentModel;
 using Muek.Services;
 using Muek.ViewModels;
 
@@ -16,19 +17,41 @@ namespace Muek.Views;
 
 public partial class MixerLevelMeter : UserControl
 {
-    public TrackViewModel Track;
+    private static readonly StyledProperty<TrackViewModel> TrackProperty = AvaloniaProperty.Register<MixerLevelMeter, TrackViewModel>(
+        nameof(Track));
+
+    public TrackViewModel Track
+    {
+        get => GetValue(TrackProperty);
+        set => SetValue(TrackProperty, value);
+    }
     private const float MinDb = -114.0f;
     private const float MaxDb = 6f;
 
     private const float CompressionFactor = 0.15f;
+
+    private float[] CurrentRmsLevel => AudioService.CurrentRmsDb;
+    private float[] CurrentPeakLevel => AudioService.CurrentPeakDb;
     
-    public float[] CurrentRmsLevel => AudioService.CurrentRmsDb;
-    public float[] CurrentPeakLevel => AudioService.CurrentPeakDb;
+    public enum LevelMeterMode
+    {
+        PeakRms,Peak,Rms
+    }
+
+    private static readonly StyledProperty<LevelMeterMode> ModeProperty = AvaloniaProperty.Register<MixerLevelMeter, LevelMeterMode>(
+        nameof(Mode));
+
+    public LevelMeterMode Mode
+    {
+        get => GetValue(ModeProperty);
+        set => SetValue(ModeProperty, value);
+    }
 
     public MixerLevelMeter()
     {
         InitializeComponent();
         ClipToBounds = false;
+        Mode = LevelMeterMode.PeakRms;
         AudioService.RmsDbChanged += AudioServiceOnRmsDbChanged;
         AudioService.PeakDbChanged += AudioServiceOnPeakDbChanged;
     }
@@ -66,13 +89,37 @@ public partial class MixerLevelMeter : UserControl
 
     private Rect _backgroundRect;
 
-    private readonly Pen _whitePen = new Pen(new SolidColorBrush(Colors.White, .2));
+    private readonly Pen _whitePen = new Pen(new SolidColorBrush(Colors.White, .5));
     
     private List<Point[]> _gridList = new();
 
-    private readonly IBrush _orangeBrush = new SolidColorBrush(Colors.Orange, .5);
-    private readonly IBrush _redBrush = new SolidColorBrush(Colors.Red, .5);
+    private IBrush _solidColorBrush;
     
+    private IBrush _orangeBrush = new SolidColorBrush(Colors.Orange, .8);
+    private IBrush _redBrush = new SolidColorBrush(Colors.Red, .8);
+    private IBrush _colorBrush;
+
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    {
+        base.OnPropertyChanged(change);
+        if (change.Property == ModeProperty || change.Property == TrackProperty)
+        {
+            if (Mode == LevelMeterMode.PeakRms)
+            {
+                _orangeBrush = new SolidColorBrush(Colors.Orange,.5);
+                _redBrush = new SolidColorBrush(Colors.Red, .5);
+                _colorBrush = new SolidColorBrush(Color.Parse(Track.Color),.5);
+            }
+            else
+            {
+                _orangeBrush = new SolidColorBrush(Colors.Orange,.75);
+                _redBrush = new SolidColorBrush(Colors.Red,.75);
+                _colorBrush = new SolidColorBrush(Color.Parse(Track.Color),.75);
+            }
+            if (change.Property == TrackProperty) _solidColorBrush = new SolidColorBrush(Color.Parse(Track.Color));
+        }
+    }
+
     public override void Render(DrawingContext context)
     {
         base.Render(context);
@@ -117,14 +164,15 @@ public partial class MixerLevelMeter : UserControl
         context.DrawText(_warningText2,
             _warningPoint2);
 
-        var colorBrush = new SolidColorBrush(Color.Parse(Track.Color),.5);
-        context.DrawRectangle(null,new Pen(colorBrush),_backgroundRect);
+        
+        context.DrawRectangle(null,new Pen(_solidColorBrush),_backgroundRect);
         
         //PEAK
+        if(Mode is LevelMeterMode.PeakRms or LevelMeterMode.Peak)
         {
             //Left Channel
             {
-                context.DrawRectangle(colorBrush, null, new Rect(
+                context.DrawRectangle(_colorBrush, null, new Rect(
                     -0.1, (1 - NormalizeDb(CurrentPeakLevel[0])) * Bounds.Height, Bounds.Width/2,
                     Bounds.Height * NormalizeDb(CurrentPeakLevel[0])));
                 if (CurrentPeakLevel[0] > -3)
@@ -143,7 +191,7 @@ public partial class MixerLevelMeter : UserControl
             }
             //Right Channel
             {
-                context.DrawRectangle(colorBrush, null, new Rect(
+                context.DrawRectangle(_colorBrush, null, new Rect(
                     0.1+Bounds.Width/2, (1 - NormalizeDb(CurrentPeakLevel[1])) * Bounds.Height, Bounds.Width/2,
                     Bounds.Height * NormalizeDb(CurrentPeakLevel[1])));
                 if (CurrentPeakLevel[1] > -3)
@@ -162,10 +210,11 @@ public partial class MixerLevelMeter : UserControl
             }
         }
         //RMS
+        if(Mode is LevelMeterMode.Rms or LevelMeterMode.PeakRms)
         {
             //Left Channel
             {
-                context.DrawRectangle(colorBrush, null, new Rect(
+                context.DrawRectangle(_colorBrush, null, new Rect(
                     -0.1, (1 - NormalizeDb(CurrentRmsLevel[0])) * Bounds.Height, Bounds.Width/2,
                     Bounds.Height * NormalizeDb(CurrentRmsLevel[0])));
                 if (CurrentRmsLevel[0] > -3)
@@ -184,7 +233,7 @@ public partial class MixerLevelMeter : UserControl
             }
             //Right Channel
             {
-                context.DrawRectangle(colorBrush, null, new Rect(
+                context.DrawRectangle(_colorBrush, null, new Rect(
                     0.1+Bounds.Width/2, (1 - NormalizeDb(CurrentRmsLevel[1])) * Bounds.Height, Bounds.Width/2,
                     Bounds.Height * NormalizeDb(CurrentRmsLevel[1])));
                 if (CurrentRmsLevel[1] > -3)
