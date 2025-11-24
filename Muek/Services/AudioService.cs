@@ -22,6 +22,7 @@ public static class AudioService
     
     private const int RingBufferCapacity = 176400; 
 
+
     private static float _currentDb = -160f;
     public static float CurrentDb
     {
@@ -117,7 +118,7 @@ public static class AudioService
 
             int availableSpace = _ringBuffer.Capacity - _ringBuffer.Size;
 
-            if (availableSpace >= processChunkSize)
+            if (availableSpace > 0)
             {
                 if (_currentMixSamplePosition >= _totalSongSamples)
                 {
