@@ -75,6 +75,14 @@ public partial class PianoRollWindow : UserControl
             _isDragging = false;
             
         };
+        TopBar.PointerEntered += (sender, args) =>
+        {
+            ResizeBorder.IsVisible = true;
+        };
+        TopBar.PointerExited += (sender, args) =>
+        {
+            ResizeBorder.IsVisible = false;
+        };
         DropDisplay.IsVisible = false;
         DropDisplay.Background = new SolidColorBrush(Colors.Black, .5);
         EditArea.SetValue(DragDrop.AllowDropProperty, true);

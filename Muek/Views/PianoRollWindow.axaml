@@ -9,7 +9,7 @@
              x:Class="Muek.Views.PianoRollWindow">
     <Grid RowDefinitions="Auto,*,Auto" Background="#232323">
         <Border Height="50" Name="TopBar" Background="#232323">
-        <Grid>
+            <Grid>
             <StackPanel Orientation="Horizontal" Margin="5,0">
                 
                 <Button Background="Transparent">
@@ -70,6 +70,8 @@
             </Button>
         </Grid>
         </Border>
+        <Border Grid.Row="0" Background="White" Height="0.1" VerticalAlignment="Top" IsVisible="False"
+                Name="ResizeBorder"/>
         <Grid Grid.Row="1" ColumnDefinitions="Auto,*" Margin="5,0">
             <ScrollViewer  VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Disabled"
                            Name="PianoRollLeft" ScrollChanged="ScrollChange" Margin="2">
