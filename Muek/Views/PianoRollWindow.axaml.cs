@@ -78,10 +78,12 @@ public partial class PianoRollWindow : UserControl
         TopBar.PointerEntered += (sender, args) =>
         {
             ResizeBorder.IsVisible = true;
+            Cursor = new Cursor(StandardCursorType.TopSide);
         };
         TopBar.PointerExited += (sender, args) =>
         {
             ResizeBorder.IsVisible = false;
+            Cursor = new Cursor(StandardCursorType.Arrow);
         };
         DropDisplay.IsVisible = false;
         DropDisplay.Background = new SolidColorBrush(Colors.Black, .5);
