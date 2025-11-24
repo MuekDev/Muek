@@ -355,6 +355,7 @@ public partial class PianoRoll : UserControl
                 }
             }
 
+            var rightSideCursor = false;
             for (int i = _noteRangeMin; i <= _noteRangeMax; i++)
             {
                 for (int note = 0; note < _temperament; note++)
@@ -391,7 +392,8 @@ public partial class PianoRoll : UserControl
                                 if (double.Abs(_currentMousePosition.X - existNote.EndTime * _widthOfBeat) < 5)
                                 {
                                     //更改音符长度
-                                    Cursor = new Cursor(StandardCursorType.RightSide);
+                                    // Cursor = new Cursor(StandardCursorType.RightSide);
+                                    rightSideCursor = true;
                                     context.DrawLine(new Pen(Brushes.Red, 2),
                                         new Point(end - 1, Height - (i * _temperament + note + 1) * NoteHeight),
                                         new Point(end - 1,
@@ -399,16 +401,16 @@ public partial class PianoRoll : UserControl
                                 }
                                 else
                                 {
-                                    Cursor = new Cursor(StandardCursorType.Arrow);
+                                    // Cursor = new Cursor(StandardCursorType.Arrow);
                                     context.DrawRectangle(null, new Pen(Brushes.White),
                                         new Rect(start, Height - (i * _temperament + note + 1) * NoteHeight,
                                             end - start, NoteHeight * .9));
                                 }
                             }
-                            else
-                            {
-                                Cursor = new Cursor(StandardCursorType.Arrow);
-                            }
+                            // else
+                            // {
+                            //     Cursor = new Cursor(StandardCursorType.Arrow);
+                            // }
                         }
                     }
 
@@ -446,6 +448,7 @@ public partial class PianoRoll : UserControl
                     }
                 }
             }
+            Cursor = rightSideCursor ? new Cursor(StandardCursorType.RightSide) : new Cursor(StandardCursorType.Arrow);
 
             //渲染框
             if (_selectFrame != null)
@@ -800,156 +803,156 @@ public partial class PianoRoll : UserControl
     protected override void OnPointerReleased(PointerReleasedEventArgs e)
     {
         base.OnPointerReleased(e);
-        if (e.GetPosition(this) == _pressedMousePosition)
-        {
-            SelectedNotes.Clear();
-        }
-
-        if (_currentNoteStartTime < _currentNoteEndTime && (_isDrawing || _isDragging || _isEditing))
-        {
-            Note draggingNote = new Note();
-            foreach (Note note in Notes)
-            {
-                if (Notes.Contains(note) && _currentHoverNote.Equals(note.Name))
-                {
-                    if (_currentNoteStartTime > note.StartTime && _currentNoteStartTime < note.EndTime ||
-                        _currentNoteEndTime > note.StartTime && _currentNoteEndTime < note.EndTime ||
-                        note.StartTime > _currentNoteStartTime && note.StartTime < _currentNoteEndTime ||
-                        note.EndTime > _currentNoteStartTime && note.EndTime < _currentNoteEndTime)
-                    {
-                        draggingNote = note;
-                        break;
-                    }
-                }
-            }
-
-            List<Note> draggingNotes = new List<Note>();
-            foreach (Note selectedNote in SelectedNotes)
-            {
-                if (Notes.Contains(selectedNote))
-                {
-                    draggingNotes.Add(selectedNote);
-                }
-            }
-
-            foreach (Note draggingNote1 in draggingNotes)
-            {
-                Notes.Remove(draggingNote1);
-            }
-
-            Notes.Remove(draggingNote);
-            draggingNotes.Clear();
-
-
-            if (e.InitialPressMouseButton == MouseButton.Left)
-            {
-                if (!_isEditing)
-                {
-                    if (SelectedNotes.Count == 0)
-                    {
-                        Notes.Add(new Note
-                        {
-                            StartTime = _currentNoteStartTime >= 0 ? _currentNoteStartTime : 0,
-                            EndTime = _currentNoteEndTime,
-                            Name = _currentHoverNote,
-                            Color = DataStateService.MuekColor
-                        });
-                    }
-                    else
-                    {
-                        List<Note> dragedSelectedNotes = new List<Note>();
-                        foreach (Note selectedNote in SelectedNotes)
-                        {
-                            var dragRelativePos =
-                                ((e.GetPosition(this).X - _dragPos.X) -
-                                 (e.GetPosition(this).X - _dragPos.X) %
-                                 _widthOfBeat) / _widthOfBeat;
-
-                            var noteName = (int)(-(e.GetPosition(this).Y - _dragPos.Y) / NoteHeight +
-                                                 selectedNote.Name);
-                            if (noteName > (_noteRangeMax * (_temperament + 1) + 2))
-                            {
-                                noteName = _noteRangeMax * (_temperament + 1) + 2;
-                            }
-
-                            if (noteName < 0)
-                            {
-                                noteName = 0;
-                            }
-
-                            dragedSelectedNotes.Add(new Note
-                            {
-                                StartTime = selectedNote.StartTime + dragRelativePos >= 0
-                                    ? selectedNote.StartTime + dragRelativePos
-                                    : 0,
-                                EndTime = dragRelativePos + selectedNote.EndTime,
-                                Name =
-                                    noteName,
-                                Color = DataStateService.MuekColor
-                            });
-                        }
-
-                        SelectedNotes.Clear();
-                        foreach (Note dragedSelectedNote in dragedSelectedNotes)
-                        {
-                            Notes.Add(dragedSelectedNote);
-                            SelectedNotes.Add(dragedSelectedNote);
-                        }
-
-                        // Console.WriteLine($"Notes:{Notes.Count}");
-                        // Console.WriteLine($"SelectedNotes:{SelectedNotes.Count}");
-                        dragedSelectedNotes.Clear();
-                    }
-                }
-                else
-                {
-                    if (SelectedNotes.Count == 0)
-                    {
-                        Notes.Add(new Note
-                        {
-                            StartTime = _currentNoteStartTime >= 0 ? _currentNoteStartTime : 0,
-                            EndTime = _currentNoteEndTime,
-                            Name = _editingNote,
-                            Color = DataStateService.MuekColor
-                        });
-                    }
-                    else
-                    {
-                        List<Note> dragedSelectedNotes = new List<Note>();
-                        foreach (Note selectedNote in SelectedNotes)
-                        {
-                            dragedSelectedNotes.Add(new Note
-                            {
-                                StartTime = selectedNote.StartTime >= 0 ? selectedNote.StartTime : 0,
-                                EndTime = (e.GetPosition(this).X - e.GetPosition(this).X % (_widthOfBeat * Magnet) +
-                                           _widthOfBeat) / _widthOfBeat,
-                                Name = selectedNote.Name,
-                                Color = DataStateService.MuekColor
-                            });
-                        }
-
-                        SelectedNotes.Clear();
-                        foreach (Note dragedSelectedNote in dragedSelectedNotes)
-                        {
-                            Notes.Add(dragedSelectedNote);
-                            SelectedNotes.Add(dragedSelectedNote);
-                        }
-
-                        // Console.WriteLine($"Notes:{Notes.Count}");
-                        // Console.WriteLine($"SelectedNotes:{SelectedNotes.Count}");
-                        dragedSelectedNotes.Clear();
-                    }
-                }
-            }
-        }
-
-        _isDrawing = false;
-        _isDragging = false;
-        _isEditing = false;
-        _selectFrame = null;
-
         if (!IsPianoBar)
         {
+            if (e.GetPosition(this) == _pressedMousePosition)
+            {
+                SelectedNotes.Clear();
+            }
+
+            if (_currentNoteStartTime < _currentNoteEndTime && (_isDrawing || _isDragging || _isEditing))
+            {
+                Note draggingNote = new Note();
+                foreach (Note note in Notes)
+                {
+                    if (Notes.Contains(note) && _currentHoverNote.Equals(note.Name))
+                    {
+                        if (_currentNoteStartTime > note.StartTime && _currentNoteStartTime < note.EndTime ||
+                            _currentNoteEndTime > note.StartTime && _currentNoteEndTime < note.EndTime ||
+                            note.StartTime > _currentNoteStartTime && note.StartTime < _currentNoteEndTime ||
+                            note.EndTime > _currentNoteStartTime && note.EndTime < _currentNoteEndTime)
+                        {
+                            draggingNote = note;
+                            break;
+                        }
+                    }
+                }
+
+                List<Note> draggingNotes = new List<Note>();
+                foreach (Note selectedNote in SelectedNotes)
+                {
+                    if (Notes.Contains(selectedNote))
+                    {
+                        draggingNotes.Add(selectedNote);
+                    }
+                }
+
+                foreach (Note draggingNote1 in draggingNotes)
+                {
+                    Notes.Remove(draggingNote1);
+                }
+
+                Notes.Remove(draggingNote);
+                draggingNotes.Clear();
+
+
+                if (e.InitialPressMouseButton == MouseButton.Left)
+                {
+                    if (!_isEditing)
+                    {
+                        if (SelectedNotes.Count == 0)
+                        {
+                            Notes.Add(new Note
+                            {
+                                StartTime = _currentNoteStartTime >= 0 ? _currentNoteStartTime : 0,
+                                EndTime = _currentNoteEndTime,
+                                Name = _currentHoverNote,
+                                Color = DataStateService.MuekColor
+                            });
+                        }
+                        else
+                        {
+                            List<Note> dragedSelectedNotes = new List<Note>();
+                            foreach (Note selectedNote in SelectedNotes)
+                            {
+                                var dragRelativePos =
+                                    ((e.GetPosition(this).X - _dragPos.X) -
+                                     (e.GetPosition(this).X - _dragPos.X) %
+                                     _widthOfBeat) / _widthOfBeat;
+
+                                var noteName = (int)(-(e.GetPosition(this).Y - _dragPos.Y) / NoteHeight +
+                                                     selectedNote.Name);
+                                if (noteName > (_noteRangeMax * (_temperament + 1) + 2))
+                                {
+                                    noteName = _noteRangeMax * (_temperament + 1) + 2;
+                                }
+
+                                if (noteName < 0)
+                                {
+                                    noteName = 0;
+                                } 
+                                dragedSelectedNotes.Add(new Note
+                                {
+                                    StartTime = selectedNote.StartTime + dragRelativePos >= 0
+                                        ? selectedNote.StartTime + dragRelativePos
+                                        : 0,
+                                    EndTime = dragRelativePos + selectedNote.EndTime,
+                                    Name =
+                                        noteName,
+                                    Color = DataStateService.MuekColor
+                                });
+                            }
+
+                            SelectedNotes.Clear();
+                            foreach (Note dragedSelectedNote in dragedSelectedNotes)
+                            {
+                                Notes.Add(dragedSelectedNote);
+                                SelectedNotes.Add(dragedSelectedNote);
+                            }
+
+                            // Console.WriteLine($"Notes:{Notes.Count}");
+                            // Console.WriteLine($"SelectedNotes:{SelectedNotes.Count}");
+                            dragedSelectedNotes.Clear();
+                        }
+                    }
+                    else
+                    {
+                        if (SelectedNotes.Count == 0)
+                        {
+                            Notes.Add(new Note
+                            {
+                                StartTime = _currentNoteStartTime >= 0 ? _currentNoteStartTime : 0,
+                                EndTime = _currentNoteEndTime,
+                                Name = _editingNote,
+                                Color = DataStateService.MuekColor
+                            });
+                        }
+                        else
+                        {
+                            List<Note> dragedSelectedNotes = new List<Note>();
+                            foreach (Note selectedNote in SelectedNotes)
+                            {
+                                dragedSelectedNotes.Add(new Note
+                                {
+                                    StartTime = selectedNote.StartTime >= 0 ? selectedNote.StartTime : 0,
+                                    EndTime = (e.GetPosition(this).X - e.GetPosition(this).X % (_widthOfBeat * Magnet) +
+                                               _widthOfBeat) / _widthOfBeat,
+                                    Name = selectedNote.Name,
+                                    Color = DataStateService.MuekColor
+                                });
+                            }
+
+                            SelectedNotes.Clear();
+                            foreach (Note dragedSelectedNote in dragedSelectedNotes)
+                            {
+                                Notes.Add(dragedSelectedNote);
+                                SelectedNotes.Add(dragedSelectedNote);
+                            }
+
+                            // Console.WriteLine($"Notes:{Notes.Count}");
+                            // Console.WriteLine($"SelectedNotes:{SelectedNotes.Count}");
+                            dragedSelectedNotes.Clear();
+                        }
+                    }
+                }
+            }
+
+            _isDrawing = false;
+            _isDragging = false;
+            _isEditing = false;
+            _selectFrame = null;
+
+        
             if (SelectedNotes.Count > 0)
             {
                 // _isShowingOptions = true;
@@ -963,7 +966,6 @@ public partial class PianoRoll : UserControl
                 HideOptions();
             }
         }
-
         SaveNotes();
         InvalidateVisual();
         e.Handled = true;
