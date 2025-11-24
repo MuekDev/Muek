@@ -717,7 +717,9 @@ public partial class TrackView : UserControl
         var globalX = Math.Max(0, point.X + OffsetX);
         var pointerBeat = globalX / ScaleFactor - _lastClickedBeatOfClip;
         pointerBeat = double.Round(pointerBeat * Subdivisions, 0) / Subdivisions;
-        if (pointerBeat > 0)
+        pointerBeat = pointerBeat < 0 ? 0 : pointerBeat;
+        // Console.WriteLine(pointerBeat);
+        if (pointerBeat >= 0)
             _activeClip.Proto.StartBeat = pointerBeat;
 
         // TODO
