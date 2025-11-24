@@ -22,10 +22,10 @@ public static class AudioService
 
     private const int RingBufferCapacity = 176400;
 
-    private static float _currentRmsDb = -160f;
-    private static float _currentPeakDb = -160f;
+    private static float[] _currentRmsDb = [-160f,-160f];
+    private static float[] _currentPeakDb = [-160f,-160f];
 
-    public static float CurrentRmsDb
+    public static float[] CurrentRmsDb
     {
         get => _currentRmsDb;
         private set
@@ -35,7 +35,7 @@ public static class AudioService
         }
     }
 
-    public static float CurrentPeakDb
+    public static float[] CurrentPeakDb
     {
         get => _currentPeakDb;
         private set
@@ -45,8 +45,8 @@ public static class AudioService
         }
     }
 
-    public static event EventHandler<float>? RmsDbChanged;
-    public static event EventHandler<float>? PeakDbChanged;
+    public static event EventHandler<float[]>? RmsDbChanged;
+    public static event EventHandler<float[]>? PeakDbChanged;
 
     public static int MasterSampleRate { get; private set; } = 44100;
     private const int Channels = 2;
@@ -116,7 +116,8 @@ public static class AudioService
         _wasapiOut = null;
         
         _ringBuffer = null;
-        CurrentRmsDb = -160f;
+        CurrentRmsDb = [-160f,-160f];
+        CurrentPeakDb = [-160f,-160f];
     }
 
     private static void ProducerLoop(object? obj)
@@ -258,7 +259,8 @@ public static class AudioService
             
             Thread.Sleep(16);
         }
-        CurrentRmsDb = -160f;
+        CurrentRmsDb = [-160f,-160f];
+        CurrentPeakDb = [-160f, -160f];
     }
 
     private static void ClearAllCache()

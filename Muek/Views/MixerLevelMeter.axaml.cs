@@ -22,8 +22,8 @@ public partial class MixerLevelMeter : UserControl
 
     private const float CompressionFactor = 0.15f;
     
-    public float CurrentRmsLevel => AudioService.CurrentRmsDb;
-    public float CurrentPeakLevel => AudioService.CurrentPeakDb;
+    public float[] CurrentRmsLevel => AudioService.CurrentRmsDb;
+    public float[] CurrentPeakLevel => AudioService.CurrentPeakDb;
 
     public MixerLevelMeter()
     {
@@ -39,12 +39,12 @@ public partial class MixerLevelMeter : UserControl
         
     }
 
-    private void AudioServiceOnRmsDbChanged(object? sender, float f)
+    private void AudioServiceOnRmsDbChanged(object? sender, float[] f)
     {
         Dispatcher.UIThread.Post(InvalidateVisual, DispatcherPriority.Render);
     }
 
-    private void AudioServiceOnPeakDbChanged(object? sender, float f)
+    private void AudioServiceOnPeakDbChanged(object? sender, float[] f)
     {
         Dispatcher.UIThread.Post(InvalidateVisual, DispatcherPriority.Render);
     }
@@ -122,40 +122,84 @@ public partial class MixerLevelMeter : UserControl
         
         //PEAK
         {
-            context.DrawRectangle(colorBrush, null, new Rect(
-                0, (1 - NormalizeDb(CurrentPeakLevel)) * Bounds.Height, Bounds.Width,
-                Bounds.Height * NormalizeDb(CurrentPeakLevel)));
-            if (CurrentPeakLevel > -3)
+            //Left Channel
             {
-                context.DrawRectangle(_orangeBrush, null, new Rect(
-                    0, (1 - NormalizeDb(CurrentPeakLevel)) * Bounds.Height, Bounds.Width, Bounds.Height *
-                    (NormalizeDb(CurrentPeakLevel) - NormalizeDb(-3))));
-            }
+                context.DrawRectangle(colorBrush, null, new Rect(
+                    -0.1, (1 - NormalizeDb(CurrentPeakLevel[0])) * Bounds.Height, Bounds.Width/2,
+                    Bounds.Height * NormalizeDb(CurrentPeakLevel[0])));
+                if (CurrentPeakLevel[0] > -3)
+                {
+                    context.DrawRectangle(_orangeBrush, null, new Rect(
+                        -0.1, (1 - NormalizeDb(CurrentPeakLevel[0])) * Bounds.Height, Bounds.Width/2, Bounds.Height *
+                        (NormalizeDb(CurrentPeakLevel[0]) - NormalizeDb(-3))));
+                }
 
-            if (CurrentPeakLevel > 0)
+                if (CurrentPeakLevel[0] > 0)
+                {
+                    context.DrawRectangle(_redBrush, null, new Rect(
+                        -0.1, (1 - NormalizeDb(CurrentPeakLevel[0])) * Bounds.Height, Bounds.Width/2, Bounds.Height *
+                        (NormalizeDb(CurrentPeakLevel[0]) - NormalizeDb(0))));
+                }
+            }
+            //Right Channel
             {
-                context.DrawRectangle(_redBrush, null, new Rect(
-                    0, (1 - NormalizeDb(CurrentPeakLevel)) * Bounds.Height, Bounds.Width, Bounds.Height *
-                    (NormalizeDb(CurrentPeakLevel) - NormalizeDb(0))));
+                context.DrawRectangle(colorBrush, null, new Rect(
+                    0.1+Bounds.Width/2, (1 - NormalizeDb(CurrentPeakLevel[1])) * Bounds.Height, Bounds.Width/2,
+                    Bounds.Height * NormalizeDb(CurrentPeakLevel[1])));
+                if (CurrentPeakLevel[1] > -3)
+                {
+                    context.DrawRectangle(_orangeBrush, null, new Rect(
+                        0.1+Bounds.Width/2, (1 - NormalizeDb(CurrentPeakLevel[1])) * Bounds.Height, Bounds.Width/2, Bounds.Height *
+                        (NormalizeDb(CurrentPeakLevel[1]) - NormalizeDb(-3))));
+                }
+
+                if (CurrentPeakLevel[1] > 0)
+                {
+                    context.DrawRectangle(_redBrush, null, new Rect(
+                        0.1+Bounds.Width/2, (1 - NormalizeDb(CurrentPeakLevel[1])) * Bounds.Height, Bounds.Width/2, Bounds.Height *
+                        (NormalizeDb(CurrentPeakLevel[1]) - NormalizeDb(0))));
+                }
             }
         }
         //RMS
         {
-            context.DrawRectangle(colorBrush, null, new Rect(
-                0, (1 - NormalizeDb(CurrentRmsLevel)) * Bounds.Height, Bounds.Width,
-                Bounds.Height * NormalizeDb(CurrentRmsLevel)));
-            if (CurrentRmsLevel > -3)
+            //Left Channel
             {
-                context.DrawRectangle(_orangeBrush, null, new Rect(
-                    0, (1 - NormalizeDb(CurrentRmsLevel)) * Bounds.Height, Bounds.Width, Bounds.Height *
-                    (NormalizeDb(CurrentRmsLevel) - NormalizeDb(-3))));
+                context.DrawRectangle(colorBrush, null, new Rect(
+                    -0.1, (1 - NormalizeDb(CurrentRmsLevel[0])) * Bounds.Height, Bounds.Width/2,
+                    Bounds.Height * NormalizeDb(CurrentRmsLevel[0])));
+                if (CurrentRmsLevel[0] > -3)
+                {
+                    context.DrawRectangle(_orangeBrush, null, new Rect(
+                        -0.1, (1 - NormalizeDb(CurrentRmsLevel[0])) * Bounds.Height, Bounds.Width/2, Bounds.Height *
+                        (NormalizeDb(CurrentRmsLevel[0]) - NormalizeDb(-3))));
+                }
+
+                if (CurrentRmsLevel[0] > 0)
+                {
+                    context.DrawRectangle(_redBrush, null, new Rect(
+                        -0.1, (1 - NormalizeDb(CurrentRmsLevel[0])) * Bounds.Height, Bounds.Width/2, Bounds.Height *
+                        (NormalizeDb(CurrentRmsLevel[0]) - NormalizeDb(0))));
+                }
             }
-        
-            if (CurrentRmsLevel > 0)
+            //Right Channel
             {
-                context.DrawRectangle(_redBrush, null, new Rect(
-                    0, (1 - NormalizeDb(CurrentRmsLevel)) * Bounds.Height, Bounds.Width, Bounds.Height *
-                    (NormalizeDb(CurrentRmsLevel) - NormalizeDb(0))));
+                context.DrawRectangle(colorBrush, null, new Rect(
+                    0.1+Bounds.Width/2, (1 - NormalizeDb(CurrentRmsLevel[1])) * Bounds.Height, Bounds.Width/2,
+                    Bounds.Height * NormalizeDb(CurrentRmsLevel[1])));
+                if (CurrentRmsLevel[1] > -3)
+                {
+                    context.DrawRectangle(_orangeBrush, null, new Rect(
+                        0.1+Bounds.Width/2, (1 - NormalizeDb(CurrentRmsLevel[1])) * Bounds.Height, Bounds.Width/2, Bounds.Height *
+                        (NormalizeDb(CurrentRmsLevel[1]) - NormalizeDb(-3))));
+                }
+
+                if (CurrentRmsLevel[1] > 0)
+                {
+                    context.DrawRectangle(_redBrush, null, new Rect(
+                        0.1+Bounds.Width/2, (1 - NormalizeDb(CurrentRmsLevel[1])) * Bounds.Height, Bounds.Width/2, Bounds.Height *
+                        (NormalizeDb(CurrentRmsLevel[1]) - NormalizeDb(0))));
+                }
             }
         }
         
