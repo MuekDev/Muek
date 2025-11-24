@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Reactive.PlatformServices;
 using Avalonia;
@@ -30,41 +31,99 @@ public partial class MixerLevelMeter : UserControl
         AudioService.DbChanged += AudioServiceOnDbChanged;
     }
 
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        
+    }
+
     private void AudioServiceOnDbChanged(object? sender, float f)
     {
         Dispatcher.UIThread.Post(InvalidateVisual, DispatcherPriority.Render);
     }
 
+    private readonly Pen _orangePen = new Pen(new SolidColorBrush(Colors.Orange,.5));
+    private readonly Pen _redPen = new Pen(new SolidColorBrush(Colors.Red,.5));
+    private Point _orangePoint1;
+    private Point _orangePoint2;
+    private Point _redPoint1;
+    private Point _redPoint2;
+
+    private readonly FormattedText _warningText1 = new FormattedText("-3dB",
+        CultureInfo.CurrentCulture, FlowDirection.LeftToRight,Typeface.Default, 10,new SolidColorBrush(Colors.Orange,.5));
+    private readonly FormattedText _warningText2 = new FormattedText("0dB",
+        CultureInfo.CurrentCulture, FlowDirection.LeftToRight,Typeface.Default, 10,new SolidColorBrush(Colors.Red,.5));
+
+    private Point _warningPoint1;
+    private Point _warningPoint2;
+
+    private Rect _backgroundRect;
+
+    private readonly Pen _whitePen = new Pen(new SolidColorBrush(Colors.White, .2));
+    
+    private List<Point[]> _gridList = new();
+    
+    
     public override void Render(DrawingContext context)
     {
         base.Render(context);
-        context.DrawRectangle(Brush.Parse("#232323"),null ,new Rect(0,0,Bounds.Width,Bounds.Height));
         
-        context.DrawLine(new Pen(new SolidColorBrush(Colors.Orange,.5)),
-            new Point(Bounds.Width*.7, (1 - NormalizeDb(-3))*Bounds.Height),
-            new Point(Bounds.Width, (1 - NormalizeDb(-3))*Bounds.Height));
-        context.DrawLine(new Pen(new SolidColorBrush(Colors.Red,.5)),
-            new Point(Bounds.Width*.6, (1 - NormalizeDb(0))*Bounds.Height),
-            new Point(Bounds.Width, (1 - NormalizeDb(0))*Bounds.Height));
+        _orangePoint1 = new Point(Bounds.Width * .7, (1 - NormalizeDb(-3)) * Bounds.Height);
+        _orangePoint2 = new Point(Bounds.Width, (1 - NormalizeDb(-3)) * Bounds.Height);
+        _redPoint1 = new Point(Bounds.Width * .6, (1 - NormalizeDb(0)) * Bounds.Height);
+        _redPoint2 = new Point(Bounds.Width, (1 - NormalizeDb(0)) * Bounds.Height);
         
-        context.DrawText(new FormattedText("-3dB",
-                CultureInfo.CurrentCulture, FlowDirection.LeftToRight,Typeface.Default, 10,new SolidColorBrush(Colors.Orange,.5)),
-            new Point(Bounds.Width+5, (1 - NormalizeDb(-3))*Bounds.Height-8));
-        context.DrawText(new FormattedText("0dB",
-                CultureInfo.CurrentCulture, FlowDirection.LeftToRight,Typeface.Default, 10,new SolidColorBrush(Colors.Red,.5)),
-            new Point(Bounds.Width+5, (1 - NormalizeDb(0))*Bounds.Height-8));
+        _warningPoint1 = new Point(Bounds.Width+5, (1 - NormalizeDb(-3))*Bounds.Height-8);
+        _warningPoint2 = new Point(Bounds.Width+5, (1 - NormalizeDb(0))*Bounds.Height-8);
         
-        context.DrawRectangle(null,new Pen(Brush.Parse(Track.Color)),new Rect(0,0,Bounds.Width,Bounds.Height));
+        _backgroundRect = new Rect(0,0,Bounds.Width,Bounds.Height);
+
+        _gridList = new();
+        for (int i = -6; i > MinDb; i -= 3)
+        {
+            _gridList.Add([
+                new Point(Bounds.Width*.8, (1 - NormalizeDb(i))*Bounds.Height),
+                new Point(Bounds.Width, (1 - NormalizeDb(i))*Bounds.Height)]);
+        }
+        
+        
+        context.DrawRectangle(Brush.Parse("#232323"),null ,_backgroundRect);
+
+        
+        //警告线
+        {
+            //-3dB Warning 警告电平
+            context.DrawLine(_orangePen,
+                _orangePoint1,
+                _orangePoint2);
+
+            //0dB Warning 警告电平
+            context.DrawLine(_redPen,
+                _redPoint1,
+                _redPoint2);
+        }
+        //Text
+        context.DrawText(_warningText1,
+            _warningPoint1);
+        context.DrawText(_warningText2,
+            _warningPoint2);
+        
+        context.DrawRectangle(null,new Pen(Brush.Parse(Track.Color)),_backgroundRect);
         context.DrawRectangle(Brush.Parse(Track.Color), null,new Rect(
             0, (1 - NormalizeDb(CurrentLevel)) * Bounds.Height,Bounds.Width,Bounds.Height * NormalizeDb(CurrentLevel)));
 
         
         //-3 0以外的参考线
-        for (int i = -6; i > MinDb; i -= 3)
+        // for (int i = -6; i > MinDb; i -= 3)
+        // {
+        //     context.DrawLine(_whitePen,
+        //         new Point(Bounds.Width*.8, (1 - NormalizeDb(i))*Bounds.Height),
+        //         new Point(Bounds.Width, (1 - NormalizeDb(i))*Bounds.Height));
+        // }
+        foreach (var item in _gridList)
         {
-            context.DrawLine(new Pen(new SolidColorBrush(Colors.White,.2)),
-                new Point(Bounds.Width*.8, (1 - NormalizeDb(i))*Bounds.Height),
-                new Point(Bounds.Width, (1 - NormalizeDb(i))*Bounds.Height));
+            context.DrawLine(_whitePen,
+                item[0],item[1]);
         }
         
         if (CurrentLevel > -3)
