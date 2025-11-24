@@ -118,6 +118,10 @@ public partial class PianoRoll : UserControl
     public double Magnet = 1.0;
     public readonly double LengthIncreasement = 128d;
 
+
+    private Pen _whitePen = new Pen(new SolidColorBrush(Colors.White, .1));
+    private IBrush _whiteBrush = new SolidColorBrush(Colors.White, .05);
+
     public PianoRoll()
     {
         InitializeComponent();
@@ -207,13 +211,13 @@ public partial class PianoRoll : UserControl
                     //绘制编辑区
                     // Console.WriteLine(noteName);
                     context.DrawRectangle(Brush.Parse("#40232323"),
-                        new Pen(new SolidColorBrush(new HslColor(1, 0, 0, 0).ToRgb(), .1)),
+                        _whitePen,
                         new Rect(ClampValue, Height - (i * _temperament + note + 1) * NoteHeight, Width,
                             NoteHeight));
                     // Console.WriteLine(new Rect(0, Height - (i * _Temperament + note +1) * NoteHeight,NoteWidth,NoteHeight));
                     if (!IndexToNoteName(noteName).Contains('#'))
                     {
-                        context.DrawRectangle(new SolidColorBrush(Colors.White, .05), null,
+                        context.DrawRectangle(_whiteBrush, null,
                             new Rect(ClampValue, Height - (i * _temperament + note + 1) * NoteHeight, Width,
                                 NoteHeight));
                     }
@@ -229,12 +233,14 @@ public partial class PianoRoll : UserControl
                 }
             }
 
+            var gridLinePen = new Pen(new SolidColorBrush(Colors.White, .1), _widthOfBeat * .005);
             if (_widthOfBeat > 20)
             {
+                gridLinePen.Brush = new SolidColorBrush(Colors.White, .1);
                 for (double i = 0; i < Width / _widthOfBeat; i += double.Clamp(Magnet,1/8d,2d))
                 {
                     if (i % 4 == 0) continue;
-                    var gridLinePen = new Pen(new SolidColorBrush(Colors.White, .1), _widthOfBeat * .005);
+                    // var gridLinePen = new Pen(new SolidColorBrush(Colors.White, .1), _widthOfBeat * .005);
                     if (i * _widthOfBeat > ClampValue && i * _widthOfBeat < Width + ClampValue)
                     {
                         context.DrawLine(gridLinePen,
@@ -245,9 +251,9 @@ public partial class PianoRoll : UserControl
 
                 if (Magnet <= 1 / 6.0)
                 {
+                    gridLinePen = new Pen(new SolidColorBrush(Colors.MediumPurple,.5));
                     for (int i = 1; i < Width / _widthOfBeat; i += 2)
                     {
-                        var gridLinePen = new Pen(new SolidColorBrush(Colors.MediumPurple,.5));
                         if (_widthOfBeat < 50) gridLinePen.Thickness = .5;
                         if (i * _widthOfBeat > ClampValue && i * _widthOfBeat < Width + ClampValue)
                         {
@@ -260,9 +266,9 @@ public partial class PianoRoll : UserControl
 
                 if (Magnet <= 1 / 3.0)
                 {
+                    gridLinePen = new Pen(new SolidColorBrush(Colors.LightSkyBlue,.5));
                     for (int i =2; i < Width / _widthOfBeat; i += 4)
                     {
-                        var gridLinePen = new Pen(new SolidColorBrush(Colors.LightSkyBlue,.5));
                         if (_widthOfBeat < 50) gridLinePen.Thickness = .5;
                         if (i * _widthOfBeat > ClampValue && i * _widthOfBeat < Width + ClampValue)
                         {
@@ -274,9 +280,10 @@ public partial class PianoRoll : UserControl
                 }
             }
 
+            gridLinePen = new Pen(new SolidColorBrush(Colors.White, .5),1,new DashStyle([NoteHeight,NoteHeight*.5],0));
             for (int i = 0; i < Width / _widthOfBeat; i++)
             {
-                var gridLinePen = new Pen(new SolidColorBrush(Colors.White,.5), 1,new DashStyle([NoteHeight,NoteHeight*.5],0));
+                gridLinePen.Brush = new SolidColorBrush(Colors.White, .5);
                 if(_widthOfBeat < 20)
                 {
                     gridLinePen.Thickness = .5;
@@ -322,9 +329,10 @@ public partial class PianoRoll : UserControl
             //绘制位置
             if (_currentHoverNote != -1)
             {
+                var pen = new Pen(_noteColor3,.5);
                 if (!_isDrawing && !_isEditing && !_isDragging)
                 {
-                    context.DrawLine(new Pen(_noteColor3,.5),
+                    context.DrawLine(pen,
                         new Point((_currentMousePosition.X - _currentMousePosition.X % (_widthOfBeat * Magnet)), 0),
                         new Point((_currentMousePosition.X - _currentMousePosition.X % (_widthOfBeat * Magnet)),
                             Height)
@@ -332,7 +340,7 @@ public partial class PianoRoll : UserControl
                 }
                 else if (!_isDragging)
                 {
-                    context.DrawLine(new Pen(_noteColor3,.5),
+                    context.DrawLine(pen,
                         new Point(
                             (_currentMousePosition.X - _currentMousePosition.X % (_widthOfBeat * Magnet) +
                              _widthOfBeat * Magnet), 0),
@@ -389,7 +397,7 @@ public partial class PianoRoll : UserControl
                                 else
                                 {
                                     Cursor = new Cursor(StandardCursorType.Arrow);
-                                    context.DrawRectangle(null, new Pen(Brushes.White, 1),
+                                    context.DrawRectangle(null, new Pen(Brushes.White),
                                         new Rect(start, Height - (i * _temperament + note + 1) * NoteHeight,
                                             end - start, NoteHeight * .9));
                                 }
@@ -442,7 +450,9 @@ public partial class PianoRoll : UserControl
                 context.DrawRectangle(null, new Pen(Brushes.White),
                     (Rect)_selectFrame);
             }
-
+            var whitePen = new Pen(Brushes.White);
+            var redPen = new Pen(Brushes.Red, 2);
+            var orangePen = new Pen(Brushes.Orange);
             for (int i = _noteRangeMin; i <= _noteRangeMax; i++)
             {
                 for (int note = 0; note < _temperament; note++)
@@ -456,7 +466,7 @@ public partial class PianoRoll : UserControl
                         var end = existNote.EndTime * _widthOfBeat;
                         if (noteName.Equals(existNote.Name))
                         {
-                            context.DrawRectangle(Brushes.Black, new Pen(Brushes.White, 1),
+                            context.DrawRectangle(Brushes.Black, whitePen,
                                 new Rect(start, Height - (i * _temperament + note + 1) * NoteHeight, end - start,
                                     NoteHeight * .9));
 
@@ -473,7 +483,7 @@ public partial class PianoRoll : UserControl
                             {
                                 if (double.Abs(_currentMousePosition.X - existNote.EndTime * _widthOfBeat) < 5)
                                 {
-                                    context.DrawLine(new Pen(Brushes.Red, 2),
+                                    context.DrawLine(redPen,
                                         new Point(end - 1, Height - (i * _temperament + note + 1) * NoteHeight),
                                         new Point(end - 1,
                                             Height - (i * _temperament + note + 1) * NoteHeight + NoteHeight * .9));
@@ -524,12 +534,12 @@ public partial class PianoRoll : UserControl
                                     Color = DataStateService.MuekColor
                                 });
                             }
-
+                            var solidColorBrush = new SolidColorBrush(color);
                             foreach (Note selectedNote in dragedSelectedNotes)
                             {
                                 if (selectedNote.Name.Equals(noteName))
                                 {
-                                    context.FillRectangle(new SolidColorBrush(color),
+                                    context.FillRectangle(solidColorBrush,
                                         new Rect(selectedNote.StartTime * _widthOfBeat,
                                             Height - (i * _temperament + note + 1) * NoteHeight,
                                             (selectedNote.EndTime - selectedNote.StartTime) * _widthOfBeat,
@@ -541,7 +551,7 @@ public partial class PianoRoll : UserControl
                         }
                         else
                         {
-                            context.DrawLine(new Pen(Brushes.Orange, 1),
+                            context.DrawLine(orangePen,
                                 new Point(
                                     _currentMousePosition.X - _currentMousePosition.X % (_widthOfBeat * Magnet) +
                                     _widthOfBeat, 0),
