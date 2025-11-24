@@ -283,10 +283,10 @@ public partial class PianoRoll : UserControl
                 }
             }
 
-            var gridLinePen = new Pen(new SolidColorBrush(Colors.White, .5),1,new DashStyle([NoteHeight,NoteHeight*.5],0));
+            
             for (int i = 0; i < Width / _widthOfBeat; i++)
             {
-                gridLinePen.Brush = new SolidColorBrush(Colors.White, .5);
+                var gridLinePen = new Pen(new SolidColorBrush(Colors.White, .5),1,new DashStyle([NoteHeight,NoteHeight*.5],0));
                 if(_widthOfBeat < 20)
                 {
                     gridLinePen.Thickness = .5;
