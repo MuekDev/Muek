@@ -288,7 +288,10 @@ public partial class TrackView : UserControl
                     // 获取切片数据（注意：如果是）
                     // 将waveform改为ReadOnlySpan<float>可能会更好（尚且不明C#的这个是 Span/引用 否，后期修复）
                     // Slice可能会给一首歌分配将近10GB的数据，原因尚且不明，可能跟拷贝有关
-                    var currentWaveform = waveform.Slice(sliceStart, sliceLength);
+                    
+                    //可能修好了(?)
+                    var currentWaveform = waveform;
+                    // var currentWaveform = waveform.Slice(sliceStart, sliceLength);
 
                     var pixelWidthInt = (int)Math.Ceiling(width);
                     if (pixelWidthInt <= 0) continue;
