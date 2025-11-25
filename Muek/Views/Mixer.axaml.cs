@@ -151,7 +151,7 @@ public partial class Mixer : UserControl
             Console.WriteLine($"TrackName: {track.Name}");
             Console.WriteLine($"Track Color: {track.Color}\n" +
                               $"Mixer Color: {MixerPan.ValuerColor}");
-            LevelMeter.Track =  track;
+            LevelMeter.Track = track;
             LevelMeter.InvalidateVisual();
         }
     }
