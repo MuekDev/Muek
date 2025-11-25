@@ -265,7 +265,7 @@ public partial class MuekValuer : UserControl
             _pressed = true;
             _tempPress = e.GetPosition(this);
             // Console.WriteLine("Pressed");
-            if (e.KeyModifiers == KeyModifiers.Control)
+            if (e.KeyModifiers == KeyModifiers.Alt)
             {
                 Value = DefaultValue;
                 InvalidateVisual();
@@ -306,7 +306,7 @@ public partial class MuekValuer : UserControl
         _pressed = false;
         Cursor = Cursor.Default;
         e.Handled = true;
-        if(e.KeyModifiers == KeyModifiers.Control) return;
+        if(e.KeyModifiers == KeyModifiers.Alt) return;
         switch (Layout)
         {
             case LayoutEnum.Knob:
