@@ -106,6 +106,7 @@ public partial class PianoRollWindow : UserControl
         DropDisplay.AddHandler(DragDrop.DropEvent, MidiDragDrop());
         OpenButton.Background = new SolidColorBrush(DataStateService.MuekColor);
         WindowCover.Background = new SolidColorBrush(Colors.Black, .5);
+        PatternColor.Background = new SolidColorBrush(DataStateService.MuekColor);
     }
 
     private EventHandler<DragEventArgs>? MidiDragDrop()

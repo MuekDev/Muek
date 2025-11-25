@@ -68,7 +68,7 @@ public partial class PianoRoll : UserControl
     private readonly IBrush _noteColor2 = Brushes.Black;
     private Color NoteColor3 => Pattern?.Color ?? DataStateService.MuekColor;
 
-    private IBrush _noteHoverColor;
+    private IBrush _noteHoverColor = new SolidColorBrush(Colors.Black, .5);
 
     private int _currentHoverNote = -1;
 
@@ -90,7 +90,7 @@ public partial class PianoRoll : UserControl
         public double StartTime = 0;
         public double EndTime = 0;
         public int Velocity = 127;
-        public Color Color = default;
+        // public Color Color = default;
     }
 
     private Note _currentHoverDrawnNote = new Note();
@@ -161,7 +161,7 @@ public partial class PianoRoll : UserControl
         
 
 
-        _noteHoverColor = new SolidColorBrush(DataStateService.MuekColor, .1);
+        // _noteHoverColor = new SolidColorBrush(DataStateService.MuekColor, .1);
 
         _widthOfBeat = 50;
         if (!IsPianoBar)
@@ -179,8 +179,6 @@ public partial class PianoRoll : UserControl
         //左侧钢琴Bar
         if (IsPianoBar)
         {
-            _noteHoverColor = new SolidColorBrush(Colors.Black, .5);
-
             var noteColor = _noteColor1;
             var noteName = -1;
 
@@ -246,7 +244,7 @@ public partial class PianoRoll : UserControl
                     //绘制Hover区
                     if (noteName.Equals(_currentHoverNote))
                     {
-                        context.FillRectangle(_noteHoverColor,
+                        context.FillRectangle(new SolidColorBrush(NoteColor3,.1),
                             new Rect(ClampValue, Height - (i * _temperament + note + 1) * NoteHeight, Width,
                                 NoteHeight));
                         // Console.WriteLine($"HOVERING: {_currentHoverNote}");
@@ -392,7 +390,7 @@ public partial class PianoRoll : UserControl
                     {
                         var start = existNote.StartTime * _widthOfBeat;
                         var end = existNote.EndTime * _widthOfBeat;
-                        var color = existNote.Color;
+                        // var color = existNote.Color;
                         var velocity = existNote.Velocity;
                         if (noteName.Equals(existNote.Name) && (!_isDragging || !SelectedNotes.Contains(existNote)))
                         {
@@ -402,7 +400,7 @@ public partial class PianoRoll : UserControl
                                         NoteHeight * .9));
                             else
                             {
-                                context.DrawRectangle(new SolidColorBrush(color, velocity / 127.0),
+                                context.DrawRectangle(new SolidColorBrush(NoteColor3, velocity / 127.0),
                                     blackPen,
                                     new Rect(start, Height - (i * _temperament + note + 1) * NoteHeight, end - start,
                                         NoteHeight * .9));
@@ -606,7 +604,7 @@ public partial class PianoRoll : UserControl
                                     EndTime = dragRelativePos + selectedNote.EndTime,
                                     Name =
                                         dragNoteName,
-                                    Color = NoteColor3
+                                    // Color = NoteColor3
                                 });
                             }
                             var solidColorBrush = new SolidColorBrush(color);
@@ -926,7 +924,7 @@ public partial class PianoRoll : UserControl
                                 StartTime = _currentNoteStartTime >= 0 ? _currentNoteStartTime : 0,
                                 EndTime = _currentNoteEndTime,
                                 Name = _currentHoverNote,
-                                Color = NoteColor3
+                                // Color = NoteColor3
                             });
                         }
                         else
@@ -958,7 +956,7 @@ public partial class PianoRoll : UserControl
                                     EndTime = dragRelativePos + selectedNote.EndTime,
                                     Name =
                                         noteName,
-                                    Color = NoteColor3
+                                    // Color = NoteColor3
                                 });
                             }
 
@@ -983,7 +981,7 @@ public partial class PianoRoll : UserControl
                                 StartTime = _currentNoteStartTime >= 0 ? _currentNoteStartTime : 0,
                                 EndTime = _currentNoteEndTime,
                                 Name = _editingNote,
-                                Color = NoteColor3
+                                // Color = NoteColor3
                             });
                         }
                         else
@@ -997,7 +995,7 @@ public partial class PianoRoll : UserControl
                                     EndTime = (e.GetPosition(this).X - e.GetPosition(this).X % (_widthOfBeat * Magnet) +
                                                _widthOfBeat) / _widthOfBeat,
                                     Name = selectedNote.Name,
-                                    Color =NoteColor3
+                                    // Color =NoteColor3
                                 });
                             }
 
@@ -1333,7 +1331,7 @@ public partial class PianoRoll : UserControl
                 Notes.Remove(SelectedNotes[i]);
                 SelectedNotes[i] = new Note
                 {
-                    Color = SelectedNotes[i].Color,
+                    // Color = SelectedNotes[i].Color,
                     StartTime = SelectedNotes[i].StartTime,
                     EndTime = SelectedNotes[i].EndTime,
                     Name = SelectedNotes[i].Name + 12,
@@ -1358,7 +1356,7 @@ public partial class PianoRoll : UserControl
                 Notes.Remove(SelectedNotes[i]);
                 SelectedNotes[i] = new Note
                 {
-                    Color = SelectedNotes[i].Color,
+                    // Color = SelectedNotes[i].Color,
                     StartTime = SelectedNotes[i].StartTime,
                     EndTime = SelectedNotes[i].EndTime,
                     Name = SelectedNotes[i].Name - 12,
@@ -1388,7 +1386,7 @@ public partial class PianoRoll : UserControl
                             Notes.Add(new Note()
                             {
                                 Name = ((NoteOnEvent)note).NoteNumber,
-                                Color = NoteColor3,
+                                // Color = NoteColor3,
                                 StartTime = ((NoteOnEvent)note).AbsoluteTime /
                                     (double)midi.Data.DeltaTicksPerQuarterNote * 4,
                                 EndTime = (((NoteOnEvent)note).AbsoluteTime + ((NoteOnEvent)note).NoteLength) /

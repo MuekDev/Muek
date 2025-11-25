@@ -16,15 +16,15 @@ namespace Muek.Views;
 
 public partial class PatternPreview : UserControl
 {
-    public static readonly StyledProperty<IBrush> BackgroundColorProperty =
-        AvaloniaProperty.Register<PatternPreview, IBrush>(
-            nameof(BackgroundColor));
+    // public static readonly StyledProperty<IBrush> BackgroundColorProperty =
+    //     AvaloniaProperty.Register<PatternPreview, IBrush>(
+    //         nameof(BackgroundColor));
 
-    public IBrush BackgroundColor
-    {
-        get => GetValue(BackgroundColorProperty);
-        set => SetValue(BackgroundColorProperty, value);
-    }
+    public IBrush BackgroundColor => ViewHelper.GetMainWindow().PianoRollWindow.PatternColor.Background;
+    // {
+    //     get => GetValue(BackgroundColorProperty);
+    //     set => SetValue(BackgroundColorProperty, value);
+    // }
 
     public List<PianoRoll.Note> Notes => ViewHelper.GetMainWindow().PianoRollWindow.EditArea.Notes;
 
@@ -36,7 +36,7 @@ public partial class PatternPreview : UserControl
     {
         InitializeComponent();
         ClipToBounds = false;
-        BackgroundColor = new SolidColorBrush(DataStateService.MuekColor);
+        // BackgroundColor = new SolidColorBrush(DataStateService.MuekColor);
     }
 
     public override void Render(DrawingContext context)

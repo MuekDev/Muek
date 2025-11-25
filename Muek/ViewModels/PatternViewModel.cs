@@ -29,11 +29,14 @@ public partial class PatternViewModel : ViewModelBase
     public void SelectPattern()
     {
         var pianoRoll =  ViewHelper.GetMainWindow().PianoRollWindow.EditArea;
+        var pianoBar = ViewHelper.GetMainWindow().PianoRollWindow.PianoBar;
         var button = ViewHelper.GetMainWindow().PianoRollWindow.PatternSelectButton;
         var color = ViewHelper.GetMainWindow().PianoRollWindow.PatternColor;
         pianoRoll.Pattern = this;
         pianoRoll.InvalidateVisual();
         pianoRoll.SaveNotes();
+        pianoBar.Pattern = this;
+        pianoBar.InvalidateVisual();
         button.Content = Name;
         color.Background = Brush;
     }
@@ -42,6 +45,7 @@ public partial class PatternViewModel : ViewModelBase
     public void RemovePattern()
     {
         var pianoRoll =  ViewHelper.GetMainWindow().PianoRollWindow.EditArea;
+        var pianoBar = ViewHelper.GetMainWindow().PianoRollWindow.PianoBar;
         var button = ViewHelper.GetMainWindow().PianoRollWindow.PatternSelectButton;
         var pattern = ViewHelper.GetMainWindow().PianoRollWindow.PatternSelection;
         if(pianoRoll.Pattern == this)
@@ -49,6 +53,8 @@ public partial class PatternViewModel : ViewModelBase
             pianoRoll.Pattern = null;
             pianoRoll.InvalidateVisual();
             pianoRoll.SaveNotes();
+            pianoBar.Pattern = null;
+            pianoBar.InvalidateVisual();
             button.Content = "Pattern Undefined";
         }
         pattern.ViewModel.Patterns.Remove(this);
@@ -64,6 +70,8 @@ public partial class PatternViewModel : ViewModelBase
         window.Submit += (sender, s) =>
         {
             Name = s;
+            if (pianoRoll.Pattern == this)
+                SelectPattern();
         };
     }
     
@@ -77,6 +85,8 @@ public partial class PatternViewModel : ViewModelBase
         recolorWindow.Submit += (sender, color) =>
         {
             Color = color;
+            if (pianoRoll.Pattern == this)
+                SelectPattern();
         };
     }
 }
