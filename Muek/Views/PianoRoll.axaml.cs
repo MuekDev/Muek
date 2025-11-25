@@ -356,6 +356,9 @@ public partial class PianoRoll : UserControl
             }
 
             var rightSideCursor = false;
+            var whitePen = new Pen(Brushes.White);
+            var redPen = new Pen(Brushes.Red, 2);
+            var orangePen = new Pen(Brushes.Orange);
             for (int i = _noteRangeMin; i <= _noteRangeMax; i++)
             {
                 for (int note = 0; note < _temperament; note++)
@@ -369,19 +372,33 @@ public partial class PianoRoll : UserControl
                         var end = existNote.EndTime * _widthOfBeat;
                         var color = existNote.Color;
                         var velocity = existNote.Velocity;
-                        if (noteName.Equals(existNote.Name))
+                        if (noteName.Equals(existNote.Name) && (!_isDragging || !SelectedNotes.Contains(existNote)))
                         {
-                            context.DrawRectangle(new SolidColorBrush(color, velocity / 127.0),
-                                new Pen(Brushes.Black, 1),
-                                new Rect(start, Height - (i * _temperament + note + 1) * NoteHeight, end - start,
-                                    NoteHeight * .9));
-                            
-                            if((existNote.EndTime - existNote.StartTime)*_widthOfBeat > NoteHeight)
-                                context.DrawText(new FormattedText(IndexToNoteName(existNote.Name),
-                                        CultureInfo.CurrentCulture, FlowDirection.LeftToRight, Typeface.Default,
-                                        NoteHeight * .6,
-                                        Brushes.Black),
-                                    new Point(start, Height - (i * _temperament + note + 1) * NoteHeight));
+                            if(SelectedNotes.Contains(existNote))
+                                context.DrawRectangle(Brushes.Black, whitePen,
+                                    new Rect(start, Height - (i * _temperament + note + 1) * NoteHeight, end - start,
+                                        NoteHeight * .9));
+                            else
+                                context.DrawRectangle(new SolidColorBrush(color, velocity / 127.0),
+                                    new Pen(Brushes.Black, 1),
+                                    new Rect(start, Height - (i * _temperament + note + 1) * NoteHeight, end - start,
+                                        NoteHeight * .9));
+                            if((existNote.EndTime - existNote.StartTime)*_widthOfBeat > NoteHeight * 2)
+                            {
+                                if ((existNote.EndTime - existNote.StartTime) * _widthOfBeat > NoteHeight)
+                                    if (SelectedNotes.Contains(existNote))
+                                        context.DrawText(new FormattedText(IndexToNoteName(existNote.Name),
+                                                CultureInfo.CurrentCulture, FlowDirection.LeftToRight, Typeface.Default,
+                                                NoteHeight * .6,
+                                                Brushes.White),
+                                            new Point(start, Height - (i * _temperament + note + 1) * NoteHeight));
+                                    else
+                                        context.DrawText(new FormattedText(IndexToNoteName(existNote.Name),
+                                                CultureInfo.CurrentCulture, FlowDirection.LeftToRight, Typeface.Default,
+                                                NoteHeight * .6,
+                                                Brushes.Black),
+                                            new Point(start, Height - (i * _temperament + note + 1) * NoteHeight));
+                            }
 
 
                             //Hover音符
@@ -394,7 +411,7 @@ public partial class PianoRoll : UserControl
                                     //更改音符长度
                                     // Cursor = new Cursor(StandardCursorType.RightSide);
                                     rightSideCursor = true;
-                                    context.DrawLine(new Pen(Brushes.Red, 2),
+                                    context.DrawLine(redPen,
                                         new Point(end - 1, Height - (i * _temperament + note + 1) * NoteHeight),
                                         new Point(end - 1,
                                             Height - (i * _temperament + note + 1) * NoteHeight + NoteHeight * .9));
@@ -456,9 +473,7 @@ public partial class PianoRoll : UserControl
                 context.DrawRectangle(null, new Pen(Brushes.White),
                     (Rect)_selectFrame);
             }
-            var whitePen = new Pen(Brushes.White);
-            var redPen = new Pen(Brushes.Red, 2);
-            var orangePen = new Pen(Brushes.Orange);
+            
             for (int i = _noteRangeMin; i <= _noteRangeMax; i++)
             {
                 for (int note = 0; note < _temperament; note++)
@@ -466,43 +481,43 @@ public partial class PianoRoll : UserControl
                     noteName = i * _temperament + note;
 
                     //渲染选中音符
-                    foreach (Note existNote in SelectedNotes)
-                    {
-                        var start = existNote.StartTime * _widthOfBeat;
-                        var end = existNote.EndTime * _widthOfBeat;
-                        if (noteName.Equals(existNote.Name))
-                        {
-                            context.DrawRectangle(Brushes.Black, whitePen,
-                                new Rect(start, Height - (i * _temperament + note + 1) * NoteHeight, end - start,
-                                    NoteHeight * .9));
-
-                            context.DrawText(new FormattedText(IndexToNoteName(existNote.Name),
-                                    CultureInfo.CurrentCulture, FlowDirection.LeftToRight, Typeface.Default,
-                                    NoteHeight * .6,
-                                    Brushes.White),
-                                new Point(start, Height - (i * _temperament + note + 1) * NoteHeight));
-
-                            //Hover音符
-                            if (existNote.Name.Equals(_currentHoverNote) &&
-                                _currentMousePosition.X > existNote.StartTime * _widthOfBeat &&
-                                _currentMousePosition.X < existNote.EndTime * _widthOfBeat)
-                            {
-                                if (double.Abs(_currentMousePosition.X - existNote.EndTime * _widthOfBeat) < 5)
-                                {
-                                    context.DrawLine(redPen,
-                                        new Point(end - 1, Height - (i * _temperament + note + 1) * NoteHeight),
-                                        new Point(end - 1,
-                                            Height - (i * _temperament + note + 1) * NoteHeight + NoteHeight * .9));
-                                }
-                                else
-                                {
-                                    context.DrawRectangle(null, new Pen(Brushes.White, 1),
-                                        new Rect(start, Height - (i * _temperament + note + 1) * NoteHeight,
-                                            end - start, NoteHeight * .9));
-                                }
-                            }
-                        }
-                    }
+                    // foreach (Note existNote in SelectedNotes)
+                    // {
+                    //     var start = existNote.StartTime * _widthOfBeat;
+                    //     var end = existNote.EndTime * _widthOfBeat;
+                    //     if (noteName.Equals(existNote.Name))
+                    //     {
+                    //         context.DrawRectangle(Brushes.Black, whitePen,
+                    //             new Rect(start, Height - (i * _temperament + note + 1) * NoteHeight, end - start,
+                    //                 NoteHeight * .9));
+                    //
+                    //         context.DrawText(new FormattedText(IndexToNoteName(existNote.Name),
+                    //                 CultureInfo.CurrentCulture, FlowDirection.LeftToRight, Typeface.Default,
+                    //                 NoteHeight * .6,
+                    //                 Brushes.White),
+                    //             new Point(start, Height - (i * _temperament + note + 1) * NoteHeight));
+                    //
+                    //         //Hover音符
+                    //         if (existNote.Name.Equals(_currentHoverNote) &&
+                    //             _currentMousePosition.X > existNote.StartTime * _widthOfBeat &&
+                    //             _currentMousePosition.X < existNote.EndTime * _widthOfBeat)
+                    //         {
+                    //             if (double.Abs(_currentMousePosition.X - existNote.EndTime * _widthOfBeat) < 5)
+                    //             {
+                    //                 context.DrawLine(redPen,
+                    //                     new Point(end - 1, Height - (i * _temperament + note + 1) * NoteHeight),
+                    //                     new Point(end - 1,
+                    //                         Height - (i * _temperament + note + 1) * NoteHeight + NoteHeight * .9));
+                    //             }
+                    //             else
+                    //             {
+                    //                 context.DrawRectangle(null, new Pen(Brushes.White, 1),
+                    //                     new Rect(start, Height - (i * _temperament + note + 1) * NoteHeight,
+                    //                         end - start, NoteHeight * .9));
+                    //             }
+                    //         }
+                    //     }
+                    // }
 
                     //渲染拖动的选中音符
                     if (_isDrawing || _isDragging || _isEditing && SelectedNotes.Count != 0)
