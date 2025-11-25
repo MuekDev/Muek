@@ -387,22 +387,51 @@ public partial class PianoRoll : UserControl
                                         NoteHeight * .9));
                             }
 
-                            if((existNote.EndTime - existNote.StartTime)*_widthOfBeat > NoteHeight * 2)
-                            {
-                                if ((existNote.EndTime - existNote.StartTime) * _widthOfBeat > NoteHeight)
+                            
+                            if ((existNote.EndTime - existNote.StartTime) * _widthOfBeat > NoteHeight * .8)
+                                if((existNote.EndTime - existNote.StartTime)*_widthOfBeat > NoteHeight * 3)
                                     if (SelectedNotes.Contains(existNote))
-                                        context.DrawText(new FormattedText(IndexToNoteName(existNote.Name),
+                                        context.DrawText(new FormattedText(
+                                                $" {IndexToNoteName(existNote.Name)}  vel:{existNote.Velocity}",
                                                 CultureInfo.CurrentCulture, FlowDirection.LeftToRight, Typeface.Default,
                                                 NoteHeight * .6,
                                                 Brushes.White),
                                             new Point(start, Height - (i * _temperament + note + 1) * NoteHeight));
                                     else
-                                        context.DrawText(new FormattedText(IndexToNoteName(existNote.Name),
+                                        context.DrawText(new FormattedText(
+                                                $" {IndexToNoteName(existNote.Name)}  vel:{existNote.Velocity}",
                                                 CultureInfo.CurrentCulture, FlowDirection.LeftToRight, Typeface.Default,
                                                 NoteHeight * .6,
                                                 Brushes.Black),
                                             new Point(start, Height - (i * _temperament + note + 1) * NoteHeight));
-                            }
+                                else if((existNote.EndTime - existNote.StartTime)*_widthOfBeat > NoteHeight * 2)
+                                    if (SelectedNotes.Contains(existNote))
+                                        context.DrawText(new FormattedText(
+                                                $" {IndexToNoteName(existNote.Name)} {existNote.Velocity}",
+                                                CultureInfo.CurrentCulture, FlowDirection.LeftToRight, Typeface.Default,
+                                                NoteHeight * .6,
+                                                Brushes.White),
+                                            new Point(start, Height - (i * _temperament + note + 1) * NoteHeight));
+                                    else
+                                        context.DrawText(new FormattedText(
+                                                $" {IndexToNoteName(existNote.Name)} {existNote.Velocity}",
+                                                CultureInfo.CurrentCulture, FlowDirection.LeftToRight, Typeface.Default,
+                                                NoteHeight * .6,
+                                                Brushes.Black),
+                                            new Point(start, Height - (i * _temperament + note + 1) * NoteHeight));
+                                else
+                                    if (SelectedNotes.Contains(existNote))
+                                        context.DrawText(new FormattedText($" {IndexToNoteName(existNote.Name)}",
+                                                CultureInfo.CurrentCulture, FlowDirection.LeftToRight, Typeface.Default,
+                                                NoteHeight * .6,
+                                                Brushes.White),
+                                            new Point(start, Height - (i * _temperament + note + 1) * NoteHeight));
+                                    else
+                                        context.DrawText(new FormattedText($" {IndexToNoteName(existNote.Name)}",
+                                                CultureInfo.CurrentCulture, FlowDirection.LeftToRight, Typeface.Default,
+                                                NoteHeight * .6,
+                                                Brushes.Black),
+                                            new Point(start, Height - (i * _temperament + note + 1) * NoteHeight));
 
 
                             //Hover音符
