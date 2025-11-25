@@ -25,7 +25,7 @@ public partial class PianoRollWindow : UserControl
     {
         InitializeComponent();
         ClipToBounds = false;
-        TopBar.PointerPressed += (sender, args) =>
+        ResizePanel.PointerPressed += (sender, args) =>
         {
             _isDragging = true;
             if(_isShowing)
@@ -39,7 +39,7 @@ public partial class PianoRollWindow : UserControl
             }
             args.Handled = true;
         };
-        TopBar.PointerMoved += (sender, args) =>
+        ResizePanel.PointerMoved += (sender, args) =>
         {
             if (_isDragging)
             {
@@ -70,17 +70,17 @@ public partial class PianoRollWindow : UserControl
                 }
             }
         };
-        TopBar.PointerReleased += (sender, args) =>
+        ResizePanel.PointerReleased += (sender, args) =>
         {
             _isDragging = false;
             
         };
-        TopBar.PointerEntered += (sender, args) =>
+        ResizePanel.PointerEntered += (sender, args) =>
         {
             ResizeBorder.IsVisible = true;
             Cursor = new Cursor(StandardCursorType.TopSide);
         };
-        TopBar.PointerExited += (sender, args) =>
+        ResizePanel.PointerExited += (sender, args) =>
         {
             ResizeBorder.IsVisible = false;
             Cursor = new Cursor(StandardCursorType.Arrow);

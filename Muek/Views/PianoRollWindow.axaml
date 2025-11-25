@@ -70,6 +70,8 @@
             </Button>
         </Grid>
         </Border>
+        <Border Grid.Row="0" Background="Black" Height="10" VerticalAlignment="Top" Name="ResizePanel" Opacity="0">
+        </Border>
         <Border Grid.Row="0" Background="White" Height="0.1" VerticalAlignment="Top" IsVisible="False"
                 Name="ResizeBorder"/>
         <Grid Grid.Row="1" ColumnDefinitions="Auto,*" Margin="5,0">
