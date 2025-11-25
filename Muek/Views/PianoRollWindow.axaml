@@ -33,6 +33,15 @@
                         </Flyout>
                     </Button.Flyout>
                 </Button>
+                <!-- 选择Pattern -->
+                <Button Background="Transparent" Name="PatternSelectButton">Pattern Undefined
+                    <Button.Flyout>
+                        <Flyout>
+                            <views:PatternSelection Name="PatternSelection"
+                                                    MinWidth="200"/>
+                        </Flyout>
+                    </Button.Flyout>
+                </Button>
             </StackPanel>
             <!-- 关闭 -->
             <Button HorizontalAlignment="Right" VerticalAlignment="Center" Margin="10"
@@ -89,6 +98,9 @@
                 </StackPanel>
                 <Grid Background="Black" Opacity="0"/>
             </Grid>
+        </Grid>
+        <Grid Grid.Row="1" Name="WindowCover">
+            <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="16">Please select a pattern</TextBlock>
         </Grid>
         <Grid Grid.Row="2" Margin="5,0">
             <views:PatternPreview Height="40" Name="PatternPreview" PointerPressed="Show"></views:PatternPreview>

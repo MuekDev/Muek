@@ -12,6 +12,7 @@ using Avalonia.Platform.Storage;
 using Avalonia.Styling;
 using Muek.Models;
 using Muek.Services;
+using Muek.ViewModels;
 
 namespace Muek.Views;
 
@@ -104,6 +105,7 @@ public partial class PianoRollWindow : UserControl
         });
         DropDisplay.AddHandler(DragDrop.DropEvent, MidiDragDrop());
         OpenButton.Background = new SolidColorBrush(DataStateService.MuekColor);
+        WindowCover.Background = new SolidColorBrush(Colors.Black, .5);
     }
 
     private EventHandler<DragEventArgs>? MidiDragDrop()

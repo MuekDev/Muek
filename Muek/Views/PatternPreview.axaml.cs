@@ -26,9 +26,7 @@ public partial class PatternPreview : UserControl
         set => SetValue(BackgroundColorProperty, value);
     }
 
-    public int Index;
-
-    public List<PianoRoll.Note> Notes = new();
+    public List<PianoRoll.Note> Notes => ViewHelper.GetMainWindow().PianoRollWindow.EditArea.Notes;
 
     private bool _isHover = false;
     private bool _isPressed = false;

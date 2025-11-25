@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Globalization;
 using System.Threading.Tasks;
 using Avalonia;
@@ -10,6 +11,7 @@ using Avalonia.Media;
 using Avalonia.Platform.Storage;
 using Muek.Models;
 using Muek.Services;
+using Muek.ViewModels;
 using NAudio.Midi;
 
 namespace Muek.Views;
@@ -99,12 +101,42 @@ public partial class PianoRoll : UserControl
         public Color Color = default;
     }
 
-    private Note _currentHoverDrawedNote = new Note();
+    private Note _currentHoverDrawnNote = new Note();
 
     private Point _currentMousePosition;
     private Point _pressedMousePosition;
 
-    public List<Note> Notes = new();
+    private PatternViewModel? _pattern = null;
+
+    public PatternViewModel? Pattern
+    {
+        get => _pattern;
+        set
+        {
+            _pattern = value;
+            OnPropertyChanged(nameof(Pattern));
+        }
+    }
+    public event PropertyChangedEventHandler PropertyChanged;
+    protected virtual void OnPropertyChanged(string propertyName)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        if (Pattern != null)
+        {
+            ViewHelper.GetMainWindow().PianoRollWindow.WindowCover.IsVisible = false;
+        }
+        else
+        {
+            ViewHelper.GetMainWindow().PianoRollWindow.WindowCover.IsVisible = true;
+        }
+        var patterns = ViewHelper.GetMainWindow().PianoRollWindow.PatternSelection.ViewModel.Patterns;
+        foreach (var pattern in patterns)
+        {
+            if (pattern == Pattern) pattern.Background = new SolidColorBrush(pattern.Color);
+            else pattern.Background = new SolidColorBrush(Colors.Black, 0);
+        }
+    }
+    public List<Note> Notes => Pattern == null ? new List<Note>() : Pattern.Notes;
 
     public Point ScalingSensitivity = new Point(5, 2);
 
@@ -688,9 +720,9 @@ public partial class PianoRoll : UserControl
                     if (e.GetPosition(this).X > note.StartTime * _widthOfBeat &&
                         e.GetPosition(this).X < note.EndTime * _widthOfBeat)
                     {
-                        _currentHoverDrawedNote.StartTime = note.StartTime;
-                        _currentHoverDrawedNote.EndTime = note.EndTime;
-                        _currentHoverDrawedNote.Name = _currentHoverNote;
+                        _currentHoverDrawnNote.StartTime = note.StartTime;
+                        _currentHoverDrawnNote.EndTime = note.EndTime;
+                        _currentHoverDrawnNote.Name = _currentHoverNote;
                     }
                 }
 
@@ -1279,7 +1311,6 @@ public partial class PianoRoll : UserControl
 
     public void SaveNotes()
     {
-        ViewHelper.GetMainWindow().PianoRollWindow.PatternPreview.Notes = Notes;
         {
             double trackEnd = 0;
             foreach (var note in Notes)

@@ -1,0 +1,47 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:Muek.ViewModels"
+             xmlns:avalonia="https://github.com/projektanker/icons.avalonia"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Muek.Views.PatternSelection"
+             x:DataType="vm:PatternSelectionViewModel">
+    <Grid>
+        <StackPanel>
+        <ItemsControl ItemsSource="{Binding Patterns}">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Grid ColumnDefinitions="*,Auto">
+                        <Button HorizontalAlignment="Stretch" Background="{Binding Background}"
+                                Command="{Binding SelectPattern}">
+                            <Button.Styles>
+                                <Style
+                                    Selector="Button:pointerover/template/ContentPresenter">
+                                    <Setter Property="Background"
+                                            Value="{Binding Background}"/>
+                                    <Setter Property="BorderBrush"
+                                            Value="White"/>
+                                </Style>
+                            </Button.Styles>
+                            <TextBlock Text="{Binding Name}" HorizontalAlignment="Center"/>
+                        </Button>
+                        <Button Grid.Column="1" Background="Transparent" Command="{Binding RemovePattern}">
+                            <Button.Styles>
+                                <Style Selector="Button:pointerover/template/ContentPresenter">
+                                    <Setter Property="Background" Value="Red"></Setter>
+                                </Style>
+                            </Button.Styles>
+                            <avalonia:Icon Value="fa-times"></avalonia:Icon>
+                        </Button>
+                    </Grid>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        <Button Command="{Binding AddPattern}" HorizontalAlignment="Stretch"
+                Background="Transparent">
+            <avalonia:Icon Value="mdi-plus"/>
+        </Button>
+        </StackPanel>
+    </Grid>
+</UserControl>
