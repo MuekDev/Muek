@@ -72,9 +72,9 @@ public partial class PianoRoll : UserControl
     // private double _renderSize = 2000;
 
 
-    private IBrush _noteColor1;
-    private IBrush _noteColor2;
-    private IBrush _noteColor3;
+    private readonly IBrush _noteColor1 = Brushes.White;
+    private readonly IBrush _noteColor2 = Brushes.Black;
+    private Color NoteColor3 => Pattern?.Color ?? DataStateService.MuekColor;
 
     private IBrush _noteHoverColor;
 
@@ -166,10 +166,7 @@ public partial class PianoRoll : UserControl
         Height = NoteHeight * (_noteRangeMax - _noteRangeMin + 1) * _temperament;
         // Console.WriteLine(Height);
 
-
-        _noteColor1 = Brushes.White;
-        _noteColor2 = Brushes.Black;
-        _noteColor3 = new SolidColorBrush(DataStateService.MuekColor);
+        
 
 
         _noteHoverColor = new SolidColorBrush(DataStateService.MuekColor, .1);
@@ -329,7 +326,7 @@ public partial class PianoRoll : UserControl
                 {
                     if(i%16==0)
                     {
-                        gridLinePen.Brush = _noteColor3;
+                        gridLinePen.Brush = new SolidColorBrush(NoteColor3);
                         if(_widthOfBeat < 20)  gridLinePen.Thickness = .5;
                         textColor = Brushes.White;
                     }
@@ -364,7 +361,7 @@ public partial class PianoRoll : UserControl
             //绘制位置
             if (_currentHoverNote != -1)
             {
-                var pen = new Pen(_noteColor3,.5);
+                var pen = new Pen(new SolidColorBrush(NoteColor3),.5);
                 if (!_isDrawing && !_isEditing && !_isDragging)
                 {
                     context.DrawLine(pen,
@@ -617,7 +614,7 @@ public partial class PianoRoll : UserControl
                                     EndTime = dragRelativePos + selectedNote.EndTime,
                                     Name =
                                         dragNoteName,
-                                    Color = DataStateService.MuekColor
+                                    Color = NoteColor3
                                 });
                             }
                             var solidColorBrush = new SolidColorBrush(color);
@@ -937,7 +934,7 @@ public partial class PianoRoll : UserControl
                                 StartTime = _currentNoteStartTime >= 0 ? _currentNoteStartTime : 0,
                                 EndTime = _currentNoteEndTime,
                                 Name = _currentHoverNote,
-                                Color = DataStateService.MuekColor
+                                Color = NoteColor3
                             });
                         }
                         else
@@ -969,7 +966,7 @@ public partial class PianoRoll : UserControl
                                     EndTime = dragRelativePos + selectedNote.EndTime,
                                     Name =
                                         noteName,
-                                    Color = DataStateService.MuekColor
+                                    Color = NoteColor3
                                 });
                             }
 
@@ -994,7 +991,7 @@ public partial class PianoRoll : UserControl
                                 StartTime = _currentNoteStartTime >= 0 ? _currentNoteStartTime : 0,
                                 EndTime = _currentNoteEndTime,
                                 Name = _editingNote,
-                                Color = DataStateService.MuekColor
+                                Color = NoteColor3
                             });
                         }
                         else
@@ -1008,7 +1005,7 @@ public partial class PianoRoll : UserControl
                                     EndTime = (e.GetPosition(this).X - e.GetPosition(this).X % (_widthOfBeat * Magnet) +
                                                _widthOfBeat) / _widthOfBeat,
                                     Name = selectedNote.Name,
-                                    Color = DataStateService.MuekColor
+                                    Color =NoteColor3
                                 });
                             }
 
@@ -1303,7 +1300,7 @@ public partial class PianoRoll : UserControl
 
         if (name[0] == 'C')
         {
-            return _noteColor3;
+            return new SolidColorBrush(NoteColor3);
         }
 
         return _noteColor1;
@@ -1397,7 +1394,7 @@ public partial class PianoRoll : UserControl
                             Notes.Add(new Note()
                             {
                                 Name = ((NoteOnEvent)note).NoteNumber,
-                                Color = DataStateService.MuekColor,
+                                Color = NoteColor3,
                                 StartTime = ((NoteOnEvent)note).AbsoluteTime /
                                     (double)midi.Data.DeltaTicksPerQuarterNote * 4,
                                 EndTime = (((NoteOnEvent)note).AbsoluteTime + ((NoteOnEvent)note).NoteLength) /

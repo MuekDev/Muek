@@ -34,6 +34,7 @@
                     </Button.Flyout>
                 </Button>
                 <!-- 选择Pattern -->
+                <Border Width="2" Height="20" Name="PatternColor"/>
                 <Button Background="Transparent" Name="PatternSelectButton">Pattern Undefined
                     <Button.Flyout>
                         <Flyout>

@@ -14,6 +14,8 @@ public partial class PatternViewModel : ViewModelBase
     [ObservableProperty] private string _name;
     [ObservableProperty] private List<PianoRoll.Note> _notes;
     [ObservableProperty] private IBrush _background;
+    
+    public IBrush Brush => new SolidColorBrush(Color);
 
     public PatternViewModel()
     {
@@ -28,11 +30,12 @@ public partial class PatternViewModel : ViewModelBase
     {
         var pianoRoll =  ViewHelper.GetMainWindow().PianoRollWindow.EditArea;
         var button = ViewHelper.GetMainWindow().PianoRollWindow.PatternSelectButton;
-        var pattern = ViewHelper.GetMainWindow().PianoRollWindow.PatternSelection;
+        var color = ViewHelper.GetMainWindow().PianoRollWindow.PatternColor;
         pianoRoll.Pattern = this;
         pianoRoll.InvalidateVisual();
         pianoRoll.SaveNotes();
         button.Content = Name;
+        color.Background = Brush;
     }
     
     [RelayCommand]
@@ -49,5 +52,31 @@ public partial class PatternViewModel : ViewModelBase
             button.Content = "Pattern Undefined";
         }
         pattern.ViewModel.Patterns.Remove(this);
+    }
+    
+    public void ShowRenameWindow()
+    {
+        var mainWindow = ViewHelper.GetMainWindow();
+        var pianoRoll =  ViewHelper.GetMainWindow().PianoRollWindow.EditArea;
+        var window = new RenameWindow();
+        window.ShowDialog(mainWindow);
+        window.NameBox.Text = Name;
+        window.Submit += (sender, s) =>
+        {
+            Name = s;
+        };
+    }
+    
+    public void ShowRecolorWindow()
+    {
+        var mainWindow = ViewHelper.GetMainWindow();
+        var pianoRoll =  ViewHelper.GetMainWindow().PianoRollWindow.EditArea;
+        var recolorWindow = new RecolorWindow();
+        recolorWindow.MyColorView.SelectedColor = Color;
+        recolorWindow.Show();
+        recolorWindow.Submit += (sender, color) =>
+        {
+            Color = color;
+        };
     }
 }
