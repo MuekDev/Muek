@@ -1,20 +1,18 @@
 using System;
-using System.Globalization;
-using System.Threading.Tasks;
+using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
-using Avalonia.Input.Raw;
-using Avalonia.Interactivity;
-using Avalonia.Markup.Xaml;
 using Avalonia.Media;
-using CommunityToolkit.Mvvm.ComponentModel;
-using Muek.Models;
+using Avalonia.Platform;
 
 namespace Muek.Views;
 
 public partial class MuekValuer : UserControl
 {
+    [DllImport("user32.dll", EntryPoint = "SetCursorPos")]
+    private static extern bool SetCursorPos(int x, int y);
+    
     public static readonly StyledProperty<double> MinValueProperty = AvaloniaProperty.Register<MuekValuer, double>(
         nameof(MinValue));
 
@@ -166,7 +164,7 @@ public partial class MuekValuer : UserControl
             var defaultPercentValue = (DefaultValue - MinValue) / (MaxValue - MinValue);
             
             context.DrawRectangle(ValuerColor, _stroke,
-                new Rect(-ValuerWidth/2, (1 - percentValue) * (ValuerHeight-2), ValuerWidth * 2, 2));
+                new Rect(-ValuerWidth/2, (1 - percentValue) * (ValuerHeight-1), ValuerWidth * 2, 1));
 
             if(_hover || _pressed)
             {
@@ -267,10 +265,29 @@ public partial class MuekValuer : UserControl
             _pressed = true;
             _tempPress = e.GetPosition(this);
             // Console.WriteLine("Pressed");
-            if (e.ClickCount == 2)
+            if (e.KeyModifiers == KeyModifiers.Control)
             {
                 Value = DefaultValue;
                 InvalidateVisual();
+            }
+            else
+            {
+                Cursor = new Cursor(StandardCursorType.None);
+                switch (Layout)
+                {
+                    case LayoutEnum.Knob:
+                        SetCursorPos(this.PointToScreen(new Point(Bounds.Width/2, Bounds.Height/2)).X,
+                            this.PointToScreen(new Point(Bounds.Width/2, Bounds.Height/2)).Y);
+                        _tempPress = new Point(Bounds.Width/2, Bounds.Height/2);
+                        break;
+                    case LayoutEnum.Slider:
+                    {
+                        var percentValue = (Value - MinValue) / (MaxValue - MinValue);
+                        SetCursorPos(this.PointToScreen(new Point(0, (1 - percentValue) * (ValuerHeight - 1))).X,
+                            this.PointToScreen(new Point(0, (1 - percentValue) * (ValuerHeight - 1))).Y);
+                        break;
+                    }
+                }
             }
         }
 
@@ -287,7 +304,24 @@ public partial class MuekValuer : UserControl
     {
         base.OnPointerReleased(e);
         _pressed = false;
+        Cursor = Cursor.Default;
         e.Handled = true;
+        if(e.KeyModifiers == KeyModifiers.Control) return;
+        switch (Layout)
+        {
+            case LayoutEnum.Knob:
+                SetCursorPos(this.PointToScreen(new Point(Bounds.Width/2, Bounds.Height/2)).X,
+                    this.PointToScreen(new Point(Bounds.Width/2, Bounds.Height/2)).Y);
+                break;
+            case LayoutEnum.Slider:
+            {
+                var percentValue = (Value - MinValue) / (MaxValue - MinValue);
+                SetCursorPos(this.PointToScreen(new Point(0, (1 - percentValue) * (ValuerHeight - 1))).X,
+                    this.PointToScreen(new Point(0, (1 - percentValue) * (ValuerHeight - 1))).Y);
+                break;
+            }
+        }
+
         InvalidateVisual();
     }
 
@@ -296,6 +330,7 @@ public partial class MuekValuer : UserControl
         base.OnPointerMoved(e);
         if (_pressed)
         {
+            Cursor = new Cursor(StandardCursorType.None);
             var pos = e.GetPosition(this);
 
             switch (Layout)
