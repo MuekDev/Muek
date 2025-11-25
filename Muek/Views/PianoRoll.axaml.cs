@@ -359,6 +359,7 @@ public partial class PianoRoll : UserControl
             var whitePen = new Pen(Brushes.White);
             var redPen = new Pen(Brushes.Red, 2);
             var orangePen = new Pen(Brushes.Orange);
+            var blackPen = new Pen(Brushes.Black);
             for (int i = _noteRangeMin; i <= _noteRangeMax; i++)
             {
                 for (int note = 0; note < _temperament; note++)
@@ -379,10 +380,13 @@ public partial class PianoRoll : UserControl
                                     new Rect(start, Height - (i * _temperament + note + 1) * NoteHeight, end - start,
                                         NoteHeight * .9));
                             else
+                            {
                                 context.DrawRectangle(new SolidColorBrush(color, velocity / 127.0),
-                                    new Pen(Brushes.Black, 1),
+                                    blackPen,
                                     new Rect(start, Height - (i * _temperament + note + 1) * NoteHeight, end - start,
                                         NoteHeight * .9));
+                            }
+
                             if((existNote.EndTime - existNote.StartTime)*_widthOfBeat > NoteHeight * 2)
                             {
                                 if ((existNote.EndTime - existNote.StartTime) * _widthOfBeat > NoteHeight)
