@@ -28,17 +28,9 @@ public partial class PianoRoll : UserControl
         get => GetValue(NoteHeightProperty);
         set => SetValue(NoteHeightProperty, value);
     }
-
-    public static readonly StyledProperty<bool> IsPianoBarProperty = AvaloniaProperty.Register<PianoRoll, bool>(
-        nameof(IsPianoBar));
-
-
+    
     //为了同步一些属性，把两边的钢琴写在一个类里了
-    public bool IsPianoBar
-    {
-        get => GetValue(IsPianoBarProperty);
-        set => SetValue(IsPianoBarProperty, value);
-    }
+    public bool IsPianoBar { get; set; } = false;
 
     public static readonly StyledProperty<double> ScrollOffsetProperty = AvaloniaProperty.Register<PianoRoll, double>(
         nameof(ScrollOffset));
@@ -1042,8 +1034,9 @@ public partial class PianoRoll : UserControl
                 // _ = HideOptions();
                 HideOptions();
             }
+            SaveNotes();
+            
         }
-        SaveNotes();
         InvalidateVisual();
         e.Handled = true;
         GC.Collect();
@@ -1308,6 +1301,7 @@ public partial class PianoRoll : UserControl
 
     public void SaveNotes()
     {
+        if(!IsPianoBar)
         {
             double trackEnd = 0;
             foreach (var note in Notes)
