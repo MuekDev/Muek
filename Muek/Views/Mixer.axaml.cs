@@ -15,13 +15,40 @@ namespace Muek.Views;
 public partial class Mixer : UserControl
 {
     //Mixer部分
-
+    private bool _isDragging = false;
+    private double _maxSize = 200;
     public Mixer()
     {
         InitializeComponent();
         Width = 0;
         Console.WriteLine("Mixer Initialized");
-        
+        ResizePanel.PointerPressed += (sender, args) =>
+        {
+            _isDragging = true;
+            args.Handled = true;
+        };
+        ResizePanel.PointerMoved += (sender, args) =>
+        {
+            if (!_isDragging) return;
+            _maxSize = double.Clamp(Width - args.GetPosition(this).X,120,600);
+            Width = _maxSize;
+            args.Handled = true;
+        };
+        ResizePanel.PointerReleased += (sender, args) =>
+        {
+            _isDragging = false;
+            
+        };
+        ResizePanel.PointerEntered += (sender, args) =>
+        {
+            ResizeBorder.IsVisible = true;
+            Cursor = new Cursor(StandardCursorType.LeftSide);
+        };
+        ResizePanel.PointerExited += (sender, args) =>
+        {
+            ResizeBorder.IsVisible = false;
+            Cursor = new Cursor(StandardCursorType.Arrow);
+        };
     }
 
     private void HideMixer(object? sender, RoutedEventArgs e)
@@ -101,7 +128,7 @@ public partial class Mixer : UserControl
                             new Setter
                             {
                                 Property = WidthProperty,
-                                Value = 200.0
+                                Value = _maxSize
                             }
                         }
                     }
