@@ -68,8 +68,8 @@
                     </Button.Flyout>
                 </Button>
             </Grid>
+            <Border Grid.Column="0" Background="White" Width=".1" HorizontalAlignment="Left" IsVisible="False" Name="ResizeBorder"/>
             <Border Grid.Column="0" Background="Black" Name="ResizePanel" Opacity="0" HorizontalAlignment="Left" Width="10"/>
-            <Border Grid.Column="0" Background="White" Width=".1" HorizontalAlignment="Left" IsVisible="False" Name="ResizeBorder"></Border>
         </Grid>
             <!-- 删除 -->
         <Grid Grid.Column="1">

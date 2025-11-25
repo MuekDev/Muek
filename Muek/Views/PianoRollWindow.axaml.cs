@@ -73,6 +73,8 @@ public partial class PianoRollWindow : UserControl
         ResizePanel.PointerReleased += (sender, args) =>
         {
             _isDragging = false;
+            ResizeBorder.IsVisible = false;
+            Cursor = new Cursor(StandardCursorType.Arrow);
             
         };
         ResizePanel.PointerEntered += (sender, args) =>
@@ -82,6 +84,7 @@ public partial class PianoRollWindow : UserControl
         };
         ResizePanel.PointerExited += (sender, args) =>
         {
+            if(_isDragging) return;
             ResizeBorder.IsVisible = false;
             Cursor = new Cursor(StandardCursorType.Arrow);
         };
