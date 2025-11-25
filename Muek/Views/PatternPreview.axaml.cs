@@ -135,7 +135,7 @@ public partial class PatternPreview : UserControl
                         note.StartTime * noteWidth,
                         Bounds.Height * .6 - (position - noteMin + 1) * noteHeight * .6 + Bounds.Height * .2,
                         noteWidth * (note.EndTime - note.StartTime),
-                        noteHeight * .6),
+                        noteHeight * .55),
                     (float)(noteHeight * .1));
                 // Console.WriteLine("Drew");
                 // Console.WriteLine(new Rect(noteWidth * (note.StartTime - noteFirst), Height - (position - noteMin) * noteHeight, noteWidth *
