@@ -101,7 +101,15 @@
             </Grid>
         </Grid>
         <Grid Grid.Row="1" Name="WindowCover">
-            <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="16">Please select a pattern</TextBlock>
+            <StackPanel  VerticalAlignment="Center" HorizontalAlignment="Center">
+                <avalonia:Icon Value="mdi-cancel" FontSize="32"/>
+                <TextBlock FontSize="24" HorizontalAlignment="Center">
+                    No Pattern Selected
+                </TextBlock>
+                <TextBlock FontSize="12" HorizontalAlignment="Center">
+                    Click "Pattern Undefined" to select a pattern
+                </TextBlock>
+            </StackPanel>
         </Grid>
         <Grid Grid.Row="2" Margin="5,0">
             <views:PatternPreview Height="40" Name="PatternPreview" PointerPressed="Show"></views:PatternPreview>
