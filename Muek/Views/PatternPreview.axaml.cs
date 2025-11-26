@@ -60,22 +60,22 @@ public partial class PatternPreview : UserControl
         else
         {
             context.DrawRectangle(new SolidColorBrush(Colors.White, .05), null,
-                new Rect(ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRight.Offset.X /
+                new Rect(ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRightScroll.Offset.X /
                          ViewHelper.GetMainWindow().PianoRollWindow.EditArea.Width
                          * Bounds.Width
                     , 0,
-                    ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRight.Bounds.Width /
+                    ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRightScroll.Bounds.Width /
                     ViewHelper.GetMainWindow().PianoRollWindow.EditArea.Width
                     * Bounds.Width,
                     Bounds.Height));
             if (_isHover)
             {
                 context.DrawRectangle(null, new Pen(new SolidColorBrush(Colors.White)),
-                    new Rect(ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRight.Offset.X /
+                    new Rect(ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRightScroll.Offset.X /
                              ViewHelper.GetMainWindow().PianoRollWindow.EditArea.Width
                              * Bounds.Width
                         , 0,
-                        ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRight.Bounds.Width /
+                        ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRightScroll.Bounds.Width /
                         ViewHelper.GetMainWindow().PianoRollWindow.EditArea.Width
                         * Bounds.Width,
                         Bounds.Height));
@@ -165,7 +165,7 @@ public partial class PatternPreview : UserControl
         }
 
         _pressedPosition = e.GetPosition(this).X;
-        _pressedScroll = ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRight.Offset.X;
+        _pressedScroll = ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRightScroll.Offset.X;
         _isPressed = true;
         if (ViewHelper.GetMainWindow().PianoRollWindow.IsShowing)
         {
@@ -188,7 +188,7 @@ public partial class PatternPreview : UserControl
                 noteFirst = noteFirst.StartTime < note.StartTime ? noteFirst : note;
             }
 
-            ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRight.Offset = new Vector(
+            ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRightScroll.Offset = new Vector(
                 noteFirst.StartTime * ViewHelper.GetMainWindow().PianoRollWindow.EditArea.WidthOfBeat,
                 ViewHelper.GetMainWindow().PianoRollWindow.EditArea.Height - (noteFirst.Name + 1) *
                 ViewHelper.GetMainWindow().PianoRollWindow.EditArea.NoteHeight);
@@ -222,10 +222,10 @@ public partial class PatternPreview : UserControl
         
         if (_isPressed)
         {
-            ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRight.Offset = new Vector(
+            ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRightScroll.Offset = new Vector(
                 (e.GetPosition(this).X - _pressedPosition) / Bounds.Width
                 * ViewHelper.GetMainWindow().PianoRollWindow.EditArea.Width + _pressedScroll
-                , ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRight.Offset.Y
+                , ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRightScroll.Offset.Y
             );
             if (!_isDragging)
             {

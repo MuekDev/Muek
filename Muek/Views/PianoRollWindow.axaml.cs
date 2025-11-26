@@ -220,22 +220,30 @@ public partial class PianoRollWindow : UserControl
 
     private void ScrollChange(object? sender, ScrollChangedEventArgs e)
     {
-        if (e.Source != null && e.Source.Equals(PianoRollLeft))
+        if (e.Source != null && e.Source.Equals(PianoRollLeftScroll))
         {
             EditArea.Height = PianoBar.Height;
-            PianoRollRight.Offset = new Vector(PianoRollRight.Offset.X,PianoRollLeft.Offset.Y);
+            PianoRollRightScroll.Offset = new Vector(PianoRollRightScroll.Offset.X,PianoRollLeftScroll.Offset.Y);
             EditArea.NoteHeight = PianoBar.NoteHeight;
         }
 
-        if (e.Source != null && e.Source.Equals(PianoRollRight))
+        if (e.Source != null && e.Source.Equals(PianoRollRightScroll))
         {
             PianoBar.Height = EditArea.Height;
-            PianoRollLeft.Offset = new Vector(0,PianoRollRight.Offset.Y);
+            PianoRollLeftScroll.Offset = new Vector(0,PianoRollRightScroll.Offset.Y);
             PianoBar.NoteHeight = EditArea.NoteHeight;
-            
+
+            NoteVelocityScroll.Offset = new Vector(PianoRollRightScroll.Offset.X, 0);
+
         }
-        EditArea.ScrollOffset = PianoRollRight.Offset.Y;
-        EditArea.ClampValue = PianoRollRight.Offset.X;
+
+        if (e.Source != null && e.Source.Equals(NoteVelocityScroll))
+        {
+            NoteVelocity.Width = EditArea.Width;
+            PianoRollRightScroll.Offset = new Vector(NoteVelocityScroll.Offset.X, PianoRollRightScroll.Offset.Y);
+        }
+        EditArea.ScrollOffset = PianoRollRightScroll.Offset.Y;
+        EditArea.ClampValue = PianoRollRightScroll.Offset.X;
         PatternPreview.InvalidateVisual();
     }
 
@@ -245,8 +253,8 @@ public partial class PianoRollWindow : UserControl
         
         if (e.KeyModifiers.HasFlag(KeyModifiers.Shift))
         {
-            PianoRollRight.Offset = new Vector(PianoRollRight.Offset.X - e.Delta.Y * 44,PianoRollRight.Offset.Y );
-            PianoRollRight.Offset = new Vector(Math.Max(0, PianoRollRight.Offset.X),PianoRollRight.Offset.Y) ; // 不允许左滚超过0
+            PianoRollRightScroll.Offset = new Vector(PianoRollRightScroll.Offset.X - e.Delta.Y * 44,PianoRollRightScroll.Offset.Y );
+            PianoRollRightScroll.Offset = new Vector(Math.Max(0, PianoRollRightScroll.Offset.X),PianoRollRightScroll.Offset.Y) ; // 不允许左滚超过0
             
             InvalidateVisual();
             e.Handled = true;

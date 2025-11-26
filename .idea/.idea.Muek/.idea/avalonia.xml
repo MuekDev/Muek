@@ -18,6 +18,8 @@
         <entry key="Muek/Views/MuekKnob.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/Views/MuekTrack.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/Views/MuekValuer.axaml" value="Muek/Muek.csproj" />
+        <entry key="Muek/Views/NoteVelocity.axaml" value="Muek/Muek.csproj" />
+        <entry key="Muek/Views/NoteVelocityWindow.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/Views/PatternPreview.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/Views/PatternPreviewWindow.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/Views/PatternSelection.axaml" value="Muek/Muek.csproj" />
