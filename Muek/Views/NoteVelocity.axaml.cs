@@ -36,8 +36,8 @@ public partial class NoteVelocity : UserControl
     private Color Color => ViewHelper.GetMainWindow().PianoRollWindow.EditArea.Pattern?.Color ?? DataStateService.MuekColor;
     private Pen NotePen => new Pen(new SolidColorBrush(Color),2);
 
-    private static readonly IBrush WhiteBrush = new SolidColorBrush(Colors.White,.2);
-    private readonly Pen _whitePen = new Pen(new SolidColorBrush(Colors.White,.2));
+    private static readonly IBrush WhiteBrush = new SolidColorBrush(Colors.White,.1);
+    private readonly Pen _whitePen = new Pen(new SolidColorBrush(Colors.White,.1));
 
     private readonly FormattedText _maxVelocityText = new FormattedText("Velocity: 127",CultureInfo.CurrentCulture, FlowDirection.LeftToRight,Typeface.Default, 10,WhiteBrush);
     private readonly FormattedText _minVelocityText = new FormattedText("Velocity: 0",CultureInfo.CurrentCulture, FlowDirection.LeftToRight,Typeface.Default, 10,WhiteBrush);
@@ -147,7 +147,7 @@ public partial class NoteVelocity : UserControl
             ViewHelper.GetMainWindow().PianoRollWindow.NoteVelocityScroll.Offset.X + 10
             ,Bounds.Height/2),new Point(
             ViewHelper.GetMainWindow().PianoRollWindow.NoteVelocityScroll.Bounds.Width + 
-            ViewHelper.GetMainWindow().PianoRollWindow.NoteVelocityScroll.Offset.X - 100
+            ViewHelper.GetMainWindow().PianoRollWindow.NoteVelocityScroll.Offset.X - 20
             ,Bounds.Height/2));
         
         context.DrawText(
