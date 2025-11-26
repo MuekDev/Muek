@@ -47,6 +47,10 @@ public partial class PianoRollWindow : UserControl
             if (_isDragging)
             {
                 _maxSize = double.Clamp(Height - args.GetPosition(this).Y,90,600);
+                
+                if(VelocityWindow.Height > MainBar.Bounds.Height)
+                    VelocityWindow.Height = double.Clamp(MainBar.Bounds.Height,20, double.Max(PianoRollRightScroll.Bounds.Height,200));
+                
                 Height = _maxSize;
                 args.Handled = true;
                 if(_maxSize > 150)
@@ -120,7 +124,7 @@ public partial class PianoRollWindow : UserControl
         {
             if (_velocityIsDragging)
             {
-                VelocityWindow.Height = double.Clamp(Height - args.GetPosition(this).Y - 40,20,200);
+                VelocityWindow.Height = double.Clamp(Height - args.GetPosition(this).Y - 40,20, double.Max(PianoRollRightScroll.Bounds.Height,200));
                 args.Handled = true;
             }
         };

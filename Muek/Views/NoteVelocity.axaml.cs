@@ -37,7 +37,7 @@ public partial class NoteVelocity : UserControl
     private Pen NotePen => new Pen(new SolidColorBrush(Color),2);
 
     private static readonly IBrush WhiteBrush = new SolidColorBrush(Colors.White,.1);
-    private readonly Pen _whitePen = new Pen(new SolidColorBrush(Colors.White,.1));
+    private readonly Pen _whitePen = new Pen(new SolidColorBrush(Colors.White,.1),.5);
 
     private readonly FormattedText _maxVelocityText = new FormattedText("Velocity: 127",CultureInfo.CurrentCulture, FlowDirection.LeftToRight,Typeface.Default, 10,WhiteBrush);
     private readonly FormattedText _minVelocityText = new FormattedText("Velocity: 0",CultureInfo.CurrentCulture, FlowDirection.LeftToRight,Typeface.Default, 10,WhiteBrush);
@@ -130,62 +130,71 @@ public partial class NoteVelocity : UserControl
         base.Render(context);
         context.DrawRectangle(Brush.Parse("#232323"), null, new Rect(0, 0, Bounds.Width, Bounds.Height));
         
-        
-        context.DrawLine(_whitePen,new Point(
-            ViewHelper.GetMainWindow().PianoRollWindow.NoteVelocityScroll.Offset.X + 10
-            ,10),new Point(
-            ViewHelper.GetMainWindow().PianoRollWindow.NoteVelocityScroll.Bounds.Width + 
-            ViewHelper.GetMainWindow().PianoRollWindow.NoteVelocityScroll.Offset.X - 100
-            ,10));
-        context.DrawLine(_whitePen,new Point(
-            ViewHelper.GetMainWindow().PianoRollWindow.NoteVelocityScroll.Offset.X + 10
-            ,Bounds.Height - 10),new Point(
-            ViewHelper.GetMainWindow().PianoRollWindow.NoteVelocityScroll.Bounds.Width + 
-            ViewHelper.GetMainWindow().PianoRollWindow.NoteVelocityScroll.Offset.X - 100
-            ,Bounds.Height - 10));
-        context.DrawLine(_whitePen,new Point(
-            ViewHelper.GetMainWindow().PianoRollWindow.NoteVelocityScroll.Offset.X + 10
-            ,Bounds.Height/2),new Point(
-            ViewHelper.GetMainWindow().PianoRollWindow.NoteVelocityScroll.Bounds.Width + 
-            ViewHelper.GetMainWindow().PianoRollWindow.NoteVelocityScroll.Offset.X - 20
-            ,Bounds.Height/2));
-        
-        context.DrawText(
-            _maxVelocityText,
-            new Point(
-                ViewHelper.GetMainWindow().PianoRollWindow.NoteVelocityScroll.Bounds.Width + 
-                ViewHelper.GetMainWindow().PianoRollWindow.NoteVelocityScroll.Offset.X - 80
-                ,4)
-        );
-        
-        context.DrawText(
-            _minVelocityText,
-            new Point(
-                ViewHelper.GetMainWindow().PianoRollWindow.NoteVelocityScroll.Bounds.Width + 
-                ViewHelper.GetMainWindow().PianoRollWindow.NoteVelocityScroll.Offset.X - 80
-                ,Bounds.Height - 16)
-            );
-        foreach (var note in Notes)
+        if(Bounds.Height > 20)
         {
-            if (SelectedNotes.Contains(note))
+            if(Bounds.Height > 40)
             {
-                context.DrawLine(_blackPen,
-                    new Point(note.StartTime * WidthOfBeat,Bounds.Height - 10),
-                    new Point(note.StartTime * WidthOfBeat, (Bounds.Height - 20) * (1-note.Velocity/127f) + 10 + 2));
-                context.DrawEllipse(null,_blackPen, new Point(note.StartTime * WidthOfBeat, (Bounds.Height - 20) * (1-note.Velocity/127f) + 10),2,2);
+                context.DrawLine(_whitePen, new Point(
+                    ViewHelper.GetMainWindow().PianoRollWindow.NoteVelocityScroll.Offset.X + 10
+                    , 10), new Point(
+                    ViewHelper.GetMainWindow().PianoRollWindow.NoteVelocityScroll.Bounds.Width +
+                    ViewHelper.GetMainWindow().PianoRollWindow.NoteVelocityScroll.Offset.X - 100
+                    , 10));
+                context.DrawLine(_whitePen, new Point(
+                    ViewHelper.GetMainWindow().PianoRollWindow.NoteVelocityScroll.Offset.X + 10
+                    , Bounds.Height - 10), new Point(
+                    ViewHelper.GetMainWindow().PianoRollWindow.NoteVelocityScroll.Bounds.Width +
+                    ViewHelper.GetMainWindow().PianoRollWindow.NoteVelocityScroll.Offset.X - 100
+                    , Bounds.Height - 10));
+                context.DrawLine(_whitePen, new Point(
+                    ViewHelper.GetMainWindow().PianoRollWindow.NoteVelocityScroll.Offset.X + 10
+                    , Bounds.Height / 2), new Point(
+                    ViewHelper.GetMainWindow().PianoRollWindow.NoteVelocityScroll.Bounds.Width +
+                    ViewHelper.GetMainWindow().PianoRollWindow.NoteVelocityScroll.Offset.X - 20
+                    , Bounds.Height / 2));
+
+                context.DrawText(
+                    _maxVelocityText,
+                    new Point(
+                        ViewHelper.GetMainWindow().PianoRollWindow.NoteVelocityScroll.Bounds.Width +
+                        ViewHelper.GetMainWindow().PianoRollWindow.NoteVelocityScroll.Offset.X - 80
+                        , 4)
+                );
+
+                context.DrawText(
+                    _minVelocityText,
+                    new Point(
+                        ViewHelper.GetMainWindow().PianoRollWindow.NoteVelocityScroll.Bounds.Width +
+                        ViewHelper.GetMainWindow().PianoRollWindow.NoteVelocityScroll.Offset.X - 80
+                        , Bounds.Height - 16)
+                );
             }
-            else
+            foreach (var note in Notes)
             {
-                // Console.WriteLine(note.Velocity);
-                context.DrawLine(NotePen,
-                    new Point(note.StartTime * WidthOfBeat, Bounds.Height - 10),
-                    new Point(note.StartTime * WidthOfBeat,
-                        (Bounds.Height - 20) * (1 - note.Velocity / 127f) + 10 + 2));
-                // Console.WriteLine($"Point1: {new Point(note.StartTime * WidthOfBeat,Bounds.Height)}" +
-                //                   $"Point2: {new Point(note.StartTime * WidthOfBeat, Bounds.Height * (1-note.Velocity/128f))}");
-                context.DrawEllipse(null, NotePen,
-                    new Point(note.StartTime * WidthOfBeat, (Bounds.Height - 20) * (1 - note.Velocity / 127f) + 10), 2,
-                    2);
+                if (SelectedNotes.Contains(note))
+                {
+                    context.DrawLine(_blackPen,
+                        new Point(note.StartTime * WidthOfBeat, Bounds.Height - 10),
+                        new Point(note.StartTime * WidthOfBeat,
+                            (Bounds.Height - 20) * (1 - note.Velocity / 127f) + 10 + 2));
+                    context.DrawEllipse(null, _blackPen,
+                        new Point(note.StartTime * WidthOfBeat, (Bounds.Height - 20) * (1 - note.Velocity / 127f) + 10),
+                        2, 2);
+                }
+                else
+                {
+                    // Console.WriteLine(note.Velocity);
+                    context.DrawLine(NotePen,
+                        new Point(note.StartTime * WidthOfBeat, Bounds.Height - 10),
+                        new Point(note.StartTime * WidthOfBeat,
+                            (Bounds.Height - 20) * (1 - note.Velocity / 127f) + 10 + 2));
+                    // Console.WriteLine($"Point1: {new Point(note.StartTime * WidthOfBeat,Bounds.Height)}" +
+                    //                   $"Point2: {new Point(note.StartTime * WidthOfBeat, Bounds.Height * (1-note.Velocity/128f))}");
+                    context.DrawEllipse(null, NotePen,
+                        new Point(note.StartTime * WidthOfBeat, (Bounds.Height - 20) * (1 - note.Velocity / 127f) + 10),
+                        2,
+                        2);
+                }
             }
         }
     }
