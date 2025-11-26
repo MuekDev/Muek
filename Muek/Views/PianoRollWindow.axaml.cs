@@ -22,6 +22,8 @@ public partial class PianoRollWindow : UserControl
     public bool IsShowing => _isShowing;
     private double _maxSize = 400.0;
     private bool _isDragging = false;
+    private bool _velocityIsDragging = false;
+
     public PianoRollWindow()
     {
         InitializeComponent();
@@ -107,6 +109,39 @@ public partial class PianoRollWindow : UserControl
         OpenButton.Background = new SolidColorBrush(DataStateService.MuekColor);
         WindowCover.Background = new SolidColorBrush(Colors.Black, .5);
         PatternColor.Background = new SolidColorBrush(DataStateService.MuekColor);
+        
+        
+        VelocityResizePanel.PointerPressed += (sender, args) =>
+        {
+            _velocityIsDragging = true;
+            args.Handled = true;
+        };
+        VelocityResizePanel.PointerMoved += (sender, args) =>
+        {
+            if (_velocityIsDragging)
+            {
+                VelocityWindow.Height = double.Clamp(Height - args.GetPosition(this).Y - 40,20,200);
+                args.Handled = true;
+            }
+        };
+        VelocityResizePanel.PointerReleased += (sender, args) =>
+        {
+            _velocityIsDragging = false;
+            VelocityResizeBorder.IsVisible = false;
+            Cursor = new Cursor(StandardCursorType.Arrow);
+            
+        };
+        VelocityResizePanel.PointerEntered += (sender, args) =>
+        {
+            VelocityResizeBorder.IsVisible = true;
+            Cursor = new Cursor(StandardCursorType.TopSide);
+        };
+        VelocityResizePanel.PointerExited += (sender, args) =>
+        {
+            if(_velocityIsDragging) return;
+            VelocityResizeBorder.IsVisible = false;
+            Cursor = new Cursor(StandardCursorType.Arrow);
+        };
     }
 
     private EventHandler<DragEventArgs>? MidiDragDrop()

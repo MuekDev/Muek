@@ -83,7 +83,7 @@
         <Border Grid.Row="0" Background="White" Height="0.1" VerticalAlignment="Top" IsVisible="False"
                 Name="ResizeBorder"/>
         <Border Grid.Row="0" Background="Black" Height="10" VerticalAlignment="Top" Name="ResizePanel" Opacity="0"/>
-        <Grid Grid.Row="1" RowDefinitions="2*,*">
+        <Grid Grid.Row="1" RowDefinitions="*,Auto">
             <Grid ColumnDefinitions="Auto,*" Margin="0 0 5 0">
                 <ScrollViewer  VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Disabled"
                                Name="PianoRollLeftScroll" ScrollChanged="ScrollChange" Margin="2">
@@ -101,14 +101,21 @@
                     <Grid Background="Black" Opacity="0"/>
                 </Grid>
             </Grid>
-            <Grid Grid.Row="1" ColumnDefinitions="Auto,*">
-                <Grid Margin="2" Width="40">
-                    <TextBlock FontSize="10" HorizontalAlignment="Center">Velocity</TextBlock>
+            
+            <!-- VelocityWindow -->
+            <Grid Grid.Row="1" RowDefinitions="20,*" Name="VelocityWindow" Height="20">
+                <Grid Height=".01" Background="White" VerticalAlignment="Top" IsVisible="False"
+                      Name="VelocityResizeBorder"/>
+                <Border Grid.Row="0" Background="Black" Height="10" VerticalAlignment="Top" Name="VelocityResizePanel" Opacity="0"/>
+                <Grid Row="1" ColumnDefinitions="Auto,*">
+                    <Grid Margin="2" Width="40">
+                        <TextBlock FontSize="10" HorizontalAlignment="Center">Velocity</TextBlock>
+                    </Grid>
+                    <ScrollViewer Grid.Column="1" Name="NoteVelocityScroll" ScrollChanged="ScrollChange"
+                                  Margin="2">
+                        <views:NoteVelocity Name="NoteVelocity" HorizontalAlignment="Left"/>
+                    </ScrollViewer>
                 </Grid>
-                <ScrollViewer Grid.Column="1" Name="NoteVelocityScroll" ScrollChanged="ScrollChange"
-                              Margin="2">
-                    <views:NoteVelocity Name="NoteVelocity" HorizontalAlignment="Left"/>
-                </ScrollViewer>
             </Grid>
         </Grid>
         <Grid Grid.Row="1" Name="WindowCover">
@@ -122,6 +129,7 @@
                 </TextBlock>
             </Grid>
         </Grid>
+        <Grid Grid.Row="2" Background="#232323" Name="BottomBar"></Grid>
         <Grid Grid.Row="2" Margin="5,0">
             <views:PatternPreview Height="40" Name="PatternPreview" PointerPressed="Show"/>
         </Grid>
