@@ -561,7 +561,7 @@ public partial class TrackView : UserControl
 
         // TODO: 同步节拍
         var currentBeat = PlayHeadPosX / ScaleFactor;
-        AudioService.PlayPosition = (float)currentBeat * 100;
+        AudioService.PlayPosition = (float)currentBeat * _scaleFactor;
         // UiStateService.CurrentBeatPosition = currentBeat;
 
         // InvalidateVisual(); // 重绘
