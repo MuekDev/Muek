@@ -20,6 +20,7 @@ public static class AudioService
     public static float[] CurrentPeakDb { get; set; } = [];
     public static event EventHandler<float[]> RmsDbChanged;
     public static event EventHandler<float[]> PeakDbChanged;
+    public static float PlayPosition = 0;
 
     public static void TriggerAudioStarted()
     {

@@ -58,4 +58,6 @@
 	<s:String x:Key="/Default/CodeInspection/ExcludedFiles/SourceGeneratedFilesToSkip/=Muek_005CCommunityToolkit_002EMvvm_002ESourceGenerators_005CCommunityToolkit_002EMvvm_002ESourceGenerators_002EObservablePropertyGenerator_005CMuek_002EViewModels_002ETrackPluginStackWindowViewModel_002Eg_002Ecs/@EntryIndexedValue">ForceIncluded</s:String>
 	<s:String x:Key="/Default/Environment/AssemblyExplorer/XmlDocument/@EntryValue">&lt;AssemblyExplorer&gt;&#xD;
   &lt;Assembly Path="C:\Users\sout\Downloads\RingBuffer.dll" /&gt;&#xD;
+  &lt;Assembly Path="D:\UnD3ath\code\MUEK\Muek\Muek\RingBuffer.dll" /&gt;&#xD;
+  &lt;Assembly Path="D:\UnD3ath\code\MUEK\Muek\Muek\muek_engine.dll" /&gt;&#xD;
 &lt;/AssemblyExplorer&gt;</s:String></wpf:ResourceDictionary>

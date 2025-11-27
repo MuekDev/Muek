@@ -109,16 +109,20 @@ impl AudioEngine {
         });
     }
 
-    pub fn play(&mut self) {
+    pub fn play(&mut self, beat: f32) {
         self.render();
-        self.state.pos_idx.store(0, Ordering::SeqCst);
+        // self.state.pos_idx.store(0, Ordering::SeqCst);
+        self.set_pos_beat(beat);
         *self.state.start_time.lock().unwrap() = Some(Instant::now());
         self.state.is_playing.store(true, Ordering::SeqCst);
     }
 
-    pub fn stop(&self) {
+    pub fn stop(&self,stop:bool) {
+        if(stop) {
+            self.set_pos_beat(0.0);
+        }
         self.state.is_playing.store(false, Ordering::SeqCst);
-        self.state.pos_idx.store(0, Ordering::SeqCst);
+        // self.state.pos_idx.store(0, Ordering::SeqCst);
         *self.state.start_time.lock().unwrap() = None;
     }
 
@@ -154,6 +158,15 @@ impl AudioEngine {
             4,
             self.config.channels.try_into().unwrap(),
         )
+    }
+
+    pub fn set_pos_beat(&self, beat:f32){
+        self.state.pos_idx.store(beat_to_sample_idx(
+            beat,
+            self.config.bpm, 
+            self.config.sample_rate,
+             4, 
+             self.config.channels.try_into().unwrap()), Ordering::SeqCst);
     }
 }
 

@@ -215,14 +215,20 @@ pub unsafe extern "C" fn get_current_position_beat() -> f32 {
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn stream_play() {
+pub unsafe extern "C" fn stream_play(beat:f32) {
     let mut engine_lock = AUDIO_ENGINE.lock().unwrap();
-    engine_lock.play();
+    engine_lock.play(beat);
 }
 
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn stream_stop() {
+pub unsafe extern "C" fn stream_stop(stop:bool) {
     let mut engine_lock = AUDIO_ENGINE.lock().unwrap();
-    engine_lock.stop();
+    engine_lock.stop(stop);
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn set_position_beat(beat:f32) {
+    let mut engine_lock = AUDIO_ENGINE.lock().unwrap();
+    engine_lock.set_pos_beat(beat);
 }

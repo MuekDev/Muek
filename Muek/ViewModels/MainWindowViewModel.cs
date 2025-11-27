@@ -20,6 +20,11 @@ public partial class MainWindowViewModel : ViewModelBase
 {
     public ObservableCollection<TrackViewModel> Tracks => DataStateService.Tracks;
     [ObservableProperty] private int _count = 0;
+    private float PlayPosition
+    {
+        get => AudioService.PlayPosition;
+        set => AudioService.PlayPosition = value;
+    }
 
     public MainWindowViewModel()
     {
@@ -65,7 +70,7 @@ public partial class MainWindowViewModel : ViewModelBase
             }
         }
         
-        MuekEngine.stream_play();
+        MuekEngine.stream_play(PlayPosition);
         AudioService.TriggerAudioStarted();
     }
 
@@ -73,8 +78,10 @@ public partial class MainWindowViewModel : ViewModelBase
     public async Task OnStopButtonClick()
     {
         Console.WriteLine("Omg it is stopping...");
-        MuekEngine.stream_stop();
+        PlayPosition = MuekEngine.get_current_position_beat();
+        MuekEngine.stream_stop(false);
         AudioService.TriggerAudioStopped();
+        Console.WriteLine(PlayPosition);
     }
 
     [RelayCommand]

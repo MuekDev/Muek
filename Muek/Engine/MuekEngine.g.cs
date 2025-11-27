@@ -61,11 +61,13 @@ namespace Muek.Engine
         internal static extern float get_current_position_beat();
 
         [DllImport(__DllName, EntryPoint = "stream_play", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern void stream_play();
+        internal static extern void stream_play(float beat);
 
         [DllImport(__DllName, EntryPoint = "stream_stop", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern void stream_stop();
+        internal static extern void stream_stop([MarshalAs(UnmanagedType.U1)] bool stop);
 
+        [DllImport(__DllName, EntryPoint = "set_position_beat", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void set_position_beat(float beat);
 
     }
 
