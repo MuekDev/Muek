@@ -20,7 +20,7 @@
         </Grid>
         <Grid Grid.Row="1"  ColumnDefinitions="*,Auto">
         <Grid Grid.Column="0" ColumnDefinitions="Auto,20,*">
-            <Grid Grid.RowDefinitions="Auto,*">
+            <Grid RowDefinitions="Auto,*,Auto">
                 
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Top">
                 <!-- 不知道为什么要有一个button，但是感觉要有 -->
@@ -58,7 +58,18 @@
                             </Grid>
                         </Grid>
                     </StackPanel>
+                <Button Grid.Row="2" Name="MeterModeButton" Background="Transparent" Content="Peak/RMS" HorizontalAlignment="Center">
+                    <Button.Flyout>
+                        <MenuFlyout>
+                            <MenuItem Header="Peak/RMS" Click="PeakRmsSelected"></MenuItem>
+                            <MenuItem Header="Peak" Click="PeakSelected"></MenuItem>
+                            <MenuItem Header="RMS" Click="RmsSelected"></MenuItem>
+                        </MenuFlyout>
+                    </Button.Flyout>
+                </Button>
             </Grid>
+            <Border Grid.Column="0" Background="White" Width=".1" HorizontalAlignment="Left" IsVisible="False" Name="ResizeBorder"/>
+            <Border Grid.Column="0" Background="Black" Name="ResizePanel" Opacity="0" HorizontalAlignment="Left" Width="10"/>
         </Grid>
             <!-- 删除 -->
         <Grid Grid.Column="1">

@@ -4,6 +4,7 @@
     <option name="projectPerEditor">
       <map>
         <entry key="Muek/App.axaml" value="Muek/Muek.csproj" />
+        <entry key="Muek/ViewModels/PatternViewModel.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/Views/ClipItem.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/Views/LineDrawer.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/Views/MIDIView.axaml" value="Muek/Muek.csproj" />
@@ -17,10 +18,14 @@
         <entry key="Muek/Views/MuekKnob.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/Views/MuekTrack.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/Views/MuekValuer.axaml" value="Muek/Muek.csproj" />
+        <entry key="Muek/Views/NoteVelocity.axaml" value="Muek/Muek.csproj" />
+        <entry key="Muek/Views/NoteVelocityWindow.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/Views/PatternPreview.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/Views/PatternPreviewWindow.axaml" value="Muek/Muek.csproj" />
+        <entry key="Muek/Views/PatternSelection.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/Views/PianoEdit.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/Views/PianoRoll.axaml" value="Muek/Muek.csproj" />
+        <entry key="Muek/Views/PianoRollSelection.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/Views/PianoRollWindow.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/Views/PianoRollYSlider.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/Views/PluginManagerWindow.axaml" value="Muek/Muek.csproj" />

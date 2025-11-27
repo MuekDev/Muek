@@ -12,6 +12,7 @@ using Avalonia.Platform.Storage;
 using Avalonia.Styling;
 using Muek.Models;
 using Muek.Services;
+using Muek.ViewModels;
 
 namespace Muek.Views;
 
@@ -21,11 +22,13 @@ public partial class PianoRollWindow : UserControl
     public bool IsShowing => _isShowing;
     private double _maxSize = 400.0;
     private bool _isDragging = false;
+    private bool _velocityIsDragging = false;
+
     public PianoRollWindow()
     {
         InitializeComponent();
         ClipToBounds = false;
-        TopBar.PointerPressed += (sender, args) =>
+        ResizePanel.PointerPressed += (sender, args) =>
         {
             _isDragging = true;
             if(_isShowing)
@@ -39,11 +42,15 @@ public partial class PianoRollWindow : UserControl
             }
             args.Handled = true;
         };
-        TopBar.PointerMoved += (sender, args) =>
+        ResizePanel.PointerMoved += (sender, args) =>
         {
             if (_isDragging)
             {
                 _maxSize = double.Clamp(Height - args.GetPosition(this).Y,90,600);
+                
+                if(VelocityWindow.Height > MainBar.Bounds.Height)
+                    VelocityWindow.Height = double.Clamp(MainBar.Bounds.Height,20, double.Max(PianoRollRightScroll.Bounds.Height,200));
+                
                 Height = _maxSize;
                 args.Handled = true;
                 if(_maxSize > 150)
@@ -70,10 +77,23 @@ public partial class PianoRollWindow : UserControl
                 }
             }
         };
-        TopBar.PointerReleased += (sender, args) =>
+        ResizePanel.PointerReleased += (sender, args) =>
         {
             _isDragging = false;
+            ResizeBorder.IsVisible = false;
+            Cursor = new Cursor(StandardCursorType.Arrow);
             
+        };
+        ResizePanel.PointerEntered += (sender, args) =>
+        {
+            ResizeBorder.IsVisible = true;
+            Cursor = new Cursor(StandardCursorType.TopSide);
+        };
+        ResizePanel.PointerExited += (sender, args) =>
+        {
+            if(_isDragging) return;
+            ResizeBorder.IsVisible = false;
+            Cursor = new Cursor(StandardCursorType.Arrow);
         };
         DropDisplay.IsVisible = false;
         DropDisplay.Background = new SolidColorBrush(Colors.Black, .5);
@@ -91,6 +111,41 @@ public partial class PianoRollWindow : UserControl
         });
         DropDisplay.AddHandler(DragDrop.DropEvent, MidiDragDrop());
         OpenButton.Background = new SolidColorBrush(DataStateService.MuekColor);
+        WindowCover.Background = new SolidColorBrush(Colors.Black, .5);
+        PatternColor.Background = new SolidColorBrush(DataStateService.MuekColor);
+        
+        
+        VelocityResizePanel.PointerPressed += (sender, args) =>
+        {
+            _velocityIsDragging = true;
+            args.Handled = true;
+        };
+        VelocityResizePanel.PointerMoved += (sender, args) =>
+        {
+            if (_velocityIsDragging)
+            {
+                VelocityWindow.Height = double.Clamp(Height - args.GetPosition(this).Y - 40,20, double.Max(PianoRollRightScroll.Bounds.Height,200));
+                args.Handled = true;
+            }
+        };
+        VelocityResizePanel.PointerReleased += (sender, args) =>
+        {
+            _velocityIsDragging = false;
+            VelocityResizeBorder.IsVisible = false;
+            Cursor = new Cursor(StandardCursorType.Arrow);
+            
+        };
+        VelocityResizePanel.PointerEntered += (sender, args) =>
+        {
+            VelocityResizeBorder.IsVisible = true;
+            Cursor = new Cursor(StandardCursorType.TopSide);
+        };
+        VelocityResizePanel.PointerExited += (sender, args) =>
+        {
+            if(_velocityIsDragging) return;
+            VelocityResizeBorder.IsVisible = false;
+            Cursor = new Cursor(StandardCursorType.Arrow);
+        };
     }
 
     private EventHandler<DragEventArgs>? MidiDragDrop()
@@ -204,22 +259,30 @@ public partial class PianoRollWindow : UserControl
 
     private void ScrollChange(object? sender, ScrollChangedEventArgs e)
     {
-        if (e.Source != null && e.Source.Equals(PianoRollLeft))
+        if (e.Source != null && e.Source.Equals(PianoRollLeftScroll))
         {
             EditArea.Height = PianoBar.Height;
-            PianoRollRight.Offset = new Vector(PianoRollRight.Offset.X,PianoRollLeft.Offset.Y);
+            PianoRollRightScroll.Offset = new Vector(PianoRollRightScroll.Offset.X,PianoRollLeftScroll.Offset.Y);
             EditArea.NoteHeight = PianoBar.NoteHeight;
         }
 
-        if (e.Source != null && e.Source.Equals(PianoRollRight))
+        if (e.Source != null && e.Source.Equals(PianoRollRightScroll))
         {
             PianoBar.Height = EditArea.Height;
-            PianoRollLeft.Offset = new Vector(0,PianoRollRight.Offset.Y);
+            PianoRollLeftScroll.Offset = new Vector(0,PianoRollRightScroll.Offset.Y);
             PianoBar.NoteHeight = EditArea.NoteHeight;
-            
+
+            NoteVelocityScroll.Offset = new Vector(PianoRollRightScroll.Offset.X, 0);
+
         }
-        EditArea.ScrollOffset = PianoRollRight.Offset.Y;
-        EditArea.ClampValue = PianoRollRight.Offset.X;
+
+        if (e.Source != null && e.Source.Equals(NoteVelocityScroll))
+        {
+            NoteVelocity.Width = EditArea.Width;
+            PianoRollRightScroll.Offset = new Vector(NoteVelocityScroll.Offset.X, PianoRollRightScroll.Offset.Y);
+        }
+        EditArea.ScrollOffset = PianoRollRightScroll.Offset.Y;
+        EditArea.ClampValue = PianoRollRightScroll.Offset.X;
         PatternPreview.InvalidateVisual();
     }
 
@@ -229,8 +292,8 @@ public partial class PianoRollWindow : UserControl
         
         if (e.KeyModifiers.HasFlag(KeyModifiers.Shift))
         {
-            PianoRollRight.Offset = new Vector(PianoRollRight.Offset.X - e.Delta.Y * 44,PianoRollRight.Offset.Y );
-            PianoRollRight.Offset = new Vector(Math.Max(0, PianoRollRight.Offset.X),PianoRollRight.Offset.Y) ; // 不允许左滚超过0
+            PianoRollRightScroll.Offset = new Vector(PianoRollRightScroll.Offset.X - e.Delta.Y * 44,PianoRollRightScroll.Offset.Y );
+            PianoRollRightScroll.Offset = new Vector(Math.Max(0, PianoRollRightScroll.Offset.X),PianoRollRightScroll.Offset.Y) ; // 不允许左滚超过0
             
             InvalidateVisual();
             e.Handled = true;

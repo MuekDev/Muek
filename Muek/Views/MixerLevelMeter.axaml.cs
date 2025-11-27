@@ -9,6 +9,7 @@ using Avalonia.Input;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Threading;
+using CommunityToolkit.Mvvm.ComponentModel;
 using Muek.Services;
 using Muek.ViewModels;
 
@@ -16,19 +17,43 @@ namespace Muek.Views;
 
 public partial class MixerLevelMeter : UserControl
 {
-    public TrackViewModel Track;
+    private static readonly StyledProperty<TrackViewModel> TrackProperty = AvaloniaProperty.Register<MixerLevelMeter, TrackViewModel>(
+        nameof(Track));
+
+    public TrackViewModel Track
+    {
+        get => GetValue(TrackProperty);
+        set => SetValue(TrackProperty, value);
+    }
     private const float MinDb = -114.0f;
     private const float MaxDb = 6f;
 
     private const float CompressionFactor = 0.15f;
+
+    private float[] CurrentRmsLevel => AudioService.CurrentRmsDb;
+    private float[] CurrentPeakLevel => AudioService.CurrentPeakDb;
     
-    public float CurrentLevel => AudioService.CurrentDb;
+    public enum LevelMeterMode
+    {
+        PeakRms,Peak,Rms
+    }
+
+    private static readonly StyledProperty<LevelMeterMode> ModeProperty = AvaloniaProperty.Register<MixerLevelMeter, LevelMeterMode>(
+        nameof(Mode));
+
+    public LevelMeterMode Mode
+    {
+        get => GetValue(ModeProperty);
+        set => SetValue(ModeProperty, value);
+    }
 
     public MixerLevelMeter()
     {
         InitializeComponent();
         ClipToBounds = false;
-        AudioService.DbChanged += AudioServiceOnDbChanged;
+        Mode = LevelMeterMode.PeakRms;
+        AudioService.RmsDbChanged += AudioServiceOnRmsDbChanged;
+        AudioService.PeakDbChanged += AudioServiceOnPeakDbChanged;
     }
 
     protected override void OnInitialized()
@@ -37,7 +62,12 @@ public partial class MixerLevelMeter : UserControl
         
     }
 
-    private void AudioServiceOnDbChanged(object? sender, float f)
+    private void AudioServiceOnRmsDbChanged(object? sender, float[] f)
+    {
+        Dispatcher.UIThread.Post(InvalidateVisual, DispatcherPriority.Render);
+    }
+
+    private void AudioServiceOnPeakDbChanged(object? sender, float[] f)
     {
         Dispatcher.UIThread.Post(InvalidateVisual, DispatcherPriority.Render);
     }
@@ -59,11 +89,38 @@ public partial class MixerLevelMeter : UserControl
 
     private Rect _backgroundRect;
 
-    private readonly Pen _whitePen = new Pen(new SolidColorBrush(Colors.White, .2));
+    private readonly Pen _whitePen = new Pen(new SolidColorBrush(Colors.White, .5));
     
     private List<Point[]> _gridList = new();
+
+    private IBrush SolidColorBrush => Brush.Parse(Track.Color);
     
-    
+    private IBrush _orangeBrush = new SolidColorBrush(Colors.Orange, .8);
+    private IBrush _redBrush = new SolidColorBrush(Colors.Red, .8);
+    private double _colorBrushOpacity = .5;
+    private IBrush ColorBrush => new SolidColorBrush(Color.Parse(Track.Color),_colorBrushOpacity);
+
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    {
+        base.OnPropertyChanged(change);
+        if (change.Property == ModeProperty || change.Property == TrackProperty)
+        {
+            if (Mode == LevelMeterMode.PeakRms)
+            {
+                _orangeBrush = new SolidColorBrush(Colors.Orange,.5);
+                _redBrush = new SolidColorBrush(Colors.Red, .5);
+                _colorBrushOpacity = .5;
+            }
+            else
+            {
+                _orangeBrush = new SolidColorBrush(Colors.Orange,.75);
+                _redBrush = new SolidColorBrush(Colors.Red,.75);
+                _colorBrushOpacity = .75;
+            }
+            // if (change.Property == TrackProperty) _solidColorBrush = new SolidColorBrush(Color.Parse(Track.Color));
+        }
+    }
+
     public override void Render(DrawingContext context)
     {
         base.Render(context);
@@ -107,11 +164,96 @@ public partial class MixerLevelMeter : UserControl
             _warningPoint1);
         context.DrawText(_warningText2,
             _warningPoint2);
-        
-        context.DrawRectangle(null,new Pen(Brush.Parse(Track.Color)),_backgroundRect);
-        context.DrawRectangle(Brush.Parse(Track.Color), null,new Rect(
-            0, (1 - NormalizeDb(CurrentLevel)) * Bounds.Height,Bounds.Width,Bounds.Height * NormalizeDb(CurrentLevel)));
 
+        
+        context.DrawRectangle(null,new Pen(SolidColorBrush),_backgroundRect);
+        
+        //PEAK
+        if(Mode is LevelMeterMode.PeakRms or LevelMeterMode.Peak)
+        {
+            //Left Channel
+            {
+                context.DrawRectangle(ColorBrush, null, new Rect(
+                    -0.1, (1 - NormalizeDb(CurrentPeakLevel[0])) * Bounds.Height, Bounds.Width/2,
+                    Bounds.Height * NormalizeDb(CurrentPeakLevel[0])));
+                if (CurrentPeakLevel[0] > -3)
+                {
+                    context.DrawRectangle(_orangeBrush, null, new Rect(
+                        -0.1, (1 - NormalizeDb(CurrentPeakLevel[0])) * Bounds.Height, Bounds.Width/2, Bounds.Height *
+                        (NormalizeDb(CurrentPeakLevel[0]) - NormalizeDb(-3))));
+                }
+
+                if (CurrentPeakLevel[0] > 0)
+                {
+                    context.DrawRectangle(_redBrush, null, new Rect(
+                        -0.1, (1 - NormalizeDb(CurrentPeakLevel[0])) * Bounds.Height, Bounds.Width/2, Bounds.Height *
+                        (NormalizeDb(CurrentPeakLevel[0]) - NormalizeDb(0))));
+                }
+            }
+            //Right Channel
+            {
+                context.DrawRectangle(ColorBrush, null, new Rect(
+                    0.1+Bounds.Width/2, (1 - NormalizeDb(CurrentPeakLevel[1])) * Bounds.Height, Bounds.Width/2,
+                    Bounds.Height * NormalizeDb(CurrentPeakLevel[1])));
+                if (CurrentPeakLevel[1] > -3)
+                {
+                    context.DrawRectangle(_orangeBrush, null, new Rect(
+                        0.1+Bounds.Width/2, (1 - NormalizeDb(CurrentPeakLevel[1])) * Bounds.Height, Bounds.Width/2, Bounds.Height *
+                        (NormalizeDb(CurrentPeakLevel[1]) - NormalizeDb(-3))));
+                }
+
+                if (CurrentPeakLevel[1] > 0)
+                {
+                    context.DrawRectangle(_redBrush, null, new Rect(
+                        0.1+Bounds.Width/2, (1 - NormalizeDb(CurrentPeakLevel[1])) * Bounds.Height, Bounds.Width/2, Bounds.Height *
+                        (NormalizeDb(CurrentPeakLevel[1]) - NormalizeDb(0))));
+                }
+            }
+        }
+        //RMS
+        if(Mode is LevelMeterMode.Rms or LevelMeterMode.PeakRms)
+        {
+            //Left Channel
+            {
+                context.DrawRectangle(ColorBrush, null, new Rect(
+                    -0.1, (1 - NormalizeDb(CurrentRmsLevel[0])) * Bounds.Height, Bounds.Width/2,
+                    Bounds.Height * NormalizeDb(CurrentRmsLevel[0])));
+                if (CurrentRmsLevel[0] > -3)
+                {
+                    context.DrawRectangle(_orangeBrush, null, new Rect(
+                        -0.1, (1 - NormalizeDb(CurrentRmsLevel[0])) * Bounds.Height, Bounds.Width/2, Bounds.Height *
+                        (NormalizeDb(CurrentRmsLevel[0]) - NormalizeDb(-3))));
+                }
+
+                if (CurrentRmsLevel[0] > 0)
+                {
+                    context.DrawRectangle(_redBrush, null, new Rect(
+                        -0.1, (1 - NormalizeDb(CurrentRmsLevel[0])) * Bounds.Height, Bounds.Width/2, Bounds.Height *
+                        (NormalizeDb(CurrentRmsLevel[0]) - NormalizeDb(0))));
+                }
+            }
+            //Right Channel
+            {
+                context.DrawRectangle(ColorBrush, null, new Rect(
+                    0.1+Bounds.Width/2, (1 - NormalizeDb(CurrentRmsLevel[1])) * Bounds.Height, Bounds.Width/2,
+                    Bounds.Height * NormalizeDb(CurrentRmsLevel[1])));
+                if (CurrentRmsLevel[1] > -3)
+                {
+                    context.DrawRectangle(_orangeBrush, null, new Rect(
+                        0.1+Bounds.Width/2, (1 - NormalizeDb(CurrentRmsLevel[1])) * Bounds.Height, Bounds.Width/2, Bounds.Height *
+                        (NormalizeDb(CurrentRmsLevel[1]) - NormalizeDb(-3))));
+                }
+
+                if (CurrentRmsLevel[1] > 0)
+                {
+                    context.DrawRectangle(_redBrush, null, new Rect(
+                        0.1+Bounds.Width/2, (1 - NormalizeDb(CurrentRmsLevel[1])) * Bounds.Height, Bounds.Width/2, Bounds.Height *
+                        (NormalizeDb(CurrentRmsLevel[1]) - NormalizeDb(0))));
+                }
+            }
+        }
+        
+        
         
         //-3 0以外的参考线
         // for (int i = -6; i > MinDb; i -= 3)
@@ -124,20 +266,6 @@ public partial class MixerLevelMeter : UserControl
         {
             context.DrawLine(_whitePen,
                 item[0],item[1]);
-        }
-        
-        if (CurrentLevel > -3)
-        {
-            context.DrawRectangle(Brushes.Orange, null,new Rect(
-                0, (1 - NormalizeDb(CurrentLevel)) * Bounds.Height,Bounds.Width,Bounds.Height *
-                (NormalizeDb(CurrentLevel) - NormalizeDb(-3))));
-        }
-
-        if (CurrentLevel > 0)
-        {
-            context.DrawRectangle(Brushes.Red, null,new Rect(
-                0, (1 - NormalizeDb(CurrentLevel)) * Bounds.Height,Bounds.Width,Bounds.Height *
-                (NormalizeDb(CurrentLevel) - NormalizeDb(0))));
         }
         
     }

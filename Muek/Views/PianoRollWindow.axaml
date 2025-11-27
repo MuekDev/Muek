@@ -9,7 +9,7 @@
              x:Class="Muek.Views.PianoRollWindow">
     <Grid RowDefinitions="Auto,*,Auto" Background="#232323">
         <Border Height="50" Name="TopBar" Background="#232323">
-        <Grid>
+            <Grid>
             <StackPanel Orientation="Horizontal" Margin="5,0">
                 
                 <Button Background="Transparent">
@@ -30,6 +30,16 @@
                     <Button.Flyout>
                         <Flyout>
                             <views:MagnetSettingsWindow Width="250" Height="40" PropertyChanged="MagnetPropertyChange" Name="MagnetSettingsWindow"/>
+                        </Flyout>
+                    </Button.Flyout>
+                </Button>
+                <!-- 选择Pattern -->
+                <Border Width="2" Height="20" Name="PatternColor" Margin="5"/>
+                <Button Background="Transparent" Name="PatternSelectButton">Pattern Undefined
+                    <Button.Flyout>
+                        <Flyout>
+                            <views:PatternSelection Name="PatternSelection"
+                                                    MinWidth="200"/>
                         </Flyout>
                     </Button.Flyout>
                 </Button>
@@ -70,25 +80,58 @@
             </Button>
         </Grid>
         </Border>
-        <Grid Grid.Row="1" ColumnDefinitions="Auto,*" Margin="5,0">
-            <ScrollViewer  VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Disabled"
-                           Name="PianoRollLeft" ScrollChanged="ScrollChange" Margin="2">
-                <views:PianoRoll Width="40" IsPianoBar="True" Name="PianoBar"></views:PianoRoll>
-            </ScrollViewer>
-            <ScrollViewer Grid.Column="1" HorizontalScrollBarVisibility="Disabled"
-                          Name="PianoRollRight" ScrollChanged="ScrollChange" Margin="2">
-                <views:PianoRoll IsPianoBar="False" HorizontalAlignment="Left" Name="EditArea"></views:PianoRoll>
-            </ScrollViewer>
-            <Grid Grid.Column="1" Name="DropDisplay" IsVisible="False">
-                <StackPanel VerticalAlignment="Center">
-                    <avalonia:Icon Value="mdi-file-music-outline" Foreground="White" FontSize="50"/>
-                    <TextBlock FontSize="15" TextAlignment="Center">Drop MIDI File</TextBlock>
-                </StackPanel>
-                <Grid Background="Black" Opacity="0"/>
+        <Border Grid.Row="0" Background="White" Height="0.1" VerticalAlignment="Top" IsVisible="False"
+                Name="ResizeBorder"/>
+        <Border Grid.Row="0" Background="Black" Height="10" VerticalAlignment="Top" Name="ResizePanel" Opacity="0"/>
+        <Grid Grid.Row="1" RowDefinitions="*,Auto" Name="MainBar">
+            <Grid ColumnDefinitions="Auto,*" Margin="0 0 5 0">
+                <ScrollViewer  VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Disabled"
+                               Name="PianoRollLeftScroll" ScrollChanged="ScrollChange" Margin="2">
+                    <views:PianoRoll Width="40" IsPianoBar="True" Name="PianoBar"/>
+                </ScrollViewer>
+                <ScrollViewer Grid.Column="1" HorizontalScrollBarVisibility="Disabled"
+                              Name="PianoRollRightScroll" ScrollChanged="ScrollChange" Margin="2">
+                    <views:PianoRoll IsPianoBar="False" HorizontalAlignment="Left" Name="EditArea"/>
+                </ScrollViewer>
+                <Grid Grid.Column="1" Name="DropDisplay" IsVisible="False">
+                    <StackPanel VerticalAlignment="Center">
+                        <avalonia:Icon Value="mdi-file-music-outline" Foreground="White" FontSize="50"/>
+                        <TextBlock FontSize="15" TextAlignment="Center">Drop MIDI File</TextBlock>
+                    </StackPanel>
+                    <Grid Background="Black" Opacity="0"/>
+                </Grid>
+            </Grid>
+            
+            <!-- VelocityWindow -->
+            <Grid Grid.Row="1" RowDefinitions="20,*" Name="VelocityWindow" Height="20">
+                <Grid Height=".01" Background="White" VerticalAlignment="Top" IsVisible="False"
+                      Name="VelocityResizeBorder"/>
+                <Border Grid.Row="0" Background="Black" Height="10" VerticalAlignment="Top" Name="VelocityResizePanel" Opacity="0"/>
+                <Grid Row="1" ColumnDefinitions="Auto,*">
+                    <Grid Margin="2" Width="40">
+                        <TextBlock FontSize="10" HorizontalAlignment="Center">Velocity</TextBlock>
+                    </Grid>
+                    <ScrollViewer Grid.Column="1" Name="NoteVelocityScroll" ScrollChanged="ScrollChange"
+                                  Margin="2">
+                        <views:NoteVelocity Name="NoteVelocity" HorizontalAlignment="Left"/>
+                    </ScrollViewer>
+                </Grid>
             </Grid>
         </Grid>
+        <Grid Grid.Row="1" Name="WindowCover">
+            <Grid RowDefinitions="*,*,*" VerticalAlignment="Center" HorizontalAlignment="Center">
+                <avalonia:Icon Value="mdi-cancel" FontSize="32"/>
+                <TextBlock Grid.Row="1" FontSize="24" HorizontalAlignment="Center">
+                    No Pattern Selected
+                </TextBlock>
+                <TextBlock Grid.Row="2" FontSize="12" HorizontalAlignment="Center">
+                    Click "Pattern Undefined" to select a pattern
+                </TextBlock>
+            </Grid>
+        </Grid>
+        <Grid Grid.Row="2" Background="#232323" Name="BottomBar"></Grid>
         <Grid Grid.Row="2" Margin="5,0">
-            <views:PatternPreview Height="40" Name="PatternPreview" PointerPressed="Show"></views:PatternPreview>
+            <views:PatternPreview Height="40" Name="PatternPreview" PointerPressed="Show"/>
         </Grid>
     </Grid>
 </UserControl>

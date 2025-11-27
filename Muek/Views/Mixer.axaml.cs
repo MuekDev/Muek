@@ -15,13 +15,42 @@ namespace Muek.Views;
 public partial class Mixer : UserControl
 {
     //Mixer部分
-
+    private bool _isDragging = false;
+    private double _maxSize = 200;
     public Mixer()
     {
         InitializeComponent();
         Width = 0;
         Console.WriteLine("Mixer Initialized");
-        
+        ResizePanel.PointerPressed += (sender, args) =>
+        {
+            _isDragging = true;
+            args.Handled = true;
+        };
+        ResizePanel.PointerMoved += (sender, args) =>
+        {
+            if (!_isDragging) return;
+            _maxSize = double.Clamp(Width - args.GetPosition(this).X,120,600);
+            Width = _maxSize;
+            args.Handled = true;
+        };
+        ResizePanel.PointerReleased += (sender, args) =>
+        {
+            _isDragging = false;
+            ResizeBorder.IsVisible = false;
+            Cursor = new Cursor(StandardCursorType.Arrow);
+        };
+        ResizePanel.PointerEntered += (sender, args) =>
+        {
+            ResizeBorder.IsVisible = true;
+            Cursor = new Cursor(StandardCursorType.LeftSide);
+        };
+        ResizePanel.PointerExited += (sender, args) =>
+        {
+            if(_isDragging) return;
+            ResizeBorder.IsVisible = false;
+            Cursor = new Cursor(StandardCursorType.Arrow);
+        };
     }
 
     private void HideMixer(object? sender, RoutedEventArgs e)
@@ -101,7 +130,7 @@ public partial class Mixer : UserControl
                             new Setter
                             {
                                 Property = WidthProperty,
-                                Value = 200.0
+                                Value = _maxSize
                             }
                         }
                     }
@@ -122,7 +151,7 @@ public partial class Mixer : UserControl
             Console.WriteLine($"TrackName: {track.Name}");
             Console.WriteLine($"Track Color: {track.Color}\n" +
                               $"Mixer Color: {MixerPan.ValuerColor}");
-            LevelMeter.Track =  track;
+            LevelMeter.Track = track;
             LevelMeter.InvalidateVisual();
         }
     }
@@ -144,5 +173,26 @@ public partial class Mixer : UserControl
     {
         base.Render(context);
     }
-    
+
+    private void PeakRmsSelected(object? sender, RoutedEventArgs e)
+    {
+        MeterModeButton.Content = "Peak/RMS";
+        LevelMeter.Mode = MixerLevelMeter.LevelMeterMode.PeakRms;
+        InvalidateVisual();
+        LevelMeter.InvalidateVisual();
+    }
+
+    private void PeakSelected(object? sender, RoutedEventArgs e)
+    {
+        MeterModeButton.Content = "Peak";
+        LevelMeter.Mode =  MixerLevelMeter.LevelMeterMode.Peak;
+        InvalidateVisual();
+    }
+
+    private void RmsSelected(object? sender, RoutedEventArgs e)
+    {
+        MeterModeButton.Content = "RMS";
+        LevelMeter.Mode = MixerLevelMeter.LevelMeterMode.Rms;
+        InvalidateVisual();
+    }
 }

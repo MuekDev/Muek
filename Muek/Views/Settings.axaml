@@ -9,7 +9,35 @@
         <Grid Grid.Row="1" Width="400" Margin="20,0">
             <TabControl>
                 <TabItem Header="Audio" FontSize="12">
-                    <TextBlock>Here is Audio Settings</TextBlock>
+                    <!-- <TextBlock>Here is Audio Settings</TextBlock> -->
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock VerticalAlignment="Center" Margin="5 0">Device</TextBlock>
+                            <ComboBox SelectedIndex="0" Background="Transparent" BorderBrush="Transparent">
+                                <ComboBoxItem>没写</ComboBoxItem>
+                                <ComboBoxItem>没写</ComboBoxItem>
+                                <ComboBoxItem>没写</ComboBoxItem>
+                                <ComboBoxItem>没写</ComboBoxItem>
+                                <ComboBoxItem>没写</ComboBoxItem>
+                                <ComboBoxItem>没写</ComboBoxItem>
+                            </ComboBox>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock VerticalAlignment="Center" Margin="5 0">Sample rate (Hz)</TextBlock>
+                            <ComboBox SelectedIndex="0" Background="Transparent" BorderBrush="Transparent">
+                                <ComboBoxItem>22050</ComboBoxItem>
+                                <ComboBoxItem>44100</ComboBoxItem>
+                                <ComboBoxItem>48000</ComboBoxItem>
+                                <ComboBoxItem>88200</ComboBoxItem>
+                                <ComboBoxItem>96000</ComboBoxItem>
+                                <ComboBoxItem>192000</ComboBoxItem>
+                            </ComboBox>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock VerticalAlignment="Center" Margin="5 0">Buffer length</TextBlock>
+                            <TextBlock>不会写</TextBlock>
+                        </StackPanel>
+                    </StackPanel>
                 </TabItem>
                 <TabItem Header="File" FontSize="12">
                     <TextBlock>Here is File Settings</TextBlock>
