@@ -334,7 +334,11 @@ public partial class PianoRoll : UserControl
                         //小节数
                         if(_widthOfBeat > 20)
                         {
-                            context.DrawText(new FormattedText(i%16==0 ? $"{i / 16}" : $"{i / 16} : {(1 + (i / 4) % 4)}",
+                            // context.DrawText(new FormattedText(i%16==0 ? $"{i / 16}" : $"{i / 16} : {(1 + (i / 4) % 4)}",
+                            //         CultureInfo.CurrentCulture, FlowDirection.LeftToRight, Typeface.Default, i%16==0?15:12,
+                            //         textColor),
+                            //     new Point(6 + i * _widthOfBeat + 1, ScrollOffset));
+                            context.DrawText(new FormattedText($"{i / 4}",
                                     CultureInfo.CurrentCulture, FlowDirection.LeftToRight, Typeface.Default, i%16==0?15:12,
                                     textColor),
                                 new Point(6 + i * _widthOfBeat + 1, ScrollOffset));
@@ -343,7 +347,7 @@ public partial class PianoRoll : UserControl
                         {
                             if (i % 16 == 0)
                             {
-                                context.DrawText(new FormattedText($"{i / 16}",
+                                context.DrawText(new FormattedText($"{i / 4}",
                                         CultureInfo.CurrentCulture, FlowDirection.LeftToRight, Typeface.Default, 15,
                                         textColor),
                                     new Point(6 + i * _widthOfBeat + 1, ScrollOffset));
