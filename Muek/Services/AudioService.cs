@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using NAudio.CoreAudioApi;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
-using RingBuffer; 
+using RingBuffer;
 
 namespace Muek.Services;
 
@@ -16,6 +16,10 @@ public static class AudioService
     public static event EventHandler AudioStopped;
     public static float CurrentDb { get; set; }
     public static event EventHandler<float> DbChanged;
+    public static float[] CurrentRmsDb { get; set; } = [];
+    public static float[] CurrentPeakDb { get; set; } = [];
+    public static event EventHandler<float[]> RmsDbChanged;
+    public static event EventHandler<float[]> PeakDbChanged;
 
     public static void TriggerAudioStarted()
     {
