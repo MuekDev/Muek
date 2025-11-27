@@ -18,6 +18,9 @@ namespace Muek.Engine
 
 
 
+        [DllImport(__DllName, EntryPoint = "receive_tracks_proto", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void receive_tracks_proto(TrackProto* ptr, int len);
+
         [DllImport(__DllName, EntryPoint = "rust_receive_array", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         internal static extern void rust_receive_array(MyClassRepr* ptr, int len);
 
@@ -45,6 +48,24 @@ namespace Muek.Engine
         [DllImport(__DllName, EntryPoint = "verify_vst_instance_by_path", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         internal static extern ByteBuffer* verify_vst_instance_by_path(ushort* utf16_str, int utf16_len);
 
+        [DllImport(__DllName, EntryPoint = "cache_clip_data", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void cache_clip_data(ushort* utf16_str, int utf16_len, float* data_ptr, int len);
+
+        [DllImport(__DllName, EntryPoint = "sync_all_clips", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void sync_all_clips(ClipProto* ptr, int len);
+
+        [DllImport(__DllName, EntryPoint = "spawn_audio_thread", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void spawn_audio_thread();
+
+        [DllImport(__DllName, EntryPoint = "get_current_position_beat", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern float get_current_position_beat();
+
+        [DllImport(__DllName, EntryPoint = "stream_play", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void stream_play();
+
+        [DllImport(__DllName, EntryPoint = "stream_stop", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void stream_stop();
+
 
     }
 
@@ -62,6 +83,21 @@ namespace Muek.Engine
         public byte* ptr;
         public int length;
         public int capacity;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal unsafe partial struct TrackProto
+    {
+        public int track_id;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal unsafe partial struct ClipProto
+    {
+        public ushort* clip_id;
+        public int clip_id_len;
+        public float start_time;
+        public float end_time;
     }
 
 

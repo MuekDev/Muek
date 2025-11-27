@@ -61,7 +61,8 @@ internal sealed class Program
             //     MuekEngine.run_vst_instance_by_path((ushort*)p, msg.Length);
             // }
         }
-        
+
+        MuekEngine.spawn_audio_thread();
         MuekEngine.init_vst_box();
 
         var a = MuekEngine.my_add(1, 113);
@@ -80,8 +81,9 @@ internal sealed class Program
             .Register<MaterialDesignIconProvider>();
 
         return AppBuilder.Configure<App>()
-            .UsePlatformDetect()
-            .WithInterFont()
-            .LogToTrace();
+                .UsePlatformDetect()
+                .WithInterFont()
+                .LogToTrace()
+            ;
     }
 }

@@ -19,11 +19,11 @@ pub struct App {
 }
 
 impl ApplicationHandler<MuekEvent> for App {
-    fn resumed(&mut self, event_loop: &ActiveEventLoop) {}
+    fn resumed(&mut self, _event_loop: &ActiveEventLoop) {}
 
     fn user_event(&mut self, event_loop: &ActiveEventLoop, event: MuekEvent) {
         match event {
-            MuekEvent::SendAudioBuffer(items, items1) => {}
+            MuekEvent::SendAudioBuffer(_items, _items1) => {}
             MuekEvent::CreateNewPlugin(path) => {
                 let mut plugin = vst_box::Box::from_path(&path);
 
@@ -60,7 +60,7 @@ impl ApplicationHandler<MuekEvent> for App {
         }
     }
 
-    fn window_event(&mut self, event_loop: &ActiveEventLoop, id: WindowId, event: WindowEvent) {
+    fn window_event(&mut self, _event_loop: &ActiveEventLoop, id: WindowId, event: WindowEvent) {
         match event {
             WindowEvent::CloseRequested => {
                 println!("The close button was pressed; stopping");

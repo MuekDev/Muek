@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Muek.Engine;
 using Muek.Models;
 using NAudio.Wave;
 
@@ -20,6 +21,7 @@ public class ClipViewModel
     public double Offset => Proto.Offset;
     public string Path => Proto.Path;
     public string Name => Proto.Name;
+
     public double SourceDuration { get; set; }
     // public List<float>? LOD0 { get; private set; }
     // public List<float>? LOD1 { get; private set; }
@@ -56,10 +58,11 @@ public class ClipViewModel
                 {
                     max = Math.Max(max, Math.Abs(buffer[j]));
                 }
+
                 result[idx++] = max;
             }
 
-            CachedWaveform = result; 
+            CachedWaveform = result;
         }
         catch (Exception e)
         {
@@ -85,13 +88,27 @@ public class ClipViewModel
 
             while ((read = reader.Read(buffer, 0, buffer.Length)) > 0)
             {
-                for (int i = 0; i < read; i += channels)
+                for (int i = 0; i < read; i ++)
                 {
                     result.Add(buffer[i]); // 只取第一个通道
                 }
             }
 
-            CachedWaveform = result.ToArray();
+            var arr = result.ToArray();
+            CachedWaveform = arr;
+
+            var id = Proto.Id;
+
+            unsafe
+            {
+                fixed (float* arrPtr = arr)
+                {
+                    fixed (char* str = id)
+                    {
+                        MuekEngine.cache_clip_data((ushort*)str, Proto.Id.Length, arrPtr, arr.Length);
+                    }
+                }
+            }
         }
         catch (Exception e)
         {

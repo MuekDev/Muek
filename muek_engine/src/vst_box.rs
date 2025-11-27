@@ -22,7 +22,7 @@ impl Host for HostHandle {
     fn automate(&self, index: i32, value: f32) {
         println!("Parameter {} had its value changed to {}", index, value);
     }
-    fn begin_edit(&self, index: i32) {
+    fn begin_edit(&self, _index: i32) {
         println!("update_display")
     }
 }
@@ -94,7 +94,7 @@ impl Box {
 
         let (window_width, window_height) = editor_view.size();
 
-        let plugin_name = plugin.get_info().name.clone();
+        let _plugin_name = plugin.get_info().name.clone();
 
         let window_attributes = WindowAttributes::default()
             .with_inner_size(PhysicalSize::new(window_width, window_height));

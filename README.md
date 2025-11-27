@@ -39,3 +39,28 @@ $$\text{Seconds}_{\text{Play}} = \left( \frac{B}{BPM} \times 60 \right) \times K
 #### C. 从 `实际采样点索引 (Index)` 反推回 `StartBeat`
 
 $$B = \frac{\text{Index}}{Ch \times K \times SR} \times \frac{BPM}{60}$$
+
+## 播放逻辑
+
+```mermaid
+---
+config:
+  layout: dagre
+---
+flowchart TB
+    subgraph s1["<br>"]
+        n3["Avalonia(C# .Net Muek.sln)"]
+        n5["Rust(muek_engine)"]
+    end
+    A["OnPlayButtonClick"] -- 缓存所有Clips --> n2["sync_all_clips"]
+    n2 --> n4["spawn_audio_thread"]
+
+    n3@{ shape: text}
+    n5@{ shape: text}
+    A@{ shape: rounded}
+    style n3 stroke:#2962FF,fill:#2962FF,color:#FFFFFF
+    style n5 fill:#FFE0B2,color:#424242
+    style A stroke:#2962FF
+    style n2 stroke:#FFE0B2
+    style n4 stroke:#FFE0B2
+```

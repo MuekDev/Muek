@@ -5,9 +5,11 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Controls.Primitives;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Muek.Engine;
 using Muek.Services;
 using Muek.Views;
 
@@ -28,16 +30,50 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         Console.WriteLine("Omg it is playing...");
         // await RpcService.SendCommand(new PlayCommand());
-        AudioService.Play();
+        // AudioService.Play();
+
+        var clips = new List<ClipProto>();
+        foreach (var track in Tracks)
+        {
+            foreach (var clip in track.Clips)
+            {
+                var id = clip.Proto.Id;
+                unsafe
+                {
+                    fixed (char* idStr = id)
+                    {
+                        var proto = new ClipProto()
+                        {
+                            clip_id = (ushort*)idStr,
+                            clip_id_len = id.Length,
+                            end_time = (float)(clip.Proto.StartBeat + clip.Proto.Duration),
+                            start_time = (float)clip.StartBeat
+                        };
+                        clips.Add(proto);
+                    }
+                }
+            }
+
+            var protoArr = clips.ToArray();
+            unsafe
+            {
+                fixed (ClipProto* clipPtr = protoArr)
+                {
+                    MuekEngine.sync_all_clips(clipPtr, protoArr.Length);
+                }
+            }
+        }
+        
+        MuekEngine.stream_play();
+        AudioService.TriggerAudioStarted();
     }
 
     [RelayCommand]
     public async Task OnStopButtonClick()
     {
         Console.WriteLine("Omg it is stopping...");
-        // await RpcService.SendCommand(new StopCommand());
-        // TODO
-        AudioService.Stop();
+        MuekEngine.stream_stop();
+        AudioService.TriggerAudioStopped();
     }
 
     [RelayCommand]

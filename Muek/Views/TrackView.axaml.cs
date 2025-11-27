@@ -2,11 +2,15 @@ using System;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
+using Avalonia.Threading;
 using Avalonia.VisualTree;
+using Muek.Engine;
 using Muek.Helpers;
 using Muek.Models;
 using Muek.Services;
@@ -31,6 +35,8 @@ public partial class TrackView : UserControl
     private double _lastClickedBeatOfClip = 0; // 最后一次点击clip title的位置（相对于clip，单位为beat）
     private bool _isResizingClipLeft;
 
+    private CancellationTokenSource? _trackerCts;
+
     public TrackView()
     {
         InitializeComponent();
@@ -41,6 +47,66 @@ public partial class TrackView : UserControl
         AddHandler(DragDrop.DragOverEvent, OnDragOver);
 
         UiStateService.GlobalPlayHeadPosXUpdated += UiStateServiceOnGlobalPlayHeadPosXUpdated;
+
+        AudioService.AudioStarted += (_, _) => StartPlayheadTracking();
+        AudioService.AudioStopped += (_, _) => StopPlayheadTracking();
+    }
+
+    public void StartPlayheadTracking()
+    {
+        // 防止重复启动
+        StopPlayheadTracking();
+
+        _trackerCts = new CancellationTokenSource();
+        var token = _trackerCts.Token;
+
+        Task.Run(async () =>
+        {
+            Console.WriteLine("[TrackView] Playhead tracker started.");
+
+            while (!token.IsCancellationRequested)
+            {
+                try
+                {
+                    float currentBeat = MuekEngine.get_current_position_beat();
+
+                    if (Math.Abs(_playHeadPosX - currentBeat) > 0.001)
+                    {
+                        Dispatcher.UIThread.Post(() =>
+                        {
+                            _playHeadPosX = currentBeat;
+
+                            InvalidateVisual();
+                        }, DispatcherPriority.Render);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[Tracker Error] {ex.Message}");
+                }
+
+                await Task.Delay(16, token);
+            }
+
+            Console.WriteLine("[TrackView] Playhead tracker stopped.");
+        }, token);
+    }
+
+    public void StopPlayheadTracking()
+    {
+        Console.WriteLine("[TrackView] Playhead tracker stopped.");
+        if (_trackerCts != null)
+        {
+            _trackerCts.Cancel();
+            _trackerCts.Dispose();
+            _trackerCts = null;
+        }
+    }
+
+    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        base.OnDetachedFromVisualTree(e);
+        StopPlayheadTracking();
     }
 
     private void UiStateServiceOnGlobalPlayHeadPosXUpdated(object? sender, double e)
@@ -288,7 +354,7 @@ public partial class TrackView : UserControl
                     // 获取切片数据（注意：如果是）
                     // 将waveform改为ReadOnlySpan<float>可能会更好（尚且不明C#的这个是 Span/引用 否，后期修复）
                     // Slice可能会给一首歌分配将近10GB的数据，原因尚且不明，可能跟拷贝有关
-                    
+
                     //可能修好了(?)
                     var currentWaveform = waveform;
                     // var currentWaveform = waveform.Slice(sliceStart, sliceLength);
@@ -721,13 +787,9 @@ public partial class TrackView : UserControl
         var pointerBeat = globalX / ScaleFactor - _lastClickedBeatOfClip;
         pointerBeat = double.Round(pointerBeat * Subdivisions, 0) / Subdivisions;
         pointerBeat = pointerBeat < 0 ? 0 : pointerBeat;
-        // Console.WriteLine(pointerBeat);
+        Console.WriteLine(pointerBeat);
         if (pointerBeat >= 0)
             _activeClip.Proto.StartBeat = pointerBeat;
-
-        // TODO
-        // if (DataStateService.ActiveTrack?.Proto != null)
-        // MoveCommand.Execute(DataStateService.ActiveTrack.Proto, _activeClip.Proto);
 
         InvalidateVisual();
     }
