@@ -64,10 +64,12 @@ namespace Muek.Engine
         internal static extern void stream_play(float beat);
 
         [DllImport(__DllName, EntryPoint = "stream_stop", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern void stream_stop([MarshalAs(UnmanagedType.U1)] bool stop);
+        [return: MarshalAs(UnmanagedType.U1)]
+        internal static extern bool stream_stop();
 
         [DllImport(__DllName, EntryPoint = "set_position_beat", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         internal static extern void set_position_beat(float beat);
+
 
     }
 

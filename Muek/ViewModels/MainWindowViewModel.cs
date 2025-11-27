@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -11,6 +12,7 @@ using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Muek.Engine;
+using Muek.Models;
 using Muek.Services;
 using Muek.Views;
 
@@ -79,9 +81,15 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         Console.WriteLine("Omg it is stopping...");
         PlayPosition = MuekEngine.get_current_position_beat();
-        MuekEngine.stream_stop(false);
-        AudioService.TriggerAudioStopped();
-        Console.WriteLine(PlayPosition);
+        if(MuekEngine.stream_stop())
+            AudioService.TriggerAudioStopped();
+        else
+        {
+            AudioService.TriggerAudioStarted();
+            Thread.Sleep(1);
+            AudioService.TriggerAudioStopped();
+        }
+        // Console.WriteLine(PlayPosition);
     }
 
     [RelayCommand]

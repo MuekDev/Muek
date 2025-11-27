@@ -222,9 +222,9 @@ pub unsafe extern "C" fn stream_play(beat:f32) {
 
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn stream_stop(stop:bool) {
+pub unsafe extern "C" fn stream_stop() -> bool {
     let mut engine_lock = AUDIO_ENGINE.lock().unwrap();
-    engine_lock.stop(stop);
+    engine_lock.stop()
 }
 
 #[unsafe(no_mangle)]
