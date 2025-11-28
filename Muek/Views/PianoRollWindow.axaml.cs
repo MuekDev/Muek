@@ -47,7 +47,7 @@ public partial class PianoRollWindow : UserControl
         {
             if (_isDragging)
             {
-                _maxSize = double.Clamp(Height - args.GetPosition(this).Y,90,600);
+                _maxSize = double.Clamp(Height - args.GetPosition(this).Y,90,ViewHelper.GetMainWindow().Height * .8);
                 
                 if(VelocityWindow.Height > MainBar.Bounds.Height)
                     VelocityWindow.Height = double.Clamp(MainBar.Bounds.Height,20, double.Max(PianoRollRightScroll.Bounds.Height,200));
@@ -285,6 +285,7 @@ public partial class PianoRollWindow : UserControl
         EditArea.ScrollOffset = PianoRollRightScroll.Offset.Y;
         EditArea.ClampValue = PianoRollRightScroll.Offset.X;
         PatternPreview.InvalidateVisual();
+        PianoSlider.InvalidateVisual();
     }
 
     protected override void OnPointerWheelChanged(PointerWheelEventArgs e)

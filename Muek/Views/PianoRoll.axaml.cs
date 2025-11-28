@@ -867,6 +867,8 @@ public partial class PianoRoll : UserControl
                             _currentNoteStartTime =  existNote.StartTime;
                             _currentNoteEndTime = existNote.EndTime;
                             _dragNoteVelocity = existNote.Velocity;
+                            
+                            //这傻逼钢琴窗就是他妈的一坨沟史
                             removedNote = existNote;
                             e.Handled = true;
                             break;
