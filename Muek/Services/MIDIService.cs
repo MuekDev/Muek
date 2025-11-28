@@ -29,6 +29,7 @@ public class MidiService
     public void ImportMidi(string filename)
     {
         var fileData = new MidiFile(filename);
+        Data = new MidiEventCollection(1, fileData.DeltaTicksPerQuarterNote);
         for (int i = 1; i < Data.Tracks; i++)
         {
             Data.RemoveTrack(i);
