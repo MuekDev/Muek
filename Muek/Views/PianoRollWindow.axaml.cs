@@ -302,9 +302,9 @@ public partial class PianoRollWindow : UserControl
         }
     }
 
-    private async void ImportMidiFile(object? sender, RoutedEventArgs e)
+    private void ImportMidiFile(object? sender, RoutedEventArgs e)
     {
-        var files = await new Window().StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        var files = new Window().StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
             Title = "Import Midi file",
             FileTypeFilter =
@@ -315,12 +315,12 @@ public partial class PianoRollWindow : UserControl
                 }
             ],
             AllowMultiple = false,
-        });
+        }).GetAwaiter().GetResult();
 
         if (files.Count >= 1)
         {
             var file = files[0].Path.LocalPath;
-            await Task.Run(() => { EditArea.ImportMidi(file); });
+            EditArea.ImportMidi(file);
         }
 
         e.Handled = true;
