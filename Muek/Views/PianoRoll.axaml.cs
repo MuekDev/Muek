@@ -864,6 +864,9 @@ public partial class PianoRoll : UserControl
                             _dragStartTime = existNote.StartTime;
                             _dragEndTime = existNote.EndTime;
                             _dragNoteVelocity = existNote.Velocity;
+                            _currentNoteStartTime =  existNote.StartTime;
+                            _currentNoteEndTime = existNote.EndTime;
+                            _dragNoteVelocity = existNote.Velocity;
                             removedNote = existNote;
                             e.Handled = true;
                             break;

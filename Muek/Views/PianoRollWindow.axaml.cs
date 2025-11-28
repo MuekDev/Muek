@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Animation;
 using Avalonia.Animation.Easings;
@@ -300,9 +301,9 @@ public partial class PianoRollWindow : UserControl
         }
     }
 
-    private void ImportMidiFile(object? sender, RoutedEventArgs e)
+    private async void ImportMidiFile(object? sender, RoutedEventArgs e)
     {
-        var files = new Window().StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        var files = await new Window().StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
             Title = "Import Midi file",
             FileTypeFilter =
@@ -313,12 +314,12 @@ public partial class PianoRollWindow : UserControl
                 }
             ],
             AllowMultiple = false,
-        }).GetAwaiter().GetResult();
+        });
 
         if (files.Count >= 1)
         {
             var file = files[0].Path.LocalPath;
-            EditArea.ImportMidi(file);
+            await Task.Run(() => { EditArea.ImportMidi(file); });
         }
 
         e.Handled = true;
