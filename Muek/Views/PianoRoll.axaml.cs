@@ -1,13 +1,16 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
-using System.Threading.Tasks;
+using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
+using Avalonia.Media.Imaging;
+using Avalonia.Platform;
 using Avalonia.Platform.Storage;
 using Muek.Models;
 using Muek.Services;
@@ -72,7 +75,9 @@ public partial class PianoRoll : UserControl
 
     private readonly IBrush _noteColor1 = Brushes.White;
     private readonly IBrush _noteColor2 = Brushes.Black;
-    private Color NoteColor3 => Pattern?.Color ?? DataStateService.MuekColor;
+
+    private static Color _noteColor3 => _pattern?.Color??DataStateService.MuekColor;
+    private Color NoteColor3 => _pattern?.Color ?? DataStateService.MuekColor;
 
     private IBrush _noteHoverColor = new SolidColorBrush(Colors.Black, .5);
 
@@ -104,7 +109,7 @@ public partial class PianoRoll : UserControl
     private Point _currentMousePosition;
     private Point _pressedMousePosition;
 
-    private PatternViewModel? _pattern = null;
+    private static PatternViewModel? _pattern = null;
 
     public PatternViewModel? Pattern
     {
@@ -175,6 +180,19 @@ public partial class PianoRoll : UserControl
     private static readonly Pen WhiteGridPen = new Pen(new SolidColorBrush(Colors.White, .2),  .1);
     private static readonly Pen PurpleGridPen = new Pen(new SolidColorBrush(Colors.MediumPurple, .5));
     private static readonly Pen BlueGridPen = new Pen(new SolidColorBrush(Colors.LightSkyBlue, .5));
+
+    private static readonly Pen NoteWhitePen = new Pen(Brushes.White);
+    private static readonly Pen RedPen = new Pen(Brushes.Red, 2);
+    private static readonly Pen OrangePen = new Pen(Brushes.Orange);
+    private static readonly Pen BlackPen = new Pen(Brushes.Black);
+
+    private static readonly Pen GridLinePenNormal = new Pen(new SolidColorBrush(Colors.White, .5));
+    private static readonly Pen GridLinePenThin = new Pen(new SolidColorBrush(Colors.White, .5),.5);
+    private static Pen GridLinePenColor => new(new SolidColorBrush(_noteColor3));
+    private static Pen GridLinePenColorThin => new(new SolidColorBrush(_noteColor3),.5);
+    private static Pen GridLinePenColorThinner => new(new SolidColorBrush(_noteColor3),.2);
+    private static readonly SolidColorBrush GridLineTextColor = new SolidColorBrush(Colors.White);
+    private static readonly SolidColorBrush GridLineTextColorTranslucent = new SolidColorBrush(Colors.White, .2);
     
     private int _dragNoteVelocity;
 
@@ -203,7 +221,6 @@ public partial class PianoRoll : UserControl
             Width = LengthIncreasement*_widthOfBeat;
         }
     }
-
     
     //AI写的并行，可能出事，但是性能提升非常大
     public override void Render(DrawingContext context)
@@ -256,315 +273,392 @@ public partial class PianoRoll : UserControl
         var left = ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRightScroll.Offset.X;
         var right = ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRightScroll.Offset.X +
                     ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRightScroll.Bounds.Width;
-        
-        // 预计算背景网格数据
-        var backgroundRects = new List<(Rect rect, bool isWhiteKey)>();
-        for (int i = NoteRangeMin; i < (NoteRangeMax + 1) * Temperament; i++)
+        var visibleRect = new Rect(left, 0, right - left, Bounds.Height);
+        using(context.PushClip(visibleRect))
         {
-            var noteName = i;
-            var yPosition = Height - (noteName + 1) * NoteHeight;
-            var rect = new Rect(ClampValue, yPosition, Width, NoteHeight);
-            var isWhiteKey = !IndexToNoteName(noteName).Contains('#');
-            
-            backgroundRects.Add((rect, isWhiteKey));
-        }
-
-        // 批量绘制背景
-        foreach (var (rect, isWhiteKey) in backgroundRects)
-        {
-            context.DrawRectangle(Brush.Parse("#40232323"), WhitePen, rect);
-            
-            if (isWhiteKey)
+            // 预计算背景网格数据
+            var backgroundRects = new List<(Rect rect, bool isWhiteKey)>();
+            for (int i = NoteRangeMin; i < (NoteRangeMax + 1) * Temperament; i++)
             {
-                context.DrawRectangle(WhiteBrush, null, rect);
+                var noteName = i;
+                var yPosition = Height - (noteName + 1) * NoteHeight;
+                var rect = new Rect(ClampValue, yPosition, Width, NoteHeight);
+                var isWhiteKey = !IndexToNoteName(noteName).Contains('#');
+
+                backgroundRects.Add((rect, isWhiteKey));
             }
 
-            // 检查hover状态（这里需要特殊处理，因为_currentHoverNote可能变化）
-            var noteName = (int)((Height - rect.Y) / NoteHeight - 1);
-            if (noteName.Equals(_currentHoverNote))
+            // 批量绘制背景
+            foreach (var (rect, isWhiteKey) in backgroundRects)
             {
-                context.FillRectangle(new SolidColorBrush(NoteColor3, .1), rect);
-            }
-        }
+                context.DrawRectangle(Brush.Parse("#40232323"), WhitePen, rect);
 
-        // 网格线绘制（保持原有逻辑）
-        
-        if (_widthOfBeat > 20)
-        {
-            for (double i = 0; i < Width / _widthOfBeat; i += double.Clamp(Magnet, 1 / 8d, 2d))
-            {
-                if (i % 4 == 0) continue;
-                if (i * _widthOfBeat > ClampValue && i * _widthOfBeat < Width + ClampValue)
+                if (isWhiteKey)
                 {
-                    context.DrawLine(WhiteGridPen,
-                        new Point(i * _widthOfBeat, 0),
-                        new Point(i * _widthOfBeat, Height));
+                    context.DrawRectangle(WhiteBrush, null, rect);
+                }
+
+                // 检查hover状态（这里需要特殊处理，因为_currentHoverNote可能变化）
+                var noteName = (int)((Height - rect.Y) / NoteHeight - 1);
+                if (noteName.Equals(_currentHoverNote))
+                {
+                    context.FillRectangle(new SolidColorBrush(NoteColor3, .1), rect);
                 }
             }
 
-            if (Magnet <= 1 / 6.0)
+            // 网格线绘制（保持原有逻辑）
+
+            if (_widthOfBeat > 20)
             {
-                PurpleGridPen.Thickness = 1;
-                for (int i = 1; i < Width / _widthOfBeat; i += 2)
+                for (double i = 0; i < Width / _widthOfBeat; i += double.Clamp(Magnet, 1 / 8d, 2d))
                 {
-                    if (_widthOfBeat < 50) PurpleGridPen.Thickness = .5;
+                    if (i % 4 == 0) continue;
                     if (i * _widthOfBeat > ClampValue && i * _widthOfBeat < Width + ClampValue)
                     {
-                        context.DrawLine(PurpleGridPen,
+                        context.DrawLine(WhiteGridPen,
                             new Point(i * _widthOfBeat, 0),
                             new Point(i * _widthOfBeat, Height));
                     }
                 }
-            }
 
-            if (Magnet <= 1 / 3.0)
-            {
-                BlueGridPen.Thickness = 1;
-                for (int i = 2; i < Width / _widthOfBeat; i += 4)
+                if (Magnet <= 1 / 6.0)
                 {
-                    if (_widthOfBeat < 50) BlueGridPen.Thickness = .5;
-                    if (i * _widthOfBeat > ClampValue && i * _widthOfBeat < Width + ClampValue)
+                    PurpleGridPen.Thickness = 1;
+                    for (int i = 1; i < Width / _widthOfBeat; i += 2)
                     {
-                        context.DrawLine(BlueGridPen,
-                            new Point(i * _widthOfBeat, 0),
-                            new Point(i * _widthOfBeat, Height));
+                        if (_widthOfBeat < 50) PurpleGridPen.Thickness = .5;
+                        if (i * _widthOfBeat > ClampValue && i * _widthOfBeat < Width + ClampValue)
+                        {
+                            context.DrawLine(PurpleGridPen,
+                                new Point(i * _widthOfBeat, 0),
+                                new Point(i * _widthOfBeat, Height));
+                        }
+                    }
+                }
+
+                if (Magnet <= 1 / 3.0)
+                {
+                    BlueGridPen.Thickness = 1;
+                    for (int i = 2; i < Width / _widthOfBeat; i += 4)
+                    {
+                        if (_widthOfBeat < 50) BlueGridPen.Thickness = .5;
+                        if (i * _widthOfBeat > ClampValue && i * _widthOfBeat < Width + ClampValue)
+                        {
+                            context.DrawLine(BlueGridPen,
+                                new Point(i * _widthOfBeat, 0),
+                                new Point(i * _widthOfBeat, Height));
+                        }
                     }
                 }
             }
-        }
-        var gridLinePenNormal = new Pen(new SolidColorBrush(Colors.White, .5));
-        var gridLinePenThin = new Pen(new SolidColorBrush(Colors.White, .5),.5);
-        var gridLinePenColor = new Pen(new SolidColorBrush(NoteColor3));
-        var gridLinePenColorThin = new Pen(new SolidColorBrush(NoteColor3),.5);
-        var gridLinePenColorThinner = new Pen(new SolidColorBrush(NoteColor3),.2);
-        var gridLineTextColor = new SolidColorBrush(Colors.White);
-        var gridLineTextColorTranslucent = new SolidColorBrush(Colors.White, .2);
-        // 小节线和文本绘制
-        for (int i = 0; i < Width / _widthOfBeat; i++)
-        {
-            if (i * _widthOfBeat > ClampValue && i * _widthOfBeat < Width + ClampValue)
+
+            // 小节线和文本绘制 - 优化版本
+            var beatWidth = _widthOfBeat;
+            var clampVal = ClampValue;
+            var visibleWidth = Width + clampVal;
+            var scrollOffset = ScrollOffset;
+
+            // 预计算循环边界，避免重复除法
+            int totalBeats = (int)(Width / beatWidth) + 1;
+            int startBeat = Math.Max(0, (int)(clampVal / beatWidth));
+            int endBeat = Math.Min(totalBeats, (int)(visibleWidth / beatWidth));
+
+            // 预定义格式化参数
+            var culture = CultureInfo.CurrentCulture;
+            var flowDirection = FlowDirection.LeftToRight;
+            var typeface = Typeface.Default;
+
+            // 批量收集绘制操作
+            var measureLines = new List<(Point start, Point end, IPen pen)>();
+            var beatLines = new List<(Point start, Point end, IPen pen)>();
+            var measureTexts = new List<(string text, Point position, double fontSize, IBrush color)>();
+            var beatTexts = new List<(string text, Point position, double fontSize, IBrush color)>();
+
+            for (int i = startBeat; i < endBeat; i++)
             {
+                double xPos = i * beatWidth;
                 
-                // if (_widthOfBeat < 20)
-                // {
-                //     // gridLinePen.Thickness = .5;
-                //     // gridLinePen.Brush = new SolidColorBrush(Colors.White, .2);
-                // }
-                
-                
+                // 每16拍（一个小节）绘制小节线
                 if (i % 16 == 0)
                 {
-                    // gridLinePen.Brush = new SolidColorBrush(NoteColor3);
-                    context.DrawLine(
-                        _widthOfBeat < 20
-                            ? _widthOfBeat < 5 ? gridLinePenColorThinner : gridLinePenColorThin
-                            : gridLinePenColor,
-                        new Point(i * _widthOfBeat, 0),
-                        new Point(i * _widthOfBeat, Height));
-                    // if (_widthOfBeat < 20) gridLinePen.Thickness = .5;
-                    // gridLineTextColor = Brushes.White;
-                    context.DrawText(new FormattedText($"{i / 16 + 1}",
-                            CultureInfo.CurrentCulture, FlowDirection.LeftToRight, Typeface.Default,
-                            _widthOfBeat < 10 ? _widthOfBeat < 2 ? 5 : 10 : 15,
-                            gridLineTextColor),
-                        new Point(6 + i * _widthOfBeat + 1, ScrollOffset));
+                    IPen pen = beatWidth < 20 
+                        ? (beatWidth < 5 ? GridLinePenColorThinner : GridLinePenColorThin)
+                        : GridLinePenColor;
+                        
+                    measureLines.Add((new Point(xPos, 0), new Point(xPos, Height), pen));
+                    
+                    // 小节号文本
+                    double fontSize = beatWidth < 10 ? (beatWidth < 2 ? 5 : 10) : 15;
+                    measureTexts.Add(($"{i / 16 + 1}", new Point(6 + xPos + 1, scrollOffset), fontSize, GridLineTextColor));
                 }
-
-                if (i % 4 != 0) continue;
-                if (_widthOfBeat > 20)
+                
+                // 每4拍绘制次强拍线
+                if (i % 4 == 0 && i % 16 != 0)
                 {
-                    context.DrawText(new FormattedText(i % 16 == 0 ? $"{i / 16 + 1}" : $"{i / 16 + 1} : {(1 + (i / 4) % 4)}",
-                            CultureInfo.CurrentCulture, FlowDirection.LeftToRight, Typeface.Default, i % 16 == 0 ? 15 : 10,
-                            gridLineTextColorTranslucent),
-                        new Point(6 + i * _widthOfBeat + 1, ScrollOffset));
-                }
-                if(i%16!=0)
-                    if(_widthOfBeat > 5)
-                        context.DrawLine(_widthOfBeat < 20 ? gridLinePenThin : gridLinePenNormal,
-                            new Point(i * _widthOfBeat, 0),
-                            new Point(i * _widthOfBeat, Height));
-            }
-        }
-
-        // 当前位置指示线
-        if (_currentHoverNote != -1)
-        {
-            var pen = new Pen(new SolidColorBrush(NoteColor3), .5);
-            if (!_isDrawing && !_isEditing && !_isDragging)
-            {
-                context.DrawLine(pen,
-                    new Point((_currentMousePosition.X - _currentMousePosition.X % (_widthOfBeat * Magnet)), 0),
-                    new Point((_currentMousePosition.X - _currentMousePosition.X % (_widthOfBeat * Magnet)), Height)
-                );
-            }
-            else if (!_isDragging)
-            {
-                context.DrawLine(pen,
-                    new Point((_currentMousePosition.X - _currentMousePosition.X % (_widthOfBeat * Magnet) + _widthOfBeat * Magnet), 0),
-                    new Point((_currentMousePosition.X - _currentMousePosition.X % (_widthOfBeat * Magnet) + _widthOfBeat * Magnet), Height)
-                );
-            }
-        }
-
-        var rightSideCursor = false;
-        var whitePen = new Pen(Brushes.White);
-        var redPen = new Pen(Brushes.Red, 2);
-        var orangePen = new Pen(Brushes.Orange);
-        var blackPen = new Pen(Brushes.Black);
-
-        var pattern = Pattern;
-        var notes = Notes;
-
-        // 预计算音符绘制数据
-        var noteDrawData = new List<(Note note, double start, double end, double yPosition, int noteName)>();
-        if (pattern != null)
-        {
-            foreach (var pNotes in pattern.Notes)
-            {
-                foreach (Note existNote in pNotes)
-                {
-                    if (existNote.EndTime * _widthOfBeat > left && existNote.StartTime * _widthOfBeat < right)
+                    if (beatWidth > 20)
                     {
-                        var start = existNote.StartTime * _widthOfBeat;
-                        var end = existNote.EndTime * _widthOfBeat;
-                        var yPosition = Height - (existNote.Name + 1) * NoteHeight;
-                        noteDrawData.Add((existNote, start, end, yPosition, existNote.Name));
+                        // 拍号文本
+                        string text = $"{i / 16 + 1} : {(1 + (i / 4) % 4)}";
+                        beatTexts.Add((text, new Point(6 + xPos + 1, scrollOffset), 10, GridLineTextColorTranslucent));
+                    }
+                    
+                    if (beatWidth > 5)
+                    {
+                        IPen pen = beatWidth < 20 ? GridLinePenThin : GridLinePenNormal;
+                        beatLines.Add((new Point(xPos, 0), new Point(xPos, Height), pen));
                     }
                 }
             }
-        }
 
-        // 批量绘制音符
-        foreach (var (existNote, start, end, yPosition, noteName) in noteDrawData)
-        {
-            var velocity = existNote.Velocity;
-            
-            if (!notes.Contains(existNote))
+            // 批量绘制线条
+            foreach (var line in measureLines)
             {
-                if (noteName.Equals(existNote.Name))
+                context.DrawLine(line.pen, line.start, line.end);
+            }
+
+            foreach (var line in beatLines)
+            {
+                context.DrawLine(line.pen, line.start, line.end);
+            }
+
+            // 批量绘制文本
+            foreach (var textData in measureTexts)
+            {
+                var formattedText = new FormattedText(textData.text, culture, flowDirection, 
+                    typeface, textData.fontSize, textData.color);
+                context.DrawText(formattedText, textData.position);
+            }
+
+            foreach (var textData in beatTexts)
+            {
+                var formattedText = new FormattedText(textData.text, culture, flowDirection, 
+                    typeface, textData.fontSize, textData.color);
+                context.DrawText(formattedText, textData.position);
+            }
+
+            // 当前位置指示线
+            if (_currentHoverNote != -1)
+            {
+                var pen = new Pen(new SolidColorBrush(NoteColor3), .5);
+                if (!_isDrawing && !_isEditing && !_isDragging)
                 {
-                    context.DrawRectangle(Brush.Parse("#22ffffff"), null,
+                    context.DrawLine(pen,
+                        new Point((_currentMousePosition.X - _currentMousePosition.X % (_widthOfBeat * Magnet)), 0),
+                        new Point((_currentMousePosition.X - _currentMousePosition.X % (_widthOfBeat * Magnet)), Height)
+                    );
+                }
+                else if (!_isDragging)
+                {
+                    context.DrawLine(pen,
+                        new Point(
+                            (_currentMousePosition.X - _currentMousePosition.X % (_widthOfBeat * Magnet) +
+                             _widthOfBeat * Magnet), 0),
+                        new Point(
+                            (_currentMousePosition.X - _currentMousePosition.X % (_widthOfBeat * Magnet) +
+                             _widthOfBeat * Magnet), Height)
+                    );
+                }
+            }
+
+            var rightSideCursor = false;
+
+
+            var pattern = Pattern;
+            var notes = Notes;
+
+            // 预计算音符绘制数据
+            // 预计算音符绘制数据 - 使用结构体数组避免堆分配
+            var noteCount = pattern?.Notes.Sum(pNotes => pNotes.Count) ?? 0;
+            var noteDrawData = new (Note note, double start, double end, double yPosition, int noteName, bool isInNotes, bool isSelected, bool isHovered, double noteWidth)[noteCount];
+
+            if (pattern != null)
+            {
+                var index = 0;
+                var leftTime = left / _widthOfBeat;
+                var rightTime = right / _widthOfBeat;
+                var notesSet = new HashSet<Note>(notes); // 使用HashSet提高Contains性能
+                var selectedNotesSet = new HashSet<Note>(SelectedNotes);
+
+                foreach (var pNotes in pattern.Notes)
+                {
+                    foreach (Note existNote in pNotes)
+                    {
+                        if (existNote.StartTime < rightTime && existNote.EndTime > leftTime)
+                        {
+                            var start = existNote.StartTime * _widthOfBeat;
+                            var end = existNote.EndTime * _widthOfBeat;
+                            var yPosition = Height - (existNote.Name + 1) * NoteHeight;
+                            var noteWidth = end - start;
+                            var isInNotes = notesSet.Contains(existNote);
+                            var isSelected = selectedNotesSet.Contains(existNote);
+                            var isHovered = existNote.Name.Equals(_currentHoverNote) && 
+                                           _currentMousePosition.X > start && 
+                                           _currentMousePosition.X < end;
+
+                            noteDrawData[index++] = (existNote, start, end, yPosition, existNote.Name, isInNotes, isSelected, isHovered, noteWidth);
+                        }
+                    }
+                }
+
+                // 如果实际数量小于预分配，调整数组大小
+                if (index < noteCount)
+                {
+                    Array.Resize(ref noteDrawData, index);
+                }
+            }
+
+            // 预定义格式化参数避免重复创建
+            var textColorWhite = Brushes.White;
+            var textColorBlack = Brushes.Black;
+            var translucentWhite = Brush.Parse("#22ffffff");
+            var noteHeight90Percent = NoteHeight * .9;
+            var noteHeight80Percent = NoteHeight * .8;
+            var noteHeight60Percent = NoteHeight * .6;
+
+            // 批量绘制音符
+            foreach (var (existNote, start, end, yPosition, noteName, isInNotes, isSelected, isHovered, noteWidth) in noteDrawData)
+            {
+                var velocity = existNote.Velocity;
+
+                if (!isInNotes)
+                {
+                    if (noteName.Equals(existNote.Name))
+                    {
+                        context.DrawRectangle(translucentWhite, null,
+                            new Rect(start, yPosition, noteWidth, noteHeight90Percent));
+                    }
+                }
+                else
+                {
+                    if (noteName.Equals(existNote.Name) && (!_isDragging || !isSelected))
+                    {
+                        if (isSelected)
+                        {
+                            context.DrawRectangle(textColorBlack, NoteWhitePen,
+                                new Rect(start, yPosition, noteWidth, noteHeight90Percent));
+                        }
+                        else
+                        {
+                            context.DrawRectangle(new SolidColorBrush(NoteColor3, velocity / 127.0),
+                                noteWidth > 3 ? BlackPen : null,
+                                new Rect(start, yPosition, noteWidth, noteHeight90Percent));
+                        }
+
+                        // 音符文本 - 预计算文本内容避免重复字符串分配
+                        if (noteWidth > noteHeight80Percent)
+                        {
+                            var textColor = isSelected ? textColorWhite : textColorBlack;
+                            string text;
+
+                            if (noteWidth > NoteHeight * 3)
+                                text = $" {IndexToNoteName(existNote.Name)}  vel:{existNote.Velocity}";
+                            else if (noteWidth > NoteHeight * 2)
+                                text = $" {IndexToNoteName(existNote.Name)} {existNote.Velocity}";
+                            else
+                                text = $" {IndexToNoteName(existNote.Name)}";
+
+                            context.DrawText(new FormattedText(text, culture, flowDirection, 
+                                typeface, noteHeight60Percent, textColor),
+                                new Point(start, yPosition));
+                        }
+
+                        // Hover效果
+                        if (isHovered)
+                        {
+                            if (Math.Abs(_currentMousePosition.X - end) < 5)
+                            {
+                                rightSideCursor = true;
+                                context.DrawLine(RedPen,
+                                    new Point(end - 1, yPosition),
+                                    new Point(end - 1, yPosition + noteHeight90Percent));
+                            }
+                            else
+                            {
+                                context.DrawRectangle(null, new Pen(textColorWhite),
+                                    new Rect(start, yPosition, noteWidth, noteHeight90Percent));
+                            }
+                        }
+                    }
+                }
+            }
+
+            // 绘制中的音符
+            if ((_isDrawing || _isDragging || _isEditing) && SelectedNotes.Count == 0)
+            {
+                var start = _currentNoteStartTime * _widthOfBeat;
+                var end = _currentNoteEndTime * _widthOfBeat;
+                var color = Colors.DimGray;
+
+                if (!_isEditing)
+                {
+                    var yPosition = Height - (_currentHoverNote + 1) * NoteHeight;
+                    context.FillRectangle(new SolidColorBrush(color),
                         new Rect(start, yPosition, end - start, NoteHeight * .9));
                 }
-            }
-            else
-            {
-                if (noteName.Equals(existNote.Name) && (!_isDragging || !SelectedNotes.Contains(existNote)))
+                else
                 {
-                    if (SelectedNotes.Contains(existNote))
-                        context.DrawRectangle(Brushes.Black, whitePen,
-                            new Rect(start, yPosition, end - start, NoteHeight * .9));
-                    else
-                    {
-                        context.DrawRectangle(new SolidColorBrush(NoteColor3, velocity / 127.0),
-                            end - start > 3 ? blackPen : null,
-                            new Rect(start, yPosition, end - start, NoteHeight * .9));
-                    }
-
-                    // 音符文本
-                    if ((existNote.EndTime - existNote.StartTime) * _widthOfBeat > NoteHeight * .8)
-                    {
-                        var textColor = SelectedNotes.Contains(existNote) ? Brushes.White : Brushes.Black;
-                        string text;
-                        
-                        if ((existNote.EndTime - existNote.StartTime) * _widthOfBeat > NoteHeight * 3)
-                            text = $" {IndexToNoteName(existNote.Name)}  vel:{existNote.Velocity}";
-                        else if ((existNote.EndTime - existNote.StartTime) * _widthOfBeat > NoteHeight * 2)
-                            text = $" {IndexToNoteName(existNote.Name)} {existNote.Velocity}";
-                        else
-                            text = $" {IndexToNoteName(existNote.Name)}";
-                            
-                        context.DrawText(new FormattedText(text, CultureInfo.CurrentCulture, 
-                            FlowDirection.LeftToRight, Typeface.Default, NoteHeight * .6, textColor),
-                            new Point(start, yPosition));
-                    }
-
-                    // Hover效果
-                    if (existNote.Name.Equals(_currentHoverNote) &&
-                        _currentMousePosition.X > start && _currentMousePosition.X < end)
-                    {
-                        if (Math.Abs(_currentMousePosition.X - end) < 5)
-                        {
-                            rightSideCursor = true;
-                            context.DrawLine(redPen,
-                                new Point(end - 1, yPosition),
-                                new Point(end - 1, yPosition + NoteHeight * .9));
-                        }
-                        else
-                        {
-                            context.DrawRectangle(null, new Pen(Brushes.White),
-                                new Rect(start, yPosition, end - start, NoteHeight * .9));
-                        }
-                    }
-                }
-            }
-        }
-
-        // 绘制中的音符
-        if ((_isDrawing || _isDragging || _isEditing) && SelectedNotes.Count == 0)
-        {
-            var start = _currentNoteStartTime * _widthOfBeat;
-            var end = _currentNoteEndTime * _widthOfBeat;
-            var color = Colors.DimGray;
-            
-            if (!_isEditing)
-            {
-                var yPosition = Height - (_currentHoverNote + 1) * NoteHeight;
-                context.FillRectangle(new SolidColorBrush(color),
-                    new Rect(start, yPosition, end - start, NoteHeight * .9));
-            }
-            else
-            {
-                var yPosition = Height - (_editingNote + 1) * NoteHeight;
-                context.FillRectangle(new SolidColorBrush(color),
-                    new Rect(start, yPosition, end - start, NoteHeight * .9));
-                context.DrawLine(new Pen(Brushes.Orange, 1),
-                    new Point(_currentMousePosition.X - _currentMousePosition.X % (_widthOfBeat * Magnet) + _widthOfBeat * Magnet, 0),
-                    new Point(_currentMousePosition.X - _currentMousePosition.X % (_widthOfBeat * Magnet) + _widthOfBeat * Magnet, Width));
-            }
-        }
-
-        Cursor = rightSideCursor ? new Cursor(StandardCursorType.RightSide) : new Cursor(StandardCursorType.Arrow);
-
-        // 选择框
-        if (_selectFrame != null)
-        {
-            context.DrawRectangle(null, new Pen(Brushes.White), (Rect)_selectFrame);
-        }
-
-        // 拖动的选中音符
-        if ((_isDrawing || _isDragging || _isEditing) && SelectedNotes.Count != 0)
-        {
-            var color = Colors.DimGray;
-            
-            if (!_isEditing)
-            {
-                var dragRelativePos = ((_currentMousePosition.X - _dragPos.X) - (_currentMousePosition.X - _dragPos.X) % _widthOfBeat) / _widthOfBeat;
-                
-                foreach (Note selectedNote in SelectedNotes)
-                {
-                    var dragNoteName = (int)(-(_currentMousePosition.Y - _dragPos.Y) / NoteHeight + selectedNote.Name);
-                    dragNoteName = Math.Clamp(dragNoteName, 0, NoteRangeMax * (Temperament + 1) + 2);
-                    
-                    var draggedNote = new Note
-                    {
-                        StartTime = selectedNote.StartTime + dragRelativePos,
-                        EndTime = dragRelativePos + selectedNote.EndTime,
-                        Name = dragNoteName,
-                        Velocity = selectedNote.Velocity,
-                    };
-                    
-                    var yPosition = Height - (dragNoteName + 1) * NoteHeight;
+                    var yPosition = Height - (_editingNote + 1) * NoteHeight;
                     context.FillRectangle(new SolidColorBrush(color),
-                        new Rect(draggedNote.StartTime * _widthOfBeat, yPosition,
-                            (draggedNote.EndTime - draggedNote.StartTime) * _widthOfBeat, NoteHeight * .9));
+                        new Rect(start, yPosition, end - start, NoteHeight * .9));
+                    context.DrawLine(new Pen(Brushes.Orange, 1),
+                        new Point(
+                            _currentMousePosition.X - _currentMousePosition.X % (_widthOfBeat * Magnet) +
+                            _widthOfBeat * Magnet, 0),
+                        new Point(
+                            _currentMousePosition.X - _currentMousePosition.X % (_widthOfBeat * Magnet) +
+                            _widthOfBeat * Magnet, Width));
                 }
             }
-            else
+
+            Cursor = rightSideCursor ? new Cursor(StandardCursorType.RightSide) : new Cursor(StandardCursorType.Arrow);
+
+            // 选择框
+            if (_selectFrame != null)
             {
-                context.DrawLine(orangePen,
-                    new Point(_currentMousePosition.X - _currentMousePosition.X % (_widthOfBeat * Magnet) + _widthOfBeat, 0),
-                    new Point(_currentMousePosition.X - _currentMousePosition.X % (_widthOfBeat * Magnet) + _widthOfBeat, Width));
+                context.DrawRectangle(null, new Pen(Brushes.White), (Rect)_selectFrame);
+            }
+
+            // 拖动的选中音符
+            if ((_isDrawing || _isDragging || _isEditing) && SelectedNotes.Count != 0)
+            {
+                var color = Colors.DimGray;
+
+                if (!_isEditing)
+                {
+                    var dragRelativePos =
+                        ((_currentMousePosition.X - _dragPos.X) -
+                         (_currentMousePosition.X - _dragPos.X) % _widthOfBeat) / _widthOfBeat;
+
+                    foreach (Note selectedNote in SelectedNotes)
+                    {
+                        var dragNoteName =
+                            (int)(-(_currentMousePosition.Y - _dragPos.Y) / NoteHeight + selectedNote.Name);
+                        dragNoteName = Math.Clamp(dragNoteName, 0, NoteRangeMax * (Temperament + 1) + 2);
+
+                        var draggedNote = new Note
+                        {
+                            StartTime = selectedNote.StartTime + dragRelativePos,
+                            EndTime = dragRelativePos + selectedNote.EndTime,
+                            Name = dragNoteName,
+                            Velocity = selectedNote.Velocity,
+                        };
+
+                        var yPosition = Height - (dragNoteName + 1) * NoteHeight;
+                        context.FillRectangle(new SolidColorBrush(color),
+                            new Rect(draggedNote.StartTime * _widthOfBeat, yPosition,
+                                (draggedNote.EndTime - draggedNote.StartTime) * _widthOfBeat, NoteHeight * .9));
+                    }
+                }
+                else
+                {
+                    context.DrawLine(OrangePen,
+                        new Point(
+                            _currentMousePosition.X - _currentMousePosition.X % (_widthOfBeat * Magnet) + _widthOfBeat,
+                            0),
+                        new Point(
+                            _currentMousePosition.X - _currentMousePosition.X % (_widthOfBeat * Magnet) + _widthOfBeat,
+                            Width));
+                }
             }
         }
     }
