@@ -64,7 +64,7 @@ public partial class PianoRoll : UserControl
 
     public const int Temperament = 12;
 
-    private readonly string[] NotePrefixes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+    private static readonly string[] NotePrefixes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 
 
     // private double _renderSize = 2000;
@@ -112,6 +112,9 @@ public partial class PianoRoll : UserControl
         set
         {
             _pattern = value;
+            ViewHelper.GetMainWindow().PianoRollWindow.ChannelSelectionDisable.IsVisible = _pattern is null;
+            if(_pattern is null)
+                ViewHelper.GetMainWindow().PianoRollWindow.Channel.UnselectAll();
             OnPropertyChanged(nameof(Pattern));
         }
     }
@@ -134,10 +137,22 @@ public partial class PianoRoll : UserControl
             else pattern.Background = new SolidColorBrush(Colors.Black, 0);
         }
     }
+
+    private int CurrentChannel
+    {
+        get => (int)(ViewHelper.GetMainWindow().PianoRollWindow.Channel.SelectedItem ?? 1);
+        set
+        {
+            ViewHelper.GetMainWindow().PianoRollWindow.Channel.SelectedItem = int.Clamp(value, 1, 16);
+            InvalidateVisual();
+        }
+    }
+    
+
     public List<Note> Notes
     {
-        get => Pattern == null ? [] : Pattern.Notes;
-        set { if (Pattern != null) Pattern.Notes = value; }
+        get => Pattern == null ? [] : Pattern.Notes[CurrentChannel - 1];
+        set { if (Pattern != null) Pattern.Notes[CurrentChannel - 1] = value; }
     }
 
     public Point ScalingSensitivity = new Point(5, 2);
@@ -1383,30 +1398,35 @@ public partial class PianoRoll : UserControl
                 midi.ImportMidi(file);
                 Notes.Clear();
                 for (int i = 1; i < midi.Data.Tracks; i++)
-                for (var index = 0; index < midi.Data[i].Count; index++)
                 {
-                    var note = midi.Data[i][index];
-                    if (note.GetType() == typeof(NoteOnEvent))
+                    CurrentChannel = i;
+                    for (var index = 0; index < midi.Data[i].Count; index++)
                     {
-                        try
+                        var note = midi.Data[i][index];
+                        if (note.GetType() == typeof(NoteOnEvent))
                         {
-                            Notes.Add(new Note()
+                            try
                             {
-                                Name = ((NoteOnEvent)note).NoteNumber,
-                                // Color = NoteColor3,
-                                StartTime = ((NoteOnEvent)note).AbsoluteTime /
-                                    (double)midi.Data.DeltaTicksPerQuarterNote * 4,
-                                EndTime = (((NoteOnEvent)note).AbsoluteTime + ((NoteOnEvent)note).NoteLength) /
-                                    (double)midi.Data.DeltaTicksPerQuarterNote * 4,
-                                Velocity = ((NoteOnEvent)note).Velocity
-                            });
-                        }
-                        catch (Exception @exception)
-                        {
-                            Console.Error.WriteLine(@exception.Message);
+                                Notes.Add(new Note()
+                                {
+                                    Name = ((NoteOnEvent)note).NoteNumber,
+                                    // Color = NoteColor3,
+                                    StartTime = ((NoteOnEvent)note).AbsoluteTime /
+                                        (double)midi.Data.DeltaTicksPerQuarterNote * 4,
+                                    EndTime = (((NoteOnEvent)note).AbsoluteTime + ((NoteOnEvent)note).NoteLength) /
+                                        (double)midi.Data.DeltaTicksPerQuarterNote * 4,
+                                    Velocity = ((NoteOnEvent)note).Velocity
+                                });
+                            }
+                            catch (Exception @exception)
+                            {
+                                Console.Error.WriteLine(@exception.Message);
+                            }
                         }
                     }
                 }
+
+                CurrentChannel = 1;
 
                 Console.WriteLine($"IMPORT Notes: {Notes.Count}");
                 // foreach (var note in Notes)

@@ -43,6 +43,29 @@
                         </Flyout>
                     </Button.Flyout>
                 </Button>
+                <Border Padding="10">
+                <Grid>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Label VerticalAlignment="Center" Margin="5 0">Channels: </Label>
+                        <ListBox x:Name="Channel" SelectionMode="Single" VerticalAlignment="Center"
+                                 FontSize="12" SelectionChanged="SelectChannel">
+                            <ListBox.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Horizontal"></StackPanel>
+                                </ItemsPanelTemplate>
+                            </ListBox.ItemsPanel>
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Margin="0" Padding="0">
+                                        <TextBlock Text="{Binding}" FontSize="10"></TextBlock>
+                                    </Border>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                            </ListBox>
+                    </StackPanel>
+                    <Border Name="ChannelSelectionDisable" IsVisible="True" Background="#44000000"/>
+                </Grid>
+                </Border>
             </StackPanel>
             <!-- 关闭 -->
             <Button HorizontalAlignment="Right" VerticalAlignment="Center" Margin="10"

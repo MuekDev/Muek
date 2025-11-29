@@ -12,7 +12,7 @@ public partial class PatternViewModel : ViewModelBase
 {
     [ObservableProperty] private Color _color;
     [ObservableProperty] private string _name;
-    [ObservableProperty] private List<PianoRoll.Note> _notes;
+    [ObservableProperty] private List<PianoRoll.Note>[] _notes;
     [ObservableProperty] private IBrush _background;
     
     public IBrush Brush => new SolidColorBrush(Color);
@@ -21,7 +21,7 @@ public partial class PatternViewModel : ViewModelBase
     {
         _color = DataStateService.MuekColor;
         _name = "New Pattern";
-        _notes = new();
+        _notes = [[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]];
         _background = new SolidColorBrush(Colors.Black, 0);
     }
     

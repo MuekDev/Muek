@@ -147,6 +147,10 @@ public partial class PianoRollWindow : UserControl
             VelocityResizeBorder.IsVisible = false;
             Cursor = new Cursor(StandardCursorType.Arrow);
         };
+        Channel.ItemsSource = new[]
+        {
+            1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16
+        };
     }
 
     private EventHandler<DragEventArgs>? MidiDragDrop()
@@ -336,5 +340,19 @@ public partial class PianoRollWindow : UserControl
     {
         
         EditArea.ExportMidi();
+    }
+
+    private void SelectChannel(object? sender, SelectionChangedEventArgs e)
+    {
+        try
+        {
+            // EditArea.CurrentTrack = (int)(e.AddedItems[0] ?? 1);
+            EditArea.SaveNotes();
+            PatternPreview.ScrollToNoteFirst();
+        }
+        catch (Exception @exception)
+        {
+            Console.Error.WriteLine(@exception.Message);
+        }
     }
 }
