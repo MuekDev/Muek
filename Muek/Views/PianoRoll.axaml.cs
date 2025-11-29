@@ -742,70 +742,95 @@ public partial class PianoRoll : UserControl
 
                 //框选逻辑
                 if (_selectFrame != null)
-                {
-                    Rect _tempSelectFrame = (Rect)_selectFrame;
+{
+    Rect _tempSelectFrame = (Rect)_selectFrame;
 
-                    double selectStartX = _tempSelectFrame.X;
-                    double selectStartY = _tempSelectFrame.Y;
-                    double selectWidth = double.Abs(selectStartX - e.GetPosition(this).X);
-                    double selectHeight = double.Abs(selectStartY - e.GetPosition(this).Y);
+    double selectStartX = _tempSelectFrame.X;
+    double selectStartY = _tempSelectFrame.Y;
+    double selectWidth = double.Abs(selectStartX - e.GetPosition(this).X);
+    double selectHeight = double.Abs(selectStartY - e.GetPosition(this).Y);
 
-                    if (e.GetPosition(this).X < _pressedMousePosition.X)
-                    {
-                        selectStartX = e.GetPosition(this).X;
-                        selectWidth = _tempSelectFrame.Right - selectStartX;
-                    }
+    if (e.GetPosition(this).X < _pressedMousePosition.X)
+    {
+        selectStartX = e.GetPosition(this).X;
+        selectWidth = _tempSelectFrame.Right - selectStartX;
+    }
 
-                    if (e.GetPosition(this).Y < _pressedMousePosition.Y)
-                    {
-                        selectStartY = e.GetPosition(this).Y;
-                        selectHeight = _tempSelectFrame.Bottom - selectStartY;
-                    }
+    if (e.GetPosition(this).Y < _pressedMousePosition.Y)
+    {
+        selectStartY = e.GetPosition(this).Y;
+        selectHeight = _tempSelectFrame.Bottom - selectStartY;
+    }
 
+    _selectFrame = new Rect(selectStartX, selectStartY, selectWidth, selectHeight);
 
-                    _selectFrame = new Rect(selectStartX, selectStartY,
-                        selectWidth, selectHeight);
-
-                    for(int i = NoteRangeMin; i < (NoteRangeMax + 1) * Temperament; i++)
-                    // for (int i = NoteRangeMin; i <= NoteRangeMax; i++)
-                    {
-                        // for (int note = 0; note < Temperament; note++)
-                        {
-                            foreach (Note existNote in Notes)
-                            {
-                                if (
-                                    (((Rect)_selectFrame).X < existNote.StartTime * _widthOfBeat &&
-                                     ((Rect)_selectFrame).X + ((Rect)_selectFrame).Width >
-                                     existNote.EndTime * _widthOfBeat ||
-                                     ((Rect)_selectFrame).X > existNote.StartTime * _widthOfBeat &&
-                                     ((Rect)_selectFrame).X < existNote.EndTime * _widthOfBeat ||
-                                     ((Rect)_selectFrame).X + ((Rect)_selectFrame).Width >
-                                     existNote.StartTime * _widthOfBeat &&
-                                     ((Rect)_selectFrame).X + ((Rect)_selectFrame).Width <
-                                     existNote.EndTime * _widthOfBeat) &&
-                                    ((Rect)_selectFrame).Y < (Height / NoteHeight - existNote.Name) * NoteHeight &&
-                                    ((Rect)_selectFrame).Y + ((Rect)_selectFrame).Height >
-                                    (Height / NoteHeight - existNote.Name) * NoteHeight
-                                )
-                                {
-                                    if (!SelectedNotes.Contains(existNote))
-                                    {
-                                        SelectedNotes.Add(existNote);
-                                    }
-                                }
-                                else
-                                {
-                                    if (SelectedNotes.Contains(existNote))
-                                    {
-                                        SelectedNotes.Remove(existNote);
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    InvalidateVisual();
-                }
+    // 优化后的选择逻辑 - 修复并行版本
+    Rect selectFrameRect = (Rect)_selectFrame;
+    
+    // 预计算选择框边界和UI相关值（在UI线程中）
+    double frameLeft = selectFrameRect.X;
+    double frameRight = selectFrameRect.X + selectFrameRect.Width;
+    double frameTop = selectFrameRect.Y;
+    double frameBottom = selectFrameRect.Y + selectFrameRect.Height;
+    
+    // 预计算所有UI相关值
+    double currentHeight = Height;
+    double currentNoteHeight = NoteHeight;
+    double currentWidthOfBeat = _widthOfBeat;
+    
+    // 使用并行处理计算选中的音符
+    var newSelectedNotes = new System.Collections.Concurrent.ConcurrentBag<Note>();
+    
+    // 并行处理音符选择检测
+    System.Threading.Tasks.Parallel.ForEach(Notes, existNote =>
+    {
+        // 使用预计算的UI值，避免在并行线程中访问UI属性
+        double noteStartX = existNote.StartTime * currentWidthOfBeat;
+        double noteEndX = existNote.EndTime * currentWidthOfBeat;
+        double noteY = currentHeight - (existNote.Name + 1) * currentNoteHeight;
+        double noteBottom = noteY + currentNoteHeight;
+        
+        // 简化的碰撞检测
+        bool xOverlap = frameLeft < noteEndX && frameRight > noteStartX;
+        bool yOverlap = frameTop < noteBottom && frameBottom > noteY;
+        
+        if (xOverlap && yOverlap)
+        {
+            newSelectedNotes.Add(existNote);
+        }
+    });
+    
+    // 将并发包转换为哈希集以便快速查找
+    var newSelectedSet = new HashSet<Note>(newSelectedNotes);
+    
+    // 批量更新选择状态
+    bool selectionChanged = false;
+    
+    // 移除不在新选择集中的音符
+    for (int i = SelectedNotes.Count - 1; i >= 0; i--)
+    {
+        if (!newSelectedSet.Contains(SelectedNotes[i]))
+        {
+            SelectedNotes.RemoveAt(i);
+            selectionChanged = true;
+        }
+    }
+    
+    // 添加新选择的音符
+    foreach (var note in newSelectedSet)
+    {
+        if (!SelectedNotes.Contains(note))
+        {
+            SelectedNotes.Add(note);
+            selectionChanged = true;
+        }
+    }
+    
+    if (selectionChanged)
+    {
+        InvalidateVisual();
+    }
+}
             }
         }
     }
