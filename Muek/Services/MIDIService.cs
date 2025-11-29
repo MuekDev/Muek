@@ -41,7 +41,6 @@ public class MidiService
             for (int i = 0; i < fileData.Tracks; i++)
             {
                 Data.AddTrack();
-                Console.WriteLine($"Current Track: {i}");
                 foreach (var e in fileData.Events[i])
                 {
                     if(e is NoteEvent @note)
@@ -56,9 +55,10 @@ public class MidiService
                 Data.AddEvent(new MetaEvent(MetaEventType.EndTrack,0,0),i);
             }
         }
-        catch(Exception @exception)
+        catch(ArgumentOutOfRangeException @exception)
         {
-            new ErrorWindow().ShowError(@exception.Message);
+
+            new DialogWindow().ShowError(@exception.Message);
             // Console.Error.WriteLine(@exception.Message);
         }
     }

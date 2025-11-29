@@ -6,9 +6,9 @@ using Avalonia.Markup.Xaml;
 
 namespace Muek.Views;
 
-public partial class ErrorWindow : Window
+public partial class DialogWindow : Window
 {
-    public ErrorWindow()
+    public DialogWindow()
     {
         InitializeComponent();
     }
