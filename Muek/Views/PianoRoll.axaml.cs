@@ -140,6 +140,8 @@ public partial class PianoRoll : UserControl
 
     public Point ScalingSensitivity = new Point(5, 2);
 
+    public int channel = 1;
+
 
     //框选音符
     private Rect? _selectFrame;
@@ -1406,9 +1408,12 @@ public partial class PianoRoll : UserControl
                 midi.ImportMidi(file);
                 Notes.Clear();
                 for (int i = 1; i < midi.Data.Tracks; i++)
-                    foreach (var note in midi.Data[i])
+                for (var index = 0; index < midi.Data[i].Count; index++)
+                {
+                    var note = midi.Data[i][index];
+                    if (note.GetType() == typeof(NoteOnEvent))
                     {
-                        if (note.GetType() == typeof(NoteOnEvent))
+                        try
                         {
                             Notes.Add(new Note()
                             {
@@ -1421,9 +1426,14 @@ public partial class PianoRoll : UserControl
                                 Velocity = ((NoteOnEvent)note).Velocity
                             });
                         }
+                        catch (Exception @exception)
+                        {
+                            Console.Error.WriteLine(@exception.Message);
+                        }
                     }
+                }
 
-                // Console.WriteLine($"IMPORT Notes: {Notes.Count}");
+                Console.WriteLine($"IMPORT Notes: {Notes.Count}");
                 // foreach (var note in Notes)
                 // {
                 //     Console.WriteLine($"Start: {note.StartTime}; End: {note.EndTime}; Name: {note.Name}");

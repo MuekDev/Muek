@@ -41,19 +41,23 @@ public class MidiService
             for (int i = 0; i < fileData.Tracks; i++)
             {
                 Data.AddTrack();
+                Console.WriteLine($"Current Track: {i}");
                 foreach (var e in fileData.Events[i])
                 {
-                    if(e is NoteEvent)
-                        Data.AddEvent(e,i);
+                    if(e is NoteEvent @note)
+                    {
+                        if(note.Velocity != 0)
+                            Data.AddEvent(note, i);
+                        // Console.WriteLine($"Add New Note: {e}");
+                    }
                     else if(e is MetaEvent @event && @event.MetaEventType != MetaEventType.EndTrack)
                         Data.AddEvent(@event,i);
                 }
                 Data.AddEvent(new MetaEvent(MetaEventType.EndTrack,0,0),i);
             }
         }
-        catch(ArgumentOutOfRangeException @exception)
+        catch(Exception @exception)
         {
-
             new ErrorWindow().ShowError(@exception.Message);
             // Console.Error.WriteLine(@exception.Message);
         }
