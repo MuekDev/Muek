@@ -1273,10 +1273,10 @@ public partial class PianoRoll : UserControl
         {
                 var midi = new MidiService();
                 midi.ImportMidi(file);
-                Notes.Clear();
                 for (int i = 1; i < midi.Data.Tracks; i++)
                 {
                     CurrentChannel = i;
+                    Notes.Clear();
                     for (var index = 0; index < midi.Data[i].Count; index++)
                     {
                         var note = midi.Data[i][index];
