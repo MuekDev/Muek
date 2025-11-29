@@ -30,7 +30,7 @@ public partial class PianoSlider : UserControl
     //     set => SetValue(BackgroundColorProperty, value);
     // }
 
-    // public List<PianoRoll.Note> Notes => ViewHelper.GetMainWindow().PianoRollWindow.EditArea.Notes;
+    private List<PianoRoll.Note> Notes => ViewHelper.GetMainWindow().PianoRollWindow.EditArea.Notes;
 
     private bool _isHover = false;
     private bool _isPressed = false;
@@ -81,59 +81,19 @@ public partial class PianoSlider : UserControl
         }
 
 
-        // if (Notes.Count > 0)
-        // {
-        //     double noteHeight;
-        //     double noteWidth;
-        //     int noteMax = Notes[0].Name;
-        //     int noteMin = noteMax;
-        //     // double noteFirst = Notes[0].StartTime;
-        //     double noteLast = Notes[0].EndTime;
-        //     foreach (var note in Notes)
-        //     {
-        //         var position = note.Name;
-        //         noteMin = int.Min(position, noteMin); //最低的音符
-        //         noteMax = int.Max(position, noteMax); //最高的音符
-        //         // noteFirst = double.Min(noteFirst, note.StartTime); //最左边的音符
-        //         noteLast = double.Max(noteLast, note.EndTime); //最右边的音符
-        //     }
-        //
-        //     noteHeight = Bounds.Height / (noteMax + 1 - noteMin);
-        //     // noteWidth = Bounds.Width / (noteLast - noteFirst);
-        //     noteWidth = Bounds.Width /
-        //                 (noteLast + ViewHelper.GetMainWindow().PianoRollWindow.EditArea.LengthIncreasement);
-        //     // Console.WriteLine($"noteWidth:{noteWidth}");
-        //     // Console.WriteLine($"noteHeight:{noteHeight}");
-        //
-        //     foreach (var note in Notes)
-        //     {
-        //         var position = note.Name;
-        //         var background = new LinearGradientBrush
-        //         {
-        //             StartPoint = new RelativePoint(0.9, 0.5, RelativeUnit.Relative),
-        //             EndPoint = new RelativePoint(1.0, 0.5, RelativeUnit.Relative),
-        //         };
-        //         background.GradientStops.Add(new GradientStop(Colors.White, 0.0));
-        //         background.GradientStops.Add(new GradientStop(Colors.Transparent, 1.0));
-        //         // context.FillRectangle(background,
-        //         //     new Rect(
-        //         //         noteWidth * .6 * (note.StartTime - noteFirst) + Bounds.Width*.2,
-        //         //         Bounds.Height*.6 - (position - noteMin + 1) * noteHeight * .6 + Bounds.Height*.2,
-        //         //         noteWidth * (note.EndTime - note.StartTime) * .6,
-        //         //         noteHeight * .6),
-        //         //     (float)(noteHeight * .1));
-        //         context.FillRectangle(background,
-        //             new Rect(
-        //                 note.StartTime * noteWidth,
-        //                 Bounds.Height * .6 - (position - noteMin + 1) * noteHeight * .6 + Bounds.Height * .2,
-        //                 noteWidth * (note.EndTime - note.StartTime),
-        //                 noteHeight * .55),
-        //             (float)(noteHeight * .1));
-        //         // Console.WriteLine("Drew");
-        //         // Console.WriteLine(new Rect(noteWidth * (note.StartTime - noteFirst), Height - (position - noteMin) * noteHeight, noteWidth *
-        //         //     (note.EndTime - note.StartTime), noteHeight));
-        //     }
-        // }
+        if (Notes.Count > 0)
+        {
+            foreach (var note in Notes)
+            {
+                context.DrawLine(new Pen(Brushes.White),
+                    new Point(0, (1 - (float)note.Name /
+                        ((PianoRoll.NoteRangeMax - PianoRoll.NoteRangeMin + 1) *
+                            PianoRoll.Temperament - 1)) * Bounds.Height),
+                    new Point(Bounds.Width, (1 - (float)note.Name /
+                        ((PianoRoll.NoteRangeMax - PianoRoll.NoteRangeMin + 1) *
+                            PianoRoll.Temperament - 1)) * Bounds.Height));
+            }
+        }
     }
 
     private double _pressedPosition;

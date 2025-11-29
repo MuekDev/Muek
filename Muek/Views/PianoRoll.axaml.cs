@@ -1057,7 +1057,6 @@ public partial class PianoRoll : UserControl
                 HideOptions();
             }
             SaveNotes();
-            
         }
         InvalidateVisual();
         e.Handled = true;
@@ -1343,8 +1342,9 @@ public partial class PianoRoll : UserControl
             _widthOfBeat = double.Max(_widthOfBeat,
                 ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRightScroll.Bounds.Width / trackEnd);
         }
+
         ViewHelper.GetMainWindow().PianoRollWindow.PatternPreview.InvalidateVisual();
-        ViewHelper.GetMainWindow().PianoRollWindow.NoteVelocity.InvalidateVisual();
+        ViewHelper.GetMainWindow().PianoRollWindow.PianoSlider.InvalidateVisual();
     }
 
     private void SelectedNotesMoveUp(object? sender, RoutedEventArgs e)
