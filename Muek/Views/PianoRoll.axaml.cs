@@ -1344,6 +1344,7 @@ public partial class PianoRoll : UserControl
         }
 
         ViewHelper.GetMainWindow().PianoRollWindow.PatternPreview.InvalidateVisual();
+        ViewHelper.GetMainWindow().PianoRollWindow.NoteVelocity.InvalidateVisual();
         ViewHelper.GetMainWindow().PianoRollWindow.PianoScroller.InvalidateVisual();
     }
 
