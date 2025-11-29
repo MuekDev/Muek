@@ -54,7 +54,7 @@ public class MidiService
         catch(ArgumentOutOfRangeException @exception)
         {
 
-            new ErrorWindow().ShowError(@exception.Message);
+            new DialogWindow().ShowError(@exception.Message);
             // Console.Error.WriteLine(@exception.Message);
         }
     }

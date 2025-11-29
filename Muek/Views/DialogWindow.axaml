@@ -1,0 +1,34 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Width="600"
+        Height="400"
+        x:Class="Muek.Views.DialogWindow"
+        WindowStartupLocation="CenterOwner"
+        Title="Error"
+        Background="Transparent"
+        TransparencyLevelHint="AcrylicBlur"
+        ExtendClientAreaToDecorationsHint="True"
+        SystemDecorations="None">
+    <Grid RowDefinitions="Auto,*,Auto" HorizontalAlignment="Stretch" Background="#80000000">
+        <StackPanel Margin="12">
+            <Label FontSize="24" FontWeight="Bold">Error</Label>
+            <Label FontSize="10">Muek occured an error, you can close this window if you have known what was happened.</Label>
+        </StackPanel>
+        <Border VerticalAlignment="Top" Grid.Row="1" Margin="12,0" Background="#4d0218" CornerRadius="4">
+            <StackPanel Margin="4">
+                <Label Foreground="#fe1c55" FontWeight="Bold">Traceback</Label>
+                <TextBlock Name="ErrorText" TextWrapping="WrapWithOverflow" Foreground="#ffa1ad" FontSize="12" Margin="4,0,0,4">123123</TextBlock>
+            </StackPanel>
+        </Border>
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button x:Name="SubmitBtn" Width="50" HorizontalContentAlignment="Center" VerticalAlignment="Bottom"
+                    Background="White" Foreground="Black" CornerRadius="20" Margin="12" FontWeight="Bold"
+                    Click="CloseWindow">
+                OK
+            </Button>
+        </StackPanel>
+    </Grid>
+</Window>
