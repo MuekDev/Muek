@@ -170,9 +170,15 @@ public partial class PianoRoll : UserControl
     public readonly double LengthIncreasement = 128d;
 
 
-    private Pen _whitePen = new Pen(new SolidColorBrush(Colors.White, .1));
-    private IBrush _whiteBrush = new SolidColorBrush(Colors.White, .05);
+    private static readonly Pen WhitePen = new Pen(new SolidColorBrush(Colors.White, .1));
+    private static readonly IBrush WhiteBrush = new SolidColorBrush(Colors.White, .05);
+    private static readonly Pen WhiteGridPen = new Pen(new SolidColorBrush(Colors.White, .2),  .1);
+    private static readonly Pen PurpleGridPen = new Pen(new SolidColorBrush(Colors.MediumPurple, .5));
+    private static readonly Pen BlueGridPen = new Pen(new SolidColorBrush(Colors.LightSkyBlue, .5));
+    
     private int _dragNoteVelocity;
+
+    
 
     public PianoRoll()
     {
@@ -266,11 +272,11 @@ public partial class PianoRoll : UserControl
         // 批量绘制背景
         foreach (var (rect, isWhiteKey) in backgroundRects)
         {
-            context.DrawRectangle(Brush.Parse("#40232323"), _whitePen, rect);
+            context.DrawRectangle(Brush.Parse("#40232323"), WhitePen, rect);
             
             if (isWhiteKey)
             {
-                context.DrawRectangle(_whiteBrush, null, rect);
+                context.DrawRectangle(WhiteBrush, null, rect);
             }
 
             // 检查hover状态（这里需要特殊处理，因为_currentHoverNote可能变化）
@@ -282,9 +288,6 @@ public partial class PianoRoll : UserControl
         }
 
         // 网格线绘制（保持原有逻辑）
-        var whiteGridPen = new Pen(new SolidColorBrush(Colors.White, .2), _widthOfBeat * .005);
-        var purpleGridPen = new Pen(new SolidColorBrush(Colors.MediumPurple, .5));
-        var blueGridPen = new Pen(new SolidColorBrush(Colors.LightSkyBlue, .5));
         
         if (_widthOfBeat > 20)
         {
@@ -293,7 +296,7 @@ public partial class PianoRoll : UserControl
                 if (i % 4 == 0) continue;
                 if (i * _widthOfBeat > ClampValue && i * _widthOfBeat < Width + ClampValue)
                 {
-                    context.DrawLine(whiteGridPen,
+                    context.DrawLine(WhiteGridPen,
                         new Point(i * _widthOfBeat, 0),
                         new Point(i * _widthOfBeat, Height));
                 }
@@ -301,13 +304,13 @@ public partial class PianoRoll : UserControl
 
             if (Magnet <= 1 / 6.0)
             {
-                purpleGridPen.Thickness = 1;
+                PurpleGridPen.Thickness = 1;
                 for (int i = 1; i < Width / _widthOfBeat; i += 2)
                 {
-                    if (_widthOfBeat < 50) purpleGridPen.Thickness = .5;
+                    if (_widthOfBeat < 50) PurpleGridPen.Thickness = .5;
                     if (i * _widthOfBeat > ClampValue && i * _widthOfBeat < Width + ClampValue)
                     {
-                        context.DrawLine(purpleGridPen,
+                        context.DrawLine(PurpleGridPen,
                             new Point(i * _widthOfBeat, 0),
                             new Point(i * _widthOfBeat, Height));
                     }
@@ -316,63 +319,70 @@ public partial class PianoRoll : UserControl
 
             if (Magnet <= 1 / 3.0)
             {
-                blueGridPen.Thickness = 1;
+                BlueGridPen.Thickness = 1;
                 for (int i = 2; i < Width / _widthOfBeat; i += 4)
                 {
-                    if (_widthOfBeat < 50) blueGridPen.Thickness = .5;
+                    if (_widthOfBeat < 50) BlueGridPen.Thickness = .5;
                     if (i * _widthOfBeat > ClampValue && i * _widthOfBeat < Width + ClampValue)
                     {
-                        context.DrawLine(blueGridPen,
+                        context.DrawLine(BlueGridPen,
                             new Point(i * _widthOfBeat, 0),
                             new Point(i * _widthOfBeat, Height));
                     }
                 }
             }
         }
-
+        var gridLinePenNormal = new Pen(new SolidColorBrush(Colors.White, .5));
+        var gridLinePenThin = new Pen(new SolidColorBrush(Colors.White, .5),.5);
+        var gridLinePenColor = new Pen(new SolidColorBrush(NoteColor3));
+        var gridLinePenColorThin = new Pen(new SolidColorBrush(NoteColor3),.5);
+        var gridLinePenColorThinner = new Pen(new SolidColorBrush(NoteColor3),.2);
+        var gridLineTextColor = new SolidColorBrush(Colors.White);
+        var gridLineTextColorTranslucent = new SolidColorBrush(Colors.White, .2);
         // 小节线和文本绘制
         for (int i = 0; i < Width / _widthOfBeat; i++)
         {
             if (i * _widthOfBeat > ClampValue && i * _widthOfBeat < Width + ClampValue)
             {
-                var gridLinePen = new Pen(new SolidColorBrush(Colors.White, .5), 1);
-                if (_widthOfBeat < 20)
-                {
-                    gridLinePen.Thickness = .5;
-                    gridLinePen.Brush = new SolidColorBrush(Colors.White, .2);
-                }
-                IBrush textColor = new SolidColorBrush(Colors.White, .2);
+                
+                // if (_widthOfBeat < 20)
+                // {
+                //     // gridLinePen.Thickness = .5;
+                //     // gridLinePen.Brush = new SolidColorBrush(Colors.White, .2);
+                // }
+                
                 
                 if (i % 16 == 0)
                 {
-                    gridLinePen.Brush = new SolidColorBrush(NoteColor3);
-                    if (_widthOfBeat < 20) gridLinePen.Thickness = .5;
-                    textColor = Brushes.White;
-                }
-                
-                if (i % 4 == 0)
-                {
-                    if (_widthOfBeat > 20)
-                    {
-                        context.DrawText(new FormattedText(i % 16 == 0 ? $"{i / 16 + 1}" : $"{i / 16 + 1} : {(1 + (i / 4) % 4)}",
-                                CultureInfo.CurrentCulture, FlowDirection.LeftToRight, Typeface.Default, i % 16 == 0 ? 15 : 12,
-                                textColor),
-                            new Point(6 + i * _widthOfBeat + 1, ScrollOffset));
-                    }
-                    else
-                    {
-                        if (i % 16 == 0)
-                        {
-                            context.DrawText(new FormattedText($"{i / 16 + 1}",
-                                    CultureInfo.CurrentCulture, FlowDirection.LeftToRight, Typeface.Default, 15,
-                                    textColor),
-                                new Point(6 + i * _widthOfBeat + 1, ScrollOffset));
-                        }
-                    }
-                    context.DrawLine(gridLinePen,
+                    // gridLinePen.Brush = new SolidColorBrush(NoteColor3);
+                    context.DrawLine(
+                        _widthOfBeat < 20
+                            ? _widthOfBeat < 5 ? gridLinePenColorThinner : gridLinePenColorThin
+                            : gridLinePenColor,
                         new Point(i * _widthOfBeat, 0),
                         new Point(i * _widthOfBeat, Height));
+                    // if (_widthOfBeat < 20) gridLinePen.Thickness = .5;
+                    // gridLineTextColor = Brushes.White;
+                    context.DrawText(new FormattedText($"{i / 16 + 1}",
+                            CultureInfo.CurrentCulture, FlowDirection.LeftToRight, Typeface.Default,
+                            _widthOfBeat < 10 ? _widthOfBeat < 2 ? 5 : 10 : 15,
+                            gridLineTextColor),
+                        new Point(6 + i * _widthOfBeat + 1, ScrollOffset));
                 }
+
+                if (i % 4 != 0) continue;
+                if (_widthOfBeat > 20)
+                {
+                    context.DrawText(new FormattedText(i % 16 == 0 ? $"{i / 16 + 1}" : $"{i / 16 + 1} : {(1 + (i / 4) % 4)}",
+                            CultureInfo.CurrentCulture, FlowDirection.LeftToRight, Typeface.Default, i % 16 == 0 ? 15 : 10,
+                            gridLineTextColorTranslucent),
+                        new Point(6 + i * _widthOfBeat + 1, ScrollOffset));
+                }
+                if(i%16!=0)
+                    if(_widthOfBeat > 5)
+                        context.DrawLine(_widthOfBeat < 20 ? gridLinePenThin : gridLinePenNormal,
+                            new Point(i * _widthOfBeat, 0),
+                            new Point(i * _widthOfBeat, Height));
             }
         }
 
@@ -418,7 +428,6 @@ public partial class PianoRoll : UserControl
                         var start = existNote.StartTime * _widthOfBeat;
                         var end = existNote.EndTime * _widthOfBeat;
                         var yPosition = Height - (existNote.Name + 1) * NoteHeight;
-                        
                         noteDrawData.Add((existNote, start, end, yPosition, existNote.Name));
                     }
                 }
@@ -447,7 +456,8 @@ public partial class PianoRoll : UserControl
                             new Rect(start, yPosition, end - start, NoteHeight * .9));
                     else
                     {
-                        context.DrawRectangle(new SolidColorBrush(NoteColor3, velocity / 127.0), blackPen,
+                        context.DrawRectangle(new SolidColorBrush(NoteColor3, velocity / 127.0),
+                            end - start > 3 ? blackPen : null,
                             new Rect(start, yPosition, end - start, NoteHeight * .9));
                     }
 
@@ -1006,43 +1016,6 @@ public partial class PianoRoll : UserControl
         Options.IsVisible = false;
     }
 
-    // private async Task ShowOptions()
-    // {
-    //     var positionLeft = SelectedNotes[0].StartTime * _widthOfBeat;
-    //     var positionTop = Height - SelectedNotes[0].Name * NoteHeight;
-    //     foreach (Note selectedNote in SelectedNotes)
-    //     {
-    //         positionLeft = double.Min(positionLeft, selectedNote.StartTime * _widthOfBeat);
-    //         positionTop = double.Min(positionTop, Height - selectedNote.Name * NoteHeight);
-    //     }
-    //
-    //     Options.Margin = new Thickness(positionLeft, positionTop, 0, 0);
-    //         
-    //     while (Options.Opacity < 1 && _isShowingOptions)
-    //     {
-    //         Options.IsVisible = true;
-    //         await Task.Delay(50);
-    //         lock(Options) Options.Opacity += .5;
-    //         Console.WriteLine("IsShowingOptions");
-    //     }
-    //     await Task.CompletedTask;
-    //     Console.WriteLine("ShowOptionsCompleted");
-    // }
-    // private async Task HideOptions()
-    // {
-    //     
-    // while (Options.Opacity > 0 && !_isShowingOptions)
-    // {
-    //     
-    //     await Task.Delay(50);
-    //     lock(Options) Options.Opacity -= .5;
-    //     Console.WriteLine("IsHidingOptions");
-    // }
-    // await Task.CompletedTask;
-    // Options.IsVisible = false;
-    // Console.WriteLine("HidingOptionsCompleted");
-    // }
-
 
     protected override void OnPointerWheelChanged(PointerWheelEventArgs e)
     {
@@ -1101,62 +1074,6 @@ public partial class PianoRoll : UserControl
         }
     }
 
-    // private string IndexToNoteName(int index)
-    // {
-    //     string noteName = "";
-    //     for (int i = NoteRangeMin - 1; i <= NoteRangeMax + 1; i++)
-    //     {
-    //         for (int note = 0; note < Temperament; note++)
-    //         {
-    //             switch (note)
-    //             {
-    //                 case 0:
-    //                     noteName = $"C{i}";
-    //                     break;
-    //                 case 1:
-    //                     noteName = $"C#{i}";
-    //                     break;
-    //                 case 2:
-    //                     noteName = $"D{i}";
-    //                     break;
-    //                 case 3:
-    //                     noteName = $"D#{i}";
-    //                     break;
-    //                 case 4:
-    //                     noteName = $"E{i}";
-    //                     break;
-    //                 case 5:
-    //                     noteName = $"F{i}";
-    //                     break;
-    //                 case 6:
-    //                     noteName = $"F#{i}";
-    //                     break;
-    //                 case 7:
-    //                     noteName = $"G{i}";
-    //                     break;
-    //                 case 8:
-    //                     noteName = $"G#{i}";
-    //                     break;
-    //                 case 9:
-    //                     noteName = $"A{i}";
-    //                     break;
-    //                 case 10:
-    //                     noteName = $"A#{i}";
-    //                     break;
-    //                 case 11:
-    //                     noteName = $"B{i}";
-    //                     break;
-    //             }
-    //
-    //             if (index.Equals(i * Temperament + note))
-    //             {
-    //                 return noteName;
-    //             }
-    //         }
-    //     }
-    //
-    //     return "";
-    // }
     private string IndexToNoteName(int index)
     {
         // 边界校验：计算有效索引范围
