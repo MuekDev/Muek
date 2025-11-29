@@ -35,6 +35,8 @@ public partial class PianoScroller : UserControl
     private bool _isHover = false;
     private bool _isPressed = false;
     private bool _isDragging = false;
+
+    private readonly Pen _whitePen = new Pen(Brushes.White);
     
 
     public override void Render(DrawingContext context)
@@ -85,7 +87,7 @@ public partial class PianoScroller : UserControl
         {
             foreach (var note in Notes)
             {
-                context.DrawLine(new Pen(Brushes.White),
+                context.DrawLine(_whitePen,
                     new Point(0, (1 - (float)note.Name /
                         ((PianoRoll.NoteRangeMax - PianoRoll.NoteRangeMin + 1) *
                             PianoRoll.Temperament - 1)) * Bounds.Height),

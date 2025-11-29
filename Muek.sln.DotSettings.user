@@ -58,6 +58,7 @@
 	<s:String x:Key="/Default/CodeInspection/ExcludedFiles/FilesAndFoldersToSkip2/=7020124F_002D9FFC_002D4AC3_002D8F3D_002DAAB8E0240759_002Ff_003AWasapiOut_002Ecs_002Fl_003AC_0021_003FUsers_003Flenovo_003FAppData_003FRoaming_003FJetBrains_003FRider2025_002E1_003Fresharper_002Dhost_003FDecompilerCache_003Fdecompiler_003Fb24682de1ce64b8a804018f42de151fb2bc00_003F0e_003F77733588_003FWasapiOut_002Ecs/@EntryIndexedValue">ForceIncluded</s:String>
 	<s:String x:Key="/Default/CodeInspection/ExcludedFiles/FilesAndFoldersToSkip2/=7020124F_002D9FFC_002D4AC3_002D8F3D_002DAAB8E0240759_002Ff_003AWindow_002Ecs_002Fl_003AC_0021_003FUsers_003Flenovo_003FAppData_003FRoaming_003FJetBrains_003FRider2025_002E1_003Fresharper_002Dhost_003FDecompilerCache_003Fdecompiler_003F78464f5198c3447abee03f4f3d975291104800_003F9f_003F2a644c83_003FWindow_002Ecs/@EntryIndexedValue">ForceIncluded</s:String>
 	<s:String x:Key="/Default/CodeInspection/ExcludedFiles/SourceGeneratedFilesToSkip/=Muek_005CCommunityToolkit_002EMvvm_002ESourceGenerators_005CCommunityToolkit_002EMvvm_002ESourceGenerators_002EObservablePropertyGenerator_005CMuek_002EViewModels_002ETrackPluginStackWindowViewModel_002Eg_002Ecs/@EntryIndexedValue">ForceIncluded</s:String>
+	
 	<s:String x:Key="/Default/Environment/AssemblyExplorer/XmlDocument/@EntryValue">&lt;AssemblyExplorer&gt;&#xD;
   &lt;Assembly Path="C:\Users\sout\Downloads\RingBuffer.dll" /&gt;&#xD;
   &lt;Assembly Path="D:\UnD3ath\code\MUEK\Muek\Muek\RingBuffer.dll" /&gt;&#xD;
