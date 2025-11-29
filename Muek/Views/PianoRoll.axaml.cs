@@ -1423,7 +1423,7 @@ public partial class PianoRoll : UserControl
                         }
                     }
 
-                Console.WriteLine($"IMPORT Notes: {Notes.Count}");
+                // Console.WriteLine($"IMPORT Notes: {Notes.Count}");
                 // foreach (var note in Notes)
                 // {
                 //     Console.WriteLine($"Start: {note.StartTime}; End: {note.EndTime}; Name: {note.Name}");
@@ -1432,7 +1432,7 @@ public partial class PianoRoll : UserControl
                 ViewHelper.GetMainWindow().PianoRollWindow.PatternPreview.ScrollToNoteFirst();
                 InvalidateVisual();
         }
-        Console.WriteLine($"Notes: {Notes.Count}");
+        // Console.WriteLine($"Notes: {Notes.Count}");
     }
 
     public void ExportMidi()

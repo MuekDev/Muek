@@ -9,7 +9,7 @@
         WindowStartupLocation="CenterOwner"
         Title="RenameTrack"
         Background="Transparent"
-        TransparencyLevelHint="Mica"
+        TransparencyLevelHint="AcrylicBlur"
         ExtendClientAreaToDecorationsHint="True"
         SystemDecorations="None"
         >
