@@ -20,13 +20,13 @@ public partial class PatternPreview : UserControl
     //     AvaloniaProperty.Register<PatternPreview, IBrush>(
     //         nameof(BackgroundColor));
 
-    public IBrush BackgroundColor => ViewHelper.GetMainWindow().PianoRollWindow.PatternColor.Background;
+    private IBrush BackgroundColor => ViewHelper.GetMainWindow().PianoRollWindow.PatternColor.Background;
     // {
     //     get => GetValue(BackgroundColorProperty);
     //     set => SetValue(BackgroundColorProperty, value);
     // }
 
-    public List<PianoRoll.Note> Notes => ViewHelper.GetMainWindow().PianoRollWindow.EditArea.Notes;
+    private List<PianoRoll.Note> Notes => ViewHelper.GetMainWindow().PianoRollWindow.EditArea.Notes;
 
     private bool _isHover = false;
     private bool _isPressed = false;

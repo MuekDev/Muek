@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Reflection;
 using Muek.Views;
 using NAudio.Midi;
 
@@ -28,20 +30,32 @@ public class MidiService
 
     public void ImportMidi(string filename)
     {
-        var fileData = new MidiFile(filename);
-        for (int i = 1; i < Data.Tracks; i++)
+        try
         {
-            Data.RemoveTrack(i);
-        }
-        for (int i = 0; i < fileData.Tracks; i++)
-        {
-            Data.AddTrack();
-            foreach (var e in fileData.Events[i])
+            var fileData = new MidiFile(filename);
+            Data = new MidiEventCollection(1, fileData.DeltaTicksPerQuarterNote);
+            for (int i = 1; i < Data.Tracks; i++)
             {
-                if(e is NoteEvent)
-                    Data.AddEvent(e,1);
+                Data.RemoveTrack(i);
             }
-            Data.AddEvent(new MetaEvent(MetaEventType.EndTrack,0,0),i);
+            for (int i = 0; i < fileData.Tracks; i++)
+            {
+                Data.AddTrack();
+                foreach (var e in fileData.Events[i])
+                {
+                    if(e is NoteEvent)
+                        Data.AddEvent(e,i);
+                    else if(e is MetaEvent @event && @event.MetaEventType != MetaEventType.EndTrack)
+                        Data.AddEvent(@event,i);
+                }
+                Data.AddEvent(new MetaEvent(MetaEventType.EndTrack,0,0),i);
+            }
+        }
+        catch(ArgumentOutOfRangeException @exception)
+        {
+
+            new ErrorWindow().ShowError(@exception.Message);
+            // Console.Error.WriteLine(@exception.Message);
         }
     }
 

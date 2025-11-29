@@ -89,10 +89,13 @@
                                Name="PianoRollLeftScroll" ScrollChanged="ScrollChange" Margin="2">
                     <views:PianoRoll Width="40" IsPianoBar="True" Name="PianoBar"/>
                 </ScrollViewer>
-                <ScrollViewer Grid.Column="1" HorizontalScrollBarVisibility="Disabled"
-                              Name="PianoRollRightScroll" ScrollChanged="ScrollChange" Margin="2">
-                    <views:PianoRoll IsPianoBar="False" HorizontalAlignment="Left" Name="EditArea"/>
-                </ScrollViewer>
+                <Grid Column="1" ColumnDefinitions="*,15">
+                    <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Hidden"
+                                  Name="PianoRollRightScroll" ScrollChanged="ScrollChange" Margin="2">
+                        <views:PianoRoll IsPianoBar="False" HorizontalAlignment="Left" Name="EditArea"/>
+                    </ScrollViewer>
+                    <views:PianoScroller Grid.Column="1" Name="PianoScroller"/>
+                </Grid>
                 <Grid Grid.Column="1" Name="DropDisplay" IsVisible="False">
                     <StackPanel VerticalAlignment="Center">
                         <avalonia:Icon Value="mdi-file-music-outline" Foreground="White" FontSize="50"/>

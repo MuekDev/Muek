@@ -117,13 +117,15 @@ impl AudioEngine {
         self.state.is_playing.store(true, Ordering::SeqCst);
     }
 
-    pub fn stop(&self, reset:bool) {
-        if reset {
+    pub fn stop(&self) -> bool {
+        let is_playing = self.state.is_playing.load(Ordering::SeqCst);
+        if is_playing {
             self.set_pos_beat(0.0);
         }
         self.state.is_playing.store(false, Ordering::SeqCst);
         // self.state.pos_idx.store(0, Ordering::SeqCst);
         *self.state.start_time.lock().unwrap() = None;
+        is_playing
     }
 
     fn render(&mut self) {

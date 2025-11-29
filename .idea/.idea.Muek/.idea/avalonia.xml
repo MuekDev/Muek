@@ -6,6 +6,7 @@
         <entry key="Muek/App.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/ViewModels/PatternViewModel.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/Views/ClipItem.axaml" value="Muek/Muek.csproj" />
+        <entry key="Muek/Views/ErrorWindow.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/Views/LineDrawer.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/Views/MIDIView.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/Views/MagnetSettingsWindow.axaml" value="Muek/Muek.csproj" />
@@ -28,6 +29,7 @@
         <entry key="Muek/Views/PianoRollSelection.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/Views/PianoRollWindow.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/Views/PianoRollYSlider.axaml" value="Muek/Muek.csproj" />
+        <entry key="Muek/Views/PianoSlider.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/Views/PluginManagerWindow.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/Views/ProcessingWindow.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/Views/ProjectInfo.axaml" value="Muek/Muek.csproj" />
