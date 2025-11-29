@@ -31,6 +31,16 @@ public partial class PatternPreview : UserControl
     private bool _isHover = false;
     private bool _isPressed = false;
     private bool _isDragging = false;
+    
+    Brush background = new LinearGradientBrush
+    {
+        StartPoint = new RelativePoint(0.9, 0.5, RelativeUnit.Relative),
+        EndPoint = new RelativePoint(1.0, 0.5, RelativeUnit.Relative),
+        GradientStops = [
+            new GradientStop(Colors.White, 0.0),
+            new GradientStop(Colors.Transparent, 1.0)
+        ]
+    };
 
     public PatternPreview()
     {
@@ -114,13 +124,7 @@ public partial class PatternPreview : UserControl
             foreach (var note in Notes)
             {
                 var position = note.Name;
-                var background = new LinearGradientBrush
-                {
-                    StartPoint = new RelativePoint(0.9, 0.5, RelativeUnit.Relative),
-                    EndPoint = new RelativePoint(1.0, 0.5, RelativeUnit.Relative),
-                };
-                background.GradientStops.Add(new GradientStop(Colors.White, 0.0));
-                background.GradientStops.Add(new GradientStop(Colors.Transparent, 1.0));
+                
                 // context.FillRectangle(background,
                 //     new Rect(
                 //         noteWidth * .6 * (note.StartTime - noteFirst) + Bounds.Width*.2,
