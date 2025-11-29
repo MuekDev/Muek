@@ -160,10 +160,10 @@ public partial class PianoScroller : UserControl
                 foreach (var note in Notes)
                 {
                     cacheContext.DrawLine(_whitePen,
-                        new Point(0, (1 - (float)note.Name /
+                        new Point(4, (1 - (float)note.Name /
                             ((PianoRoll.NoteRangeMax - PianoRoll.NoteRangeMin + 1) *
                                 PianoRoll.Temperament - 1)) * Bounds.Height),
-                        new Point(Bounds.Width, (1 - (float)note.Name /
+                        new Point(Bounds.Width - 4, (1 - (float)note.Name /
                             ((PianoRoll.NoteRangeMax - PianoRoll.NoteRangeMin + 1) *
                                 PianoRoll.Temperament - 1)) * Bounds.Height));
                 }
