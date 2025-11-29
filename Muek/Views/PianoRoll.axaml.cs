@@ -59,7 +59,7 @@ public partial class PianoRoll : UserControl
     }
 
 
-    public const int NoteRangeMax = 10;
+    public const int NoteRangeMax = 9;
     public const int NoteRangeMin = 0;
 
     public const int Temperament = 12;
