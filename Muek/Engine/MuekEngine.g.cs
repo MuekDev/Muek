@@ -69,6 +69,7 @@ namespace Muek.Engine
         [DllImport(__DllName, EntryPoint = "set_position_beat", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         internal static extern void set_position_beat(float beat);
 
+
     }
 
     [StructLayout(LayoutKind.Sequential)]

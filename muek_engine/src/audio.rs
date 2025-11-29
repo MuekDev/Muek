@@ -117,8 +117,8 @@ impl AudioEngine {
         self.state.is_playing.store(true, Ordering::SeqCst);
     }
 
-    pub fn stop(&self,stop:bool) {
-        if(stop) {
+    pub fn stop(&self, reset:bool) {
+        if reset {
             self.set_pos_beat(0.0);
         }
         self.state.is_playing.store(false, Ordering::SeqCst);
