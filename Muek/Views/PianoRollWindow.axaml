@@ -94,7 +94,7 @@
                                   Name="PianoRollRightScroll" ScrollChanged="ScrollChange" Margin="2">
                         <views:PianoRoll IsPianoBar="False" HorizontalAlignment="Left" Name="EditArea"/>
                     </ScrollViewer>
-                    <views:PianoSlider Grid.Column="1" Name="PianoSlider"/>
+                    <views:PianoScroller Grid.Column="1" Name="PianoScroller"/>
                 </Grid>
                 <Grid Grid.Column="1" Name="DropDisplay" IsVisible="False">
                     <StackPanel VerticalAlignment="Center">

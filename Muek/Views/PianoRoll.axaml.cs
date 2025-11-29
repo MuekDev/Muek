@@ -1344,7 +1344,7 @@ public partial class PianoRoll : UserControl
         }
 
         ViewHelper.GetMainWindow().PianoRollWindow.PatternPreview.InvalidateVisual();
-        ViewHelper.GetMainWindow().PianoRollWindow.PianoSlider.InvalidateVisual();
+        ViewHelper.GetMainWindow().PianoRollWindow.PianoScroller.InvalidateVisual();
     }
 
     private void SelectedNotesMoveUp(object? sender, RoutedEventArgs e)

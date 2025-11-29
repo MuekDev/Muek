@@ -285,7 +285,7 @@ public partial class PianoRollWindow : UserControl
         EditArea.ScrollOffset = PianoRollRightScroll.Offset.Y;
         EditArea.ClampValue = PianoRollRightScroll.Offset.X;
         PatternPreview.InvalidateVisual();
-        PianoSlider.InvalidateVisual();
+        PianoScroller.InvalidateVisual();
     }
 
     protected override void OnPointerWheelChanged(PointerWheelEventArgs e)

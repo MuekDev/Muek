@@ -11,10 +11,10 @@ namespace Muek.Views;
 
 //这玩意就是把PatternPreview拿过来瞎改了改
 
-public partial class PianoSlider : UserControl
+public partial class PianoScroller : UserControl
 {
     
-    public PianoSlider()
+    public PianoScroller()
     {
         InitializeComponent();
     }
