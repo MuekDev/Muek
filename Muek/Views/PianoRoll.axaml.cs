@@ -837,6 +837,7 @@ public partial class PianoRoll : UserControl
                         _currentNoteStartTime = existNote.StartTime;
                         removedNote = existNote;
                         _editingNote = existNote.Name;
+                        _dragNoteVelocity = existNote.Velocity;
                         e.Handled = true;
                     }
                     else
