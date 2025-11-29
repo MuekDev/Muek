@@ -8,6 +8,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
+using Avalonia.Media.Imaging;
 using Avalonia.Styling;
 using Muek.Models;
 using Muek.Services;
@@ -41,6 +42,12 @@ public partial class PatternPreview : UserControl
             new GradientStop(Colors.Transparent, 1.0)
         ]
     };
+    
+    private RenderTargetBitmap _notesCache;
+    private bool _isCacheDirty = true;
+    private int _lastNotesCount = 0;
+    private double _lastBoundsWidth = 0;
+    private double _lastBoundsHeight = 0;
 
     public PatternPreview()
     {
@@ -97,52 +104,110 @@ public partial class PatternPreview : UserControl
             //TODO 拖拽功能
         }
 
-        if (Notes.Count > 0)
+        // 使用缓存的音符渲染
+        RenderNotesWithCache(context);
+    }
+
+    private void RenderNotesWithCache(DrawingContext context)
+    {
+        if (Notes.Count == 0)
         {
-            double noteHeight;
-            double noteWidth;
-            int noteMax = Notes[0].Name;
-            int noteMin = noteMax;
-            // double noteFirst = Notes[0].StartTime;
-            double noteLast = Notes[0].EndTime;
-            foreach (var note in Notes)
+            // 如果没有音符，清理缓存
+            if (_notesCache != null)
             {
-                var position = note.Name;
-                noteMin = int.Min(position, noteMin); //最低的音符
-                noteMax = int.Max(position, noteMax); //最高的音符
-                // noteFirst = double.Min(noteFirst, note.StartTime); //最左边的音符
-                noteLast = double.Max(noteLast, note.EndTime); //最右边的音符
+                _notesCache.Dispose();
+                _notesCache = null;
+            }
+            _lastNotesCount = 0;
+            return;
+        }
+
+        // 检查是否需要更新缓存
+        bool needsUpdate = _isCacheDirty || 
+                          _notesCache == null ||
+                          _lastNotesCount != Notes.Count ||
+                          Math.Abs(_lastBoundsWidth - Bounds.Width) > 0.1 ||
+                          Math.Abs(_lastBoundsHeight - Bounds.Height) > 0.1;
+
+        if (needsUpdate)
+        {
+            UpdateNotesCache();
+            _isCacheDirty = false;
+            _lastNotesCount = Notes.Count;
+            _lastBoundsWidth = Bounds.Width;
+            _lastBoundsHeight = Bounds.Height;
+        }
+
+        // 绘制缓存
+        if (_notesCache != null)
+        {
+            context.DrawImage(_notesCache, new Rect(0, 0, Bounds.Width, Bounds.Height));
+        }
+    }
+
+    private void UpdateNotesCache()
+    {
+        // 释放之前的缓存
+        _notesCache?.Dispose();
+        
+        // 检查有效尺寸
+        if (Bounds.Width <= 0 || Bounds.Height <= 0 || double.IsNaN(Bounds.Width) || double.IsNaN(Bounds.Height))
+        {
+            _notesCache = null;
+            return;
+        }
+
+        try
+        {
+            // 创建新的渲染目标位图
+            var pixelSize = new PixelSize((int)Math.Ceiling(Bounds.Width), (int)Math.Ceiling(Bounds.Height));
+            if (pixelSize.Width <= 0 || pixelSize.Height <= 0)
+            {
+                _notesCache = null;
+                return;
             }
 
-            noteHeight = Bounds.Height / (noteMax + 1 - noteMin);
-            // noteWidth = Bounds.Width / (noteLast - noteFirst);
-            noteWidth = Bounds.Width /
-                        (noteLast + ViewHelper.GetMainWindow().PianoRollWindow.EditArea.LengthIncreasement);
-            // Console.WriteLine($"noteWidth:{noteWidth}");
-            // Console.WriteLine($"noteHeight:{noteHeight}");
-
-            foreach (var note in Notes)
+            _notesCache = new RenderTargetBitmap(pixelSize);
+            
+            using (var cacheContext = _notesCache.CreateDrawingContext())
             {
-                var position = note.Name;
+                double noteHeight;
+                double noteWidth;
+                int noteMax = Notes[0].Name;
+                int noteMin = noteMax;
+                double noteLast = Notes[0].EndTime;
                 
-                // context.FillRectangle(background,
-                //     new Rect(
-                //         noteWidth * .6 * (note.StartTime - noteFirst) + Bounds.Width*.2,
-                //         Bounds.Height*.6 - (position - noteMin + 1) * noteHeight * .6 + Bounds.Height*.2,
-                //         noteWidth * (note.EndTime - note.StartTime) * .6,
-                //         noteHeight * .6),
-                //     (float)(noteHeight * .1));
-                context.FillRectangle(background,
-                    new Rect(
-                        note.StartTime * noteWidth,
-                        Bounds.Height * .6 - (position - noteMin + 1) * noteHeight * .6 + Bounds.Height * .2,
-                        noteWidth * (note.EndTime - note.StartTime),
-                        noteHeight * .55),
-                    (float)(noteHeight * .1));
-                // Console.WriteLine("Drew");
-                // Console.WriteLine(new Rect(noteWidth * (note.StartTime - noteFirst), Height - (position - noteMin) * noteHeight, noteWidth *
-                //     (note.EndTime - note.StartTime), noteHeight));
+                foreach (var note in Notes)
+                {
+                    var position = note.Name;
+                    noteMin = Math.Min(position, noteMin);
+                    noteMax = Math.Max(position, noteMax);
+                    noteLast = Math.Max(noteLast, note.EndTime);
+                }
+
+                noteHeight = Bounds.Height / (noteMax + 1 - noteMin);
+                noteWidth = Bounds.Width /
+                            (noteLast + ViewHelper.GetMainWindow().PianoRollWindow.EditArea.LengthIncreasement);
+
+                foreach (var note in Notes)
+                {
+                    var position = note.Name;
+                    
+                    cacheContext.FillRectangle(background,
+                        new Rect(
+                            note.StartTime * noteWidth,
+                            Bounds.Height * .6 - (position - noteMin + 1) * noteHeight * .6 + Bounds.Height * .2,
+                            noteWidth * (note.EndTime - note.StartTime),
+                            noteHeight * .55),
+                        (float)(noteHeight * .1));
+                }
             }
+        }
+        catch (Exception ex)
+        {
+            // 如果创建缓存失败，回退到直接渲染
+            System.Diagnostics.Debug.WriteLine($"Failed to create notes cache: {ex.Message}");
+            _notesCache = null;
         }
     }
 
