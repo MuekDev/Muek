@@ -891,6 +891,15 @@ public partial class PianoRoll : UserControl
                 {
                     if (double.Abs(_currentMousePosition.X - existNote.EndTime * _widthOfBeat) < 5)
                     {
+                        if (e.Properties.IsRightButtonPressed)
+                        {
+                            removedNote = existNote;
+                            SelectedNotes.Clear();
+                            e.Handled = true;
+                            break;
+                        }
+
+                        if (!e.Properties.IsLeftButtonPressed) continue;
                         _isEditing = true;
                         _selectFrame = null;
                         _currentNoteStartTime = existNote.StartTime;
@@ -911,28 +920,26 @@ public partial class PianoRoll : UserControl
                         }
 
                         //拖动单个音符
-                        if (e.Properties.IsLeftButtonPressed)
+                        if (!e.Properties.IsLeftButtonPressed) continue;
+                        if (!SelectedNotes.Contains(existNote))
                         {
-                            if (!SelectedNotes.Contains(existNote))
-                            {
-                                SelectedNotes.Clear();
-                            }
-
-                            _isDragging = true;
-                            _selectFrame = null;
-                            _dragPos = e.GetPosition(this);
-                            _dragStartTime = existNote.StartTime;
-                            _dragEndTime = existNote.EndTime;
-                            _dragNoteVelocity = existNote.Velocity;
-                            _currentNoteStartTime =  existNote.StartTime;
-                            _currentNoteEndTime = existNote.EndTime;
-                            _dragNoteVelocity = existNote.Velocity;
-                            
-                            //这傻逼钢琴窗就是他妈的一坨沟史
-                            removedNote = existNote;
-                            e.Handled = true;
-                            break;
+                            SelectedNotes.Clear();
                         }
+
+                        _isDragging = true;
+                        _selectFrame = null;
+                        _dragPos = e.GetPosition(this);
+                        _dragStartTime = existNote.StartTime;
+                        _dragEndTime = existNote.EndTime;
+                        _dragNoteVelocity = existNote.Velocity;
+                        _currentNoteStartTime =  existNote.StartTime;
+                        _currentNoteEndTime = existNote.EndTime;
+                        _dragNoteVelocity = existNote.Velocity;
+                            
+                        //这傻逼钢琴窗就是他妈的一坨沟史
+                        removedNote = existNote;
+                        e.Handled = true;
+                        break;
                     }
                 }
             }
@@ -1127,7 +1134,6 @@ public partial class PianoRoll : UserControl
         }
         InvalidateVisual();
         e.Handled = true;
-        GC.Collect();
     }
 
     private void ShowOptions()
