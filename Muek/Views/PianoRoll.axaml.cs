@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -955,186 +956,196 @@ public partial class PianoRoll : UserControl
     }
 
     protected override void OnPointerReleased(PointerReleasedEventArgs e)
+{
+    base.OnPointerReleased(e);
+    if (!IsPianoBar)
     {
-        base.OnPointerReleased(e);
-        if (!IsPianoBar)
+        if (e.GetPosition(this) == _pressedMousePosition)
         {
-            if (e.GetPosition(this) == _pressedMousePosition)
-            {
-                SelectedNotes.Clear();
-            }
+            SelectedNotes.Clear();
+        }
 
-            if (_currentNoteStartTime < _currentNoteEndTime && (_isDrawing || _isDragging || _isEditing))
+        if (_currentNoteStartTime < _currentNoteEndTime && (_isDrawing || _isDragging || _isEditing))
+        {
+            // 并行查找draggingNote
+            Note draggingNote = new Note();
+            var parallelOptions = new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount };
+            var found = false;
+            
+            Parallel.ForEach(Notes, parallelOptions, (note, loopState) =>
             {
-                Note draggingNote = new Note();
-                foreach (Note note in Notes)
+                if (Notes.Contains(note) && _currentHoverNote.Equals(note.Name))
                 {
-                    if (Notes.Contains(note) && _currentHoverNote.Equals(note.Name))
+                    if (_currentNoteStartTime > note.StartTime && _currentNoteStartTime < note.EndTime ||
+                        _currentNoteEndTime > note.StartTime && _currentNoteEndTime < note.EndTime ||
+                        note.StartTime > _currentNoteStartTime && note.StartTime < _currentNoteEndTime ||
+                        note.EndTime > _currentNoteStartTime && note.EndTime < _currentNoteEndTime)
                     {
-                        if (_currentNoteStartTime > note.StartTime && _currentNoteStartTime < note.EndTime ||
-                            _currentNoteEndTime > note.StartTime && _currentNoteEndTime < note.EndTime ||
-                            note.StartTime > _currentNoteStartTime && note.StartTime < _currentNoteEndTime ||
-                            note.EndTime > _currentNoteStartTime && note.EndTime < _currentNoteEndTime)
-                        {
-                            draggingNote = note;
-                            break;
-                        }
+                        draggingNote = note;
+                        found = true;
+                        loopState.Stop(); // 找到第一个匹配项就停止
                     }
                 }
+            });
 
-                List<Note> draggingNotes = new List<Note>();
-                foreach (Note selectedNote in SelectedNotes)
+            // 并行构建draggingNotes列表
+            List<Note> draggingNotes = new List<Note>();
+            if (SelectedNotes.Count > 0)
+            {
+                var concurrentDraggingNotes = new ConcurrentBag<Note>();
+                
+                Parallel.ForEach(SelectedNotes, parallelOptions, selectedNote =>
                 {
                     if (Notes.Contains(selectedNote))
                     {
-                        draggingNotes.Add(selectedNote);
+                        concurrentDraggingNotes.Add(selectedNote);
                     }
-                }
+                });
+                
+                draggingNotes = concurrentDraggingNotes.ToList();
+            }
 
-                foreach (Note draggingNote1 in draggingNotes)
-                {
-                    Notes.Remove(draggingNote1);
-                }
+            // 批量移除操作（保持原有逻辑不变）
+            foreach (Note draggingNote1 in draggingNotes)
+            {
+                Notes.Remove(draggingNote1);
+            }
+            
+            if (found)
+            {
                 Notes.Remove(draggingNote);
-                draggingNotes.Clear();
+            }
+            
+            draggingNotes.Clear();
 
-
-                if (e.InitialPressMouseButton == MouseButton.Left)
+            if (e.InitialPressMouseButton == MouseButton.Left)
+            {
+                if (_isDrawing) _dragNoteVelocity = 127;
+                if (!_isEditing)
                 {
-                    if (_isDrawing) _dragNoteVelocity = 127;
-                    if (!_isEditing)
+                    if (SelectedNotes.Count == 0)
                     {
-                        if (SelectedNotes.Count == 0)
+                        Notes.Add(new Note
                         {
-                            Notes.Add(new Note
-                            {
-                                StartTime = _currentNoteStartTime >= 0 ? _currentNoteStartTime : 0,
-                                EndTime = _currentNoteEndTime,
-                                Name = _currentHoverNote,
-                                // Color = NoteColor3
-                                Velocity = _dragNoteVelocity
-                            });
-                        }
-                        else
-                        {
-                            List<Note> dragedSelectedNotes = new List<Note>();
-                            foreach (Note selectedNote in SelectedNotes)
-                            {
-                                var dragRelativePos =
-                                    ((e.GetPosition(this).X - _dragPos.X) -
-                                     (e.GetPosition(this).X - _dragPos.X) %
-                                     _widthOfBeat) / _widthOfBeat;
-
-                                var noteName = (int)(-(e.GetPosition(this).Y - _dragPos.Y) / NoteHeight +
-                                                     selectedNote.Name);
-                                if (noteName > (NoteRangeMax * (Temperament + 1) + 2))
-                                {
-                                    noteName = NoteRangeMax * (Temperament + 1) + 2;
-                                }
-
-                                if (noteName < 0)
-                                {
-                                    noteName = 0;
-                                } 
-                                dragedSelectedNotes.Add(new Note
-                                {
-                                    StartTime = selectedNote.StartTime + dragRelativePos >= 0
-                                        ? selectedNote.StartTime + dragRelativePos
-                                        : 0,
-                                    EndTime = dragRelativePos + selectedNote.EndTime,
-                                    Name =
-                                        noteName,
-                                    // Color = NoteColor3
-                                    Velocity = selectedNote.Velocity
-                                });
-                            }
-
-                            SelectedNotes.Clear();
-                            foreach (Note dragedSelectedNote in dragedSelectedNotes)
-                            {
-                                Notes.Add(dragedSelectedNote);
-                                SelectedNotes.Add(dragedSelectedNote);
-                            }
-
-                            // Console.WriteLine($"Notes:{Notes.Count}");
-                            // Console.WriteLine($"SelectedNotes:{SelectedNotes.Count}");
-                            dragedSelectedNotes.Clear();
-                        }
+                            StartTime = _currentNoteStartTime >= 0 ? _currentNoteStartTime : 0,
+                            EndTime = _currentNoteEndTime,
+                            Name = _currentHoverNote,
+                            // Color = NoteColor3
+                            Velocity = _dragNoteVelocity
+                        });
                     }
                     else
                     {
-                        if (SelectedNotes.Count == 0)
+                        // 并行处理音符拖拽计算
+                        var concurrentDragedNotes = new ConcurrentBag<Note>();
+                        
+                        // 预先计算不变的值
+                        var mouseX = e.GetPosition(this).X;
+                        var mouseY = e.GetPosition(this).Y;
+                        var dragPosX = _dragPos.X;
+                        var dragPosY = _dragPos.Y;
+                        var maxNoteName = NoteRangeMax * (Temperament + 1) + 2;
+                        
+                        Parallel.ForEach(SelectedNotes, parallelOptions, selectedNote =>
                         {
-                            Notes.Add(new Note
+                            var dragRelativePos =
+                                ((mouseX - dragPosX) -
+                                 (mouseX - dragPosX) %
+                                 _widthOfBeat) / _widthOfBeat;
+
+                            var noteName = (int)(-(mouseY - dragPosY) / NoteHeight +
+                                                 selectedNote.Name);
+                            if (noteName > maxNoteName)
                             {
-                                StartTime = _currentNoteStartTime >= 0 ? _currentNoteStartTime : 0,
-                                EndTime = _currentNoteEndTime,
-                                Name = _editingNote.Name,
+                                noteName = maxNoteName;
+                            }
+
+                            if (noteName < 0)
+                            {
+                                noteName = 0;
+                            } 
+                            concurrentDragedNotes.Add(new Note
+                            {
+                                StartTime = selectedNote.StartTime + dragRelativePos >= 0
+                                    ? selectedNote.StartTime + dragRelativePos
+                                    : 0,
+                                EndTime = dragRelativePos + selectedNote.EndTime,
+                                Name = noteName,
                                 // Color = NoteColor3
-                                Velocity = _dragNoteVelocity
+                                Velocity = selectedNote.Velocity
                             });
-                        }
-                        else
+                        });
+
+                        SelectedNotes.Clear();
+                        var dragedSelectedNotes = concurrentDragedNotes.ToList();
+                        
+                        foreach (Note dragedSelectedNote in dragedSelectedNotes)
                         {
-                            // List<Note> dragedSelectedNotes = new List<Note>();
-                            // foreach (Note selectedNote in SelectedNotes)
-                            // {
-                            //     dragedSelectedNotes.Add(new Note
-                            //     {
-                            //         StartTime = selectedNote.StartTime >= 0 ? selectedNote.StartTime : 0,
-                            //         EndTime = (e.GetPosition(this).X - e.GetPosition(this).X % (_widthOfBeat * Magnet) +
-                            //                    _widthOfBeat) / _widthOfBeat,
-                            //         Name = selectedNote.Name,
-                            //         // Color =NoteColor3
-                            //         Velocity = selectedNote.Velocity
-                            //     });
-                            // }
-                            var editingNotes = new List<Note>();
-                            foreach (var note in SelectedNotes)
-                            {
-                                var noteEnd = _currentNoteEndTime - _currentNoteStartTime + note.EndTime -
-                                              (_editingNote.EndTime - _editingNote.StartTime);
-                                editingNotes.Add(note with{EndTime = noteEnd});
-                            }
-
-                            SelectedNotes.Clear();
-                            foreach (Note dragedSelectedNote in editingNotes)
-                            {
-                                Notes.Add(dragedSelectedNote);
-                                SelectedNotes.Add(dragedSelectedNote);
-                            }
-
-                            // Console.WriteLine($"Notes:{Notes.Count}");
-                            // Console.WriteLine($"SelectedNotes:{SelectedNotes.Count}");
-                            editingNotes.Clear();
+                            Notes.Add(dragedSelectedNote);
+                            SelectedNotes.Add(dragedSelectedNote);
                         }
+
+                        dragedSelectedNotes.Clear();
+                    }
+                }
+                else
+                {
+                    if (SelectedNotes.Count == 0)
+                    {
+                        Notes.Add(new Note
+                        {
+                            StartTime = _currentNoteStartTime >= 0 ? _currentNoteStartTime : 0,
+                            EndTime = _currentNoteEndTime,
+                            Name = _editingNote.Name,
+                            // Color = NoteColor3
+                            Velocity = _dragNoteVelocity
+                        });
+                    }
+                    else
+                    {
+                        // 并行处理编辑模式下的音符
+                        var concurrentEditingNotes = new ConcurrentBag<Note>();
+                        
+                        Parallel.ForEach(SelectedNotes, parallelOptions, note =>
+                        {
+                            var noteEnd = _currentNoteEndTime - _currentNoteStartTime + note.EndTime -
+                                          (_editingNote.EndTime - _editingNote.StartTime);
+                            concurrentEditingNotes.Add(note with{EndTime = noteEnd});
+                        });
+
+                        SelectedNotes.Clear();
+                        var editingNotes = concurrentEditingNotes.ToList();
+                        
+                        foreach (Note dragedSelectedNote in editingNotes)
+                        {
+                            Notes.Add(dragedSelectedNote);
+                            SelectedNotes.Add(dragedSelectedNote);
+                        }
+
+                        editingNotes.Clear();
                     }
                 }
             }
-
-            _isDrawing = false;
-            _isDragging = false;
-            _isEditing = false;
-            _selectFrame = null;
-
-        
-            if (SelectedNotes.Count > 0)
-            {
-                // _isShowingOptions = true;
-                // _ = ShowOptions();
-                ShowOptions();
-            }
-            else
-            {
-                // _isShowingOptions = false;
-                // _ = HideOptions();
-                HideOptions();
-            }
-            SaveNotes();
         }
-        InvalidateVisual();
-        e.Handled = true;
+
+        _isDrawing = false;
+        _isDragging = false;
+        _isEditing = false;
+        _selectFrame = null;
+
+        if (SelectedNotes.Count > 0)
+        {
+            ShowOptions();
+        }
+        else
+        {
+            HideOptions();
+        }
+        SaveNotes();
     }
+    InvalidateVisual();
+    e.Handled = true;
+}
 
     private void ShowOptions()
     {
