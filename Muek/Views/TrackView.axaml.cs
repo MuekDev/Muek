@@ -822,6 +822,7 @@ public partial class TrackView : UserControl
     {
         base.OnPointerWheelChanged(e);
 
+        var parent = this.GetVisualAncestors().OfType<MainWindow>().FirstOrDefault();
         if (e.KeyModifiers.HasFlag(KeyModifiers.Shift))
         {
             OffsetX -= e.Delta.Y * 44;
@@ -831,24 +832,27 @@ public partial class TrackView : UserControl
 
             UiStateService.GlobalTimelineScale = ScaleFactor;
             UiStateService.GlobalTimelineOffsetX = OffsetX;
-            var parent = this.GetVisualAncestors().OfType<MainWindow>().FirstOrDefault();
             parent?.SyncTimeline(this);
 
             return;
         }
 
-        var delta = e.Delta.Y;
-        if (delta != 0)
+        if(e.KeyModifiers.Equals(KeyModifiers.Control))
         {
-            var factor = delta > 0 ? 1.1 : 0.9; // 放大10%，缩小10%
-            var pointerX = e.GetPosition(this).X;
+            var delta = e.Delta.Y;
+            if (delta != 0)
+            {
+                var factor = delta > 0 ? 1.1 : 0.9; // 放大10%，缩小10%
+                var pointerX = e.GetPosition(this).X;
 
-            ZoomAt(pointerX, factor);
+                ZoomAt(pointerX, factor);
 
-            UiStateService.GlobalTimelineScale = ScaleFactor;
-            UiStateService.GlobalTimelineOffsetX = OffsetX;
-            var parent = this.GetVisualAncestors().OfType<MainWindow>().FirstOrDefault();
-            parent?.SyncTimeline(this);
+                UiStateService.GlobalTimelineScale = ScaleFactor;
+                UiStateService.GlobalTimelineOffsetX = OffsetX;
+                parent?.SyncTimeline(this);
+            }
+
+            return;
         }
     }
 
