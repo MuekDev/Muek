@@ -816,7 +816,7 @@ public partial class PianoRoll : UserControl
                     var newSelectedNotes = new System.Collections.Concurrent.ConcurrentBag<Note>();
 
                     // 并行处理音符选择检测
-                    System.Threading.Tasks.Parallel.ForEach(Notes, existNote =>
+                    Parallel.ForEach(Notes, existNote =>
                     {
                         // 使用预计算的UI值，避免在并行线程中访问UI属性
                         double noteStartX = existNote.StartTime * currentWidthOfBeat;
@@ -1049,13 +1049,16 @@ public partial class PianoRoll : UserControl
                         else
                         {
                             // 并行处理音符拖拽计算
-                            var concurrentDragedNotes = new ConcurrentBag<Note>();
+                            var concurrentdraggedNotes = new ConcurrentBag<Note>();
 
-                            // 预先计算不变的值
                             var mouseX = e.GetPosition(this).X;
                             var mouseY = e.GetPosition(this).Y;
                             var dragPosX = _dragPos.X;
                             var dragPosY = _dragPos.Y;
+
+                            var cachedNoteHeight = NoteHeight; 
+                            var cachedWidthOfBeat = _widthOfBeat; 
+
                             var maxNoteName = NoteRangeMax * (Temperament + 1) + 2;
 
                             Parallel.ForEach(SelectedNotes, parallelOptions, selectedNote =>
@@ -1063,10 +1066,11 @@ public partial class PianoRoll : UserControl
                                 var dragRelativePos =
                                     ((mouseX - dragPosX) -
                                      (mouseX - dragPosX) %
-                                     _widthOfBeat) / _widthOfBeat;
+                                     cachedWidthOfBeat) / cachedWidthOfBeat;
 
-                                var noteName = (int)(-(mouseY - dragPosY) / NoteHeight +
+                                var noteName = (int)(-(mouseY - dragPosY) / cachedNoteHeight +
                                                      selectedNote.Name);
+                         
                                 if (noteName > maxNoteName)
                                 {
                                     noteName = maxNoteName;
@@ -1075,30 +1079,29 @@ public partial class PianoRoll : UserControl
                                 if (noteName < 0)
                                 {
                                     noteName = 0;
-                                }
-
-                                concurrentDragedNotes.Add(new Note
+                                } 
+    
+                                concurrentdraggedNotes.Add(new Note
                                 {
                                     StartTime = selectedNote.StartTime + dragRelativePos >= 0
                                         ? selectedNote.StartTime + dragRelativePos
                                         : 0,
                                     EndTime = dragRelativePos + selectedNote.EndTime,
                                     Name = noteName,
-                                    // Color = NoteColor3
                                     Velocity = selectedNote.Velocity
                                 });
-                            });
-
+                            }); 
+                            
                             SelectedNotes.Clear();
-                            var dragedSelectedNotes = concurrentDragedNotes.ToList();
+                            var draggedSelectedNotes = concurrentdraggedNotes.ToList();
 
-                            foreach (Note dragedSelectedNote in dragedSelectedNotes)
+                            foreach (Note draggedSelectedNote in draggedSelectedNotes)
                             {
-                                Notes.Add(dragedSelectedNote);
-                                SelectedNotes.Add(dragedSelectedNote);
+                                Notes.Add(draggedSelectedNote);
+                                SelectedNotes.Add(draggedSelectedNote);
                             }
 
-                            dragedSelectedNotes.Clear();
+                            draggedSelectedNotes.Clear();
                         }
                     }
                     else
@@ -1129,10 +1132,10 @@ public partial class PianoRoll : UserControl
                             SelectedNotes.Clear();
                             var editingNotes = concurrentEditingNotes.ToList();
 
-                            foreach (Note dragedSelectedNote in editingNotes)
+                            foreach (Note draggedSelectedNote in editingNotes)
                             {
-                                Notes.Add(dragedSelectedNote);
-                                SelectedNotes.Add(dragedSelectedNote);
+                                Notes.Add(draggedSelectedNote);
+                                SelectedNotes.Add(draggedSelectedNote);
                             }
 
                             editingNotes.Clear();
