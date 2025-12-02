@@ -10,8 +10,6 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
-using Avalonia.Media.Imaging;
-using Avalonia.Platform;
 using Avalonia.Platform.Storage;
 using Muek.Models;
 using Muek.Services;
@@ -233,6 +231,8 @@ public partial class PianoRoll : UserControl
     public override void Render(DrawingContext context)
     {
         base.Render(context);
+        
+        if(!ViewHelper.IsDesktopPlatform()) return;
 
         // context.FillRectangle(Brushes.DimGray, new Rect(0, 0, Width, Height));
 
@@ -702,6 +702,9 @@ public partial class PianoRoll : UserControl
     protected override void OnPointerMoved(PointerEventArgs e)
     {
         base.OnPointerMoved(e);
+        
+        if(!ViewHelper.IsDesktopPlatform()) return;
+        
         {
             var noteName = -1;
 
@@ -878,8 +881,11 @@ public partial class PianoRoll : UserControl
 
     protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
+        if(!ViewHelper.IsDesktopPlatform()) return;
         base.OnPointerPressed(e);
+        
         _pressedMousePosition = e.GetPosition(this);
+        
         if (!IsPianoBar)
         {
             if (e.Properties.IsLeftButtonPressed)
@@ -969,6 +975,7 @@ public partial class PianoRoll : UserControl
 
     protected override void OnPointerReleased(PointerReleasedEventArgs e)
     {
+        if(!ViewHelper.IsDesktopPlatform()) return;
         base.OnPointerReleased(e);
         if (!IsPianoBar)
         {
@@ -1202,6 +1209,7 @@ public partial class PianoRoll : UserControl
     protected override void OnPointerWheelChanged(PointerWheelEventArgs e)
     {
         base.OnPointerWheelChanged(e);
+        if(!ViewHelper.IsDesktopPlatform()) return;
         if (MainWindow.PianoRollWindow.PianoRollRightScroll.Bounds.Width >= Width)
         {
             MainWindow.PianoRollWindow.PianoRollRightScroll.Offset = new Vector(
@@ -1293,6 +1301,7 @@ public partial class PianoRoll : UserControl
 
     public void SaveNotes()
     {
+        if(!ViewHelper.IsDesktopPlatform()) return;
         if (!IsPianoBar)
         {
             double trackEnd = 0;
@@ -1373,6 +1382,7 @@ public partial class PianoRoll : UserControl
 
     public void ImportMidi(string file)
     {
+        if(!ViewHelper.IsDesktopPlatform()) return;
         {
             var midi = new MidiService();
             midi.ImportMidi(file);
