@@ -32,15 +32,59 @@ public partial class TrackView : UserControl
     private bool _isMovingClip;                // 是否在移动片段
     private bool _isResizingClipRight;         // 是否在调整片段长度
     private ClipViewModel? _activeClip = null; // 当前被激活的片段
+    private MainWindow? _mainWindow;
     private double _lastClickedBeatOfClip = 0; // 最后一次点击clip title的位置（相对于clip，单位为beat）
     private bool _isResizingClipLeft;
+
+    private double _offsetY;
+
+    public double OffsetY
+    {
+        get => _offsetY;
+        set
+        {
+            // 1. 计算限制
+            var newOffset = Math.Clamp(value, 0, MaxOffsetY);
+
+            if (Math.Abs(_offsetY - newOffset) < 0.01) return;
+
+            _offsetY = newOffset;
+
+            // 2. 同步左侧 (TrackHeadScrollViewer)
+            _mainWindow ??= ViewHelper.GetMainWindow();
+
+            if (_mainWindow != null)
+            {
+                var sv = _mainWindow.TrackHeadScrollViewer;
+                sv.Offset = new Vector(sv.Offset.X, _offsetY);
+            }
+
+            InvalidateVisual();
+        }
+    }
+
+    private double MaxOffsetY
+    {
+        get
+        {
+            var totalContentHeight = DataStateService.Tracks.Count * TrackHeight;
+
+            // 预留 1 个轨道高度，方便拖拽创建新轨
+            totalContentHeight += TrackHeight;
+
+            // 视口高度
+            var viewportHeight = Bounds.Height;
+
+            return Math.Max(0, totalContentHeight - viewportHeight);
+        }
+    }
 
     private CancellationTokenSource? _trackerCts;
 
     public TrackView()
     {
         InitializeComponent();
-        Focusable = true;
+
         AddHandler(DragDrop.DropEvent, OnDrop);
         AddHandler(DragDrop.DragEnterEvent, OnDropEnter);
         AddHandler(DragDrop.DragLeaveEvent, OnDropLeave);
@@ -50,6 +94,8 @@ public partial class TrackView : UserControl
 
         AudioService.AudioStarted += (_, _) => StartPlayheadTracking();
         AudioService.AudioStopped += (_, _) => StopPlayheadTracking();
+
+        Focusable = true;
     }
 
     public void StartPlayheadTracking()
@@ -199,16 +245,18 @@ public partial class TrackView : UserControl
 
             // var beat = (int)Math.Floor(x / ScaleFactor);
             x = e.GetPosition(this).X + OffsetX;
+
             var beat = x / ScaleFactor;
             beat = double.Round(beat * Subdivisions, 0) / Subdivisions;
 
-            var trackIndex = (int)Math.Floor(y / TrackHeight);
-
+            var absoluteY = y + OffsetY;
+            var trackIndex = (int)Math.Floor(absoluteY / TrackHeight);
 
             //如果在最后一行，则创建新轨道
             if (trackIndex == DataStateService.Tracks.Count)
             {
                 new MainWindowViewModel().AddTrack();
+                // OffsetY = MaxOffsetY;
             }
 
 
@@ -241,9 +289,9 @@ public partial class TrackView : UserControl
                     DataStateService.Tracks[trackIndex].AddClip(newClip);
                 }
 
-                var track = DataStateService.Tracks[trackIndex].Proto;
+                // var track = DataStateService.Tracks[trackIndex].Proto;
                 // HandleNewClipCommand.Execute(track, newClip);
-                // TODO
+                // OffsetY = MaxOffsetY;
             }
 
             _isDropping = false;
@@ -309,9 +357,12 @@ public partial class TrackView : UserControl
             var track = DataStateService.Tracks[i];
 
             // 每一轨的中间Y轴和高度
-            var trackY = i * TrackHeight;
-            var centerY = trackY + TrackHeight / 2;
-            var scaleY = (TrackHeight / 2.0) * 0.95;
+            var trackY = i * TrackHeight - OffsetY;
+            if (trackY + TrackHeight < 0 || trackY > renderSize.Height)
+                continue;
+
+            var centerY = trackY + TrackHeight / 2.0;
+            var scaleY = TrackHeight / 2.0 * 0.95;
 
             _ = Color.TryParse(track.Color, out var color) ? color : DataStateService.MuekColor;
             var background = new SolidColorBrush(color);
@@ -321,7 +372,7 @@ public partial class TrackView : UserControl
                 var x = clip.StartBeat * ScaleFactor - OffsetX;
                 var width = clip.Duration * ScaleFactor;
 
-                // 跳过可视区域外的片段
+                // 跳过可视区域外的片段（横向）
                 if (x + width < 0 || x > renderSize.Width)
                     continue;
 
@@ -349,11 +400,6 @@ public partial class TrackView : UserControl
 
                     var sliceLength = sliceEnd - sliceStart;
                     if (sliceLength <= 0) continue;
-
-                    // TODO/HACK/FIXME:
-                    // 获取切片数据（注意：如果是）
-                    // 将waveform改为ReadOnlySpan<float>可能会更好（尚且不明C#的这个是 Span/引用 否，后期修复）
-                    // Slice可能会给一首歌分配将近10GB的数据，原因尚且不明，可能跟拷贝有关
 
                     //可能修好了(?)
                     var currentWaveform = waveform;
@@ -483,13 +529,16 @@ public partial class TrackView : UserControl
         if (_isDropping)
         {
             var x = _mousePosition.X;
-            x = double.Round(x * Subdivisions / _scaleFactor, 0) / Subdivisions * ScaleFactor - OffsetX %
-                (ScaleFactor / (double)Subdivisions);
-            var y = Math.Floor(_mousePosition.Y / TrackHeight) * TrackHeight;
-            var index = (int)y / TrackHeight;
+            x = double.Round(x * Subdivisions / _scaleFactor, 0) / Subdivisions * ScaleFactor -
+                OffsetX % (ScaleFactor / (double)Subdivisions);
+
+            var documentY = _mousePosition.Y + OffsetY;
+            var index = (int)Math.Floor(documentY / TrackHeight);
+            var drawY = index * TrackHeight - OffsetY;
+
             if ((DataStateService.Tracks.Count) >= index)
             {
-                var rect = new Rect(x, y, 100, TrackHeight);
+                var rect = new Rect(x, drawY, 100, TrackHeight);
                 var background = new LinearGradientBrush();
                 background.StartPoint = new RelativePoint(0.0, 0.5, RelativeUnit.Relative);
                 background.EndPoint = new RelativePoint(1.0, 0.5, RelativeUnit.Relative);
@@ -577,7 +626,7 @@ public partial class TrackView : UserControl
 
         if (props.IsLeftButtonPressed)
         {
-            UpdateTrackSelect();
+            UpdateTrackSelect(point);
 
             var state = GetClipInteractionMode(); // HACK: 此处设置了_activeClip
             if (state == ClipInteractionMode.None)
@@ -616,9 +665,9 @@ public partial class TrackView : UserControl
         }
     }
 
-    private void UpdateTrackSelect()
+    private void UpdateTrackSelect(Point point)
     {
-        var trackIndex = (int)Math.Floor(_mousePosition.Y / TrackHeight);
+        var trackIndex = (int)Math.Floor((point.Y + OffsetY) / TrackHeight);
 
         if (trackIndex < 0 || trackIndex >= DataStateService.Tracks.Count)
         {
@@ -640,8 +689,8 @@ public partial class TrackView : UserControl
         if (_isMovingClip || _isDraggingPlayhead || _isResizingClipRight || _isResizingClipLeft)
             return ClipInteractionMode.None;
 
-        var trackIndex = (int)Math.Floor(_mousePosition.Y / TrackHeight);
-        var relativeMouseY = (_mousePosition.Y % TrackHeight) / TrackHeight; // 0~1
+        var trackIndex = (int)Math.Floor((_mousePosition.Y + OffsetY) / TrackHeight);
+        var relativeMouseY = ((_mousePosition.Y + OffsetY) % TrackHeight) / TrackHeight; // 0~1
 
         if (trackIndex < 0 || trackIndex >= DataStateService.Tracks.Count)
         {
@@ -823,28 +872,27 @@ public partial class TrackView : UserControl
         base.OnPointerWheelChanged(e);
 
         var parent = this.GetVisualAncestors().OfType<MainWindow>().FirstOrDefault();
+
         if (e.KeyModifiers.HasFlag(KeyModifiers.Shift))
         {
             OffsetX -= e.Delta.Y * 44;
-            OffsetX = Math.Max(0, OffsetX); // 不允许左滚超过0
+            OffsetX = Math.Max(0, OffsetX);
             InvalidateVisual();
             e.Handled = true;
 
             UiStateService.GlobalTimelineScale = ScaleFactor;
             UiStateService.GlobalTimelineOffsetX = OffsetX;
             parent?.SyncTimeline(this);
-
             return;
         }
 
-        if(e.KeyModifiers.Equals(KeyModifiers.Control))
+        if (e.KeyModifiers.HasFlag(KeyModifiers.Control))
         {
             var delta = e.Delta.Y;
             if (delta != 0)
             {
-                var factor = delta > 0 ? 1.1 : 0.9; // 放大10%，缩小10%
+                var factor = delta > 0 ? 1.1 : 0.9;
                 var pointerX = e.GetPosition(this).X;
-
                 ZoomAt(pointerX, factor);
 
                 UiStateService.GlobalTimelineScale = ScaleFactor;
@@ -854,6 +902,19 @@ public partial class TrackView : UserControl
 
             return;
         }
+
+        OffsetY -= e.Delta.Y * 44;
+        e.Handled = true;
+    }
+
+    protected override void OnSizeChanged(SizeChangedEventArgs e)
+    {
+        base.OnSizeChanged(e);
+
+        // 触发setter
+        var a = OffsetY;
+        OffsetY = 0;
+        OffsetY = a;
     }
 
     private void ZoomAt(double pointerX, double zoomFactor)

@@ -48,14 +48,13 @@ public class TrackHeadViewModel : Button
 
         if (_switchable)
         {
-            
             var track = DataStateService.Tracks.FirstOrDefault(t => t.Id == Name);
 
             if (track != null)
             {
                 var oldIndex = track.IntIndex;
                 var newIndex = oldIndex + _moveToIndexDelta;
-                if(oldIndex != newIndex)
+                if (oldIndex != newIndex)
                 {
                     if (newIndex >= 0 && newIndex < DataStateService.Tracks.Count)
                     {
@@ -70,7 +69,7 @@ public class TrackHeadViewModel : Button
                     mainWindow.TrackViewControl.InvalidateVisual();
                 }
             }
-            
+
             new Animation
             {
                 Duration = TimeSpan.FromMilliseconds(200),
@@ -94,6 +93,7 @@ public class TrackHeadViewModel : Button
                 }
             }.RunAsync(this);
         }
+
         _switchable = false;
 
         mainWindow.TrackLineDrawer.IsVisible = false;
@@ -115,8 +115,8 @@ public class TrackHeadViewModel : Button
 
             var switchIndex = (int)e.GetPosition(cont).Y / 100 -
                               (int)_pressedPosition.Y;
-            
-            
+
+
             _moveToIndexDelta = switchIndex;
 
             var track = DataStateService.Tracks.FirstOrDefault(t => t.Id == Name);

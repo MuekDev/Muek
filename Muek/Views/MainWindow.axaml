@@ -20,7 +20,7 @@
     </Design.DataContext>
 
     <Grid ColumnDefinitions="*,Auto">
-        <Grid Background="#232323" RowDefinitions="40,40,*,24" Margin="0">
+        <Grid Background="#232323" RowDefinitions="40,40,*,Auto" Margin="0">
             <!-- 导航栏 -->
             <StackPanel Orientation="Horizontal">
                 <Button Background="Transparent" Click="SettingsButton">
@@ -55,222 +55,225 @@
             <!-- 工作区 -->
             <Grid Grid.Row="1" Grid.ColumnDefinitions="Auto,*">
                 <views:ProjectInfo Name="ProjectInfo"></views:ProjectInfo>
-                <Grid Grid.Column="1"  ColumnDefinitions="200,*">
-                <!-- 左侧轨道头 -->
-                <StackPanel Grid.Column="0" Background="Transparent" HorizontalAlignment="Right"
-                            Orientation="Horizontal">
-                    <Button Background="Transparent">
-                        <i:Icon Value="fa-pen" Foreground="White" />
-                    </Button>
-                    <Button Background="Transparent">
-                        <i:Icon Value="fa-grip" Foreground="White" />
-                    </Button>
-                </StackPanel>
-                <!-- 右(顶部)刻度尺 -->
-                <Border Grid.Column="1" Background="#313131" Height="30" Margin="0" CornerRadius="8">
-                    
-                        
+                <Grid Grid.Column="1" ColumnDefinitions="200,*">
+                    <!-- 左侧轨道头 -->
+                    <StackPanel Grid.Column="0" Background="Transparent" HorizontalAlignment="Right"
+                                Orientation="Horizontal">
+                        <Button Background="Transparent">
+                            <i:Icon Value="fa-pen" Foreground="White" />
+                        </Button>
+                        <Button Background="Transparent">
+                            <i:Icon Value="fa-grip" Foreground="White" />
+                        </Button>
+                    </StackPanel>
+                    <!-- 右(顶部)刻度尺 -->
+                    <Border Grid.Column="1" Background="#313131" Height="30" Margin="0" CornerRadius="8">
+
+
                         <views:TimeRulerBar Grid.Column="1" x:Name="TimeRulerBarControl"
                                             HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
-                </Border>
-            </Grid>
+                    </Border>
+                </Grid>
             </Grid>
             <Grid Grid.Row="2" ColumnDefinitions="Auto,*">
                 <!-- 设置 -->
                 <views:Settings Name="Settings"></views:Settings>
                 <Grid Grid.Column="1" ColumnDefinitions="200,*,Auto">
-                <ScrollViewer VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Disabled">
-                    <!-- 左侧轨道头 -->
-                    <Grid Grid.Column="0" VerticalAlignment="Top">
-                        <StackPanel>
-                            <!-- 轨道 -->
-                            <!-- 轨道是可以拖动的 -->
-                            <ItemsControl x:Name="ItemsControlX" ItemsSource="{Binding Tracks}"
-                                          Background="Transparent" CornerRadius="12,0,0,12" Padding="0">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <Border Padding="5,2,0,2" Height="100">
-                                            <Grid>
-                                                <Border Background="White" Opacity="{Binding Selected}"
-                                                        CornerRadius="12,0,0,12">
-                                                </Border>
-                                                <vm:TrackHeadViewModel Background="{Binding Color}" Width="200"
-                                                                       Margin="2"
-                                                                       CornerRadius="12,0,0,12" Padding="10"
-                                                                       Command="{Binding HandleTrackSelected}"
-                                                                       Tag="{Binding Id}"
-                                                                       ClickMode="Press" HorizontalAlignment="Left"
-                                                                       Name="{Binding Id}">
-                                                    <!-- 按下去选中 -->
-                                                    <!-- <vm:TrackHeadViewModel.Styles> -->
-                                                    <!--     <Style -->
-                                                    <!--         Selector="vm|TrackHeadViewModel:pointerover/template/ContentPresenter"> -->
-                                                    <!--         <Setter Property="BorderBrush" Value="{Binding Color}"></Setter> -->
-                                                    <!--         <Setter Property="Background" Value="#232323"></Setter> -->
-                                                    <!--     </Style> -->
-                                                    <!-- </vm:TrackHeadViewModel.Styles> -->
+                    <ScrollViewer x:Name="TrackHeadScrollViewer" VerticalScrollBarVisibility="Hidden"
+                                  HorizontalScrollBarVisibility="Disabled">
+                        <!-- 左侧轨道头 -->
+                        <Grid Grid.Column="0" VerticalAlignment="Top">
+                            <StackPanel PointerWheelChanged="TrackHead_OnPointerWheelChanged">
+                                <!-- 轨道 -->
+                                <!-- 轨道是可以拖动的 -->
+                                <ItemsControl x:Name="ItemsControlX" ItemsSource="{Binding Tracks}"
+                                              Background="Transparent" CornerRadius="12,0,0,12" Padding="0">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Padding="5,2,0,2" Height="100">
+                                                <Grid>
+                                                    <Border Background="White" Opacity="{Binding Selected}"
+                                                            CornerRadius="12,0,0,12">
+                                                    </Border>
+                                                    <vm:TrackHeadViewModel Background="{Binding Color}" Width="200"
+                                                                           Margin="2"
+                                                                           CornerRadius="12,0,0,12" Padding="10"
+                                                                           Command="{Binding HandleTrackSelected}"
+                                                                           Tag="{Binding Id}"
+                                                                           ClickMode="Press" HorizontalAlignment="Left"
+                                                                           Name="{Binding Id}">
+                                                        <!-- 按下去选中 -->
+                                                        <!-- <vm:TrackHeadViewModel.Styles> -->
+                                                        <!--     <Style -->
+                                                        <!--         Selector="vm|TrackHeadViewModel:pointerover/template/ContentPresenter"> -->
+                                                        <!--         <Setter Property="BorderBrush" Value="{Binding Color}"></Setter> -->
+                                                        <!--         <Setter Property="Background" Value="#232323"></Setter> -->
+                                                        <!--     </Style> -->
+                                                        <!-- </vm:TrackHeadViewModel.Styles> -->
 
 
-                                                    <!-- 右键菜单 -->
-                                                    <vm:TrackHeadViewModel.ContextFlyout>
-                                                        <MenuFlyout ShowMode="Transient">
-                                                            <MenuItem Header="Rename"
-                                                                      Command="{Binding ShowRenameWindow}">
-                                                                <!-- <TextBox Text="{Binding #TrackName.Text}" Width="100"></TextBox> -->
-                                                            </MenuItem>
-                                                            <MenuItem Header="Change Color"
-                                                                      Command="{Binding ShowRecolorWindow}">
-                                                            </MenuItem>
-                                                        </MenuFlyout>
-                                                    </vm:TrackHeadViewModel.ContextFlyout>
+                                                        <!-- 右键菜单 -->
+                                                        <vm:TrackHeadViewModel.ContextFlyout>
+                                                            <MenuFlyout ShowMode="Transient">
+                                                                <MenuItem Header="Rename"
+                                                                          Command="{Binding ShowRenameWindow}">
+                                                                    <!-- <TextBox Text="{Binding #TrackName.Text}" Width="100"></TextBox> -->
+                                                                </MenuItem>
+                                                                <MenuItem Header="Change Color"
+                                                                          Command="{Binding ShowRecolorWindow}">
+                                                                </MenuItem>
+                                                            </MenuFlyout>
+                                                        </vm:TrackHeadViewModel.ContextFlyout>
 
-                                                    <StackPanel>
-                                                        <!-- 轨道名称 -->
-                                                        <TextBlock FontWeight="Bold" FontSize="18"
-                                                                   Text="{Binding Name}"
-                                                                   Background="Transparent" Margin="30,0,0,0"
-                                                                   Name="TrackName">
-                                                        </TextBlock>
-                                                        <!-- FX -->
-                                                        <ToggleButton Height="20" Width="30" FontSize="10"
-                                                                      Background="Transparent"
-                                                                      CornerRadius="10" Margin="25,0,0,0" Padding="0"
-                                                                      Name="FXButton"
-                                                                      Click="DisableFx">
-                                                            <ToggleButton.Styles>
-                                                                <Style
-                                                                    Selector="ToggleButton:checked/template/ContentPresenter">
-                                                                    <Setter Property="Background" Value="#ff5656"></Setter>
-                                                                </Style>
-                                                            </ToggleButton.Styles>
-                                                            <Grid>
-                                                                <Border Width="15" Height="1" Background="White"
-                                                                        HorizontalAlignment="Center"
-                                                                        Opacity="{Binding #FXButton.IsChecked}">
-                                                                </Border>
-                                                                <TextBlock Text="FX" HorizontalAlignment="Center"
-                                                                           VerticalAlignment="Center">
-                                                                </TextBlock>
-                                                            </Grid>
-                                                        </ToggleButton>
-                                                        <!-- TODO -->
-                                                        <!-- <Button Click="AddPlugin">AddPlugin</Button> -->
-                                                        <!-- ReSharper disable once Xaml.PossibleNullReferenceException -->
-                                                        <Button
-                                                            Command="{Binding #Root.((vm:MainWindowViewModel)DataContext).ShowTrackPlugins}"
-                                                            CommandParameter="{Binding}" Content="Plugins">
-                                                        </Button>
-                                                    </StackPanel>
-                                                </vm:TrackHeadViewModel>
-                                                <StackPanel Margin="10">
-                                                    <StackPanel>
-                                                        <StackPanel Orientation="Horizontal">
-                                                            <!-- 这个连侧链的不是bypass -->
-                                                            <Grid>
-                                                                <!-- 在选中轨道后，按其他轨道的按钮会直接连接，之后调整通过的量，右键详细设置 -->
-                                                                <Button CornerRadius="100" Height="20" Width="20"
-                                                                        IsEnabled="{Binding !Selected}"
-                                                                        Tag="{Binding Id}"
-                                                                        Opacity="{Binding !Selected}">
-                                                                    <Button.Styles>
-                                                                        <Style
-                                                                            Selector="Button:pointerover/template/ContentPresenter">
-                                                                            <Setter Property="Background" Value="White"></Setter>
-                                                                        </Style>
-                                                                    </Button.Styles>
-                                                                    <Button.ContextFlyout>
-                                                                        <!-- 对这个我也没写 -->
-                                                                        <MenuFlyout>
-                                                                            <Label>这个地方是通道连接逻辑（左键一键连满，右键设置L2L、L2R之类的更详细的声道设置，用正负来表示相位</Label>
-                                                                        </MenuFlyout>
-                                                                    </Button.ContextFlyout>
-                                                                </Button>
-                                                            </Grid>
-                                                            <!-- 右侧Mixer可以写一个动态可视化（类似压缩器里面的东西）代替电平，但是不代表会删除电平表 -->
+                                                        <StackPanel>
+                                                            <!-- 轨道名称 -->
+                                                            <TextBlock FontWeight="Bold" FontSize="18"
+                                                                       Text="{Binding Name}"
+                                                                       Background="Transparent" Margin="30,0,0,0"
+                                                                       Name="TrackName">
+                                                            </TextBlock>
+                                                            <!-- FX -->
+                                                            <ToggleButton Height="20" Width="30" FontSize="10"
+                                                                          Background="Transparent"
+                                                                          CornerRadius="10" Margin="25,0,0,0"
+                                                                          Padding="0"
+                                                                          Name="FXButton"
+                                                                          Click="DisableFx">
+                                                                <ToggleButton.Styles>
+                                                                    <Style
+                                                                        Selector="ToggleButton:checked/template/ContentPresenter">
+                                                                        <Setter Property="Background" Value="#ff5656"></Setter>
+                                                                    </Style>
+                                                                </ToggleButton.Styles>
+                                                                <Grid>
+                                                                    <Border Width="15" Height="1" Background="White"
+                                                                            HorizontalAlignment="Center"
+                                                                            Opacity="{Binding #FXButton.IsChecked}">
+                                                                    </Border>
+                                                                    <TextBlock Text="FX" HorizontalAlignment="Center"
+                                                                               VerticalAlignment="Center">
+                                                                    </TextBlock>
+                                                                </Grid>
+                                                            </ToggleButton>
+                                                            <!-- TODO -->
+                                                            <!-- <Button Click="AddPlugin">AddPlugin</Button> -->
+                                                            <!-- ReSharper disable once Xaml.PossibleNullReferenceException -->
+                                                            <Button
+                                                                Command="{Binding #Root.((vm:MainWindowViewModel)DataContext).ShowTrackPlugins}"
+                                                                CommandParameter="{Binding}" Content="Plugins">
+                                                            </Button>
+                                                        </StackPanel>
+                                                    </vm:TrackHeadViewModel>
+                                                    <StackPanel Margin="10">
+                                                        <StackPanel>
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <!-- 这个连侧链的不是bypass -->
+                                                                <Grid>
+                                                                    <!-- 在选中轨道后，按其他轨道的按钮会直接连接，之后调整通过的量，右键详细设置 -->
+                                                                    <Button CornerRadius="100" Height="20" Width="20"
+                                                                            IsEnabled="{Binding !Selected}"
+                                                                            Tag="{Binding Id}"
+                                                                            Opacity="{Binding !Selected}">
+                                                                        <Button.Styles>
+                                                                            <Style
+                                                                                Selector="Button:pointerover/template/ContentPresenter">
+                                                                                <Setter Property="Background"
+                                                                                    Value="White">
+                                                                                </Setter>
+                                                                            </Style>
+                                                                        </Button.Styles>
+                                                                        <Button.ContextFlyout>
+                                                                            <!-- 对这个我也没写 -->
+                                                                            <MenuFlyout>
+                                                                                <Label>这个地方是通道连接逻辑（左键一键连满，右键设置L2L、L2R之类的更详细的声道设置，用正负来表示相位</Label>
+                                                                            </MenuFlyout>
+                                                                        </Button.ContextFlyout>
+                                                                    </Button>
+                                                                </Grid>
+                                                                <!-- 右侧Mixer可以写一个动态可视化（类似压缩器里面的东西）代替电平，但是不代表会删除电平表 -->
 
 
-                                                            <Panel Width="150">
+                                                                <Panel Width="150">
 
-                                                                <!-- 删除 -->
-                                                                <Button HorizontalAlignment="Right" Background="white"
-                                                                        Height="15" Width="15" CornerRadius="20"
-                                                                        Padding="2" IsVisible="{Binding Id}"
-                                                                        Tag="{Binding Id}"
-                                                                        Command="{Binding Remove}">
-                                                                    <Button.Styles>
-                                                                        <Style
-                                                                            Selector="Button:pointerover/template/ContentPresenter">
-                                                                            <Setter Property="Background"
-                                                                                Value="#ff5656">
-                                                                            </Setter>
-                                                                        </Style>
-                                                                    </Button.Styles>
-                                                                    <i:Icon Value="fa-times" FontSize="10"
+                                                                    <!-- 删除 -->
+                                                                    <Button HorizontalAlignment="Right"
+                                                                            Background="white"
+                                                                            Height="15" Width="15" CornerRadius="20"
+                                                                            Padding="2" IsVisible="{Binding Id}"
+                                                                            Tag="{Binding Id}"
+                                                                            Command="{Binding Remove}">
+                                                                        <Button.Styles>
+                                                                            <Style
+                                                                                Selector="Button:pointerover/template/ContentPresenter">
+                                                                                <Setter Property="Background"
+                                                                                    Value="#ff5656">
+                                                                                </Setter>
+                                                                            </Style>
+                                                                        </Button.Styles>
+                                                                        <i:Icon Value="fa-times" FontSize="10"
                                                                             Foreground="White"
                                                                             HorizontalAlignment="Right" />
-                                                                </Button>
+                                                                    </Button>
 
-                                                            </Panel>
+                                                                </Panel>
 
+                                                            </StackPanel>
+                                                            <StackPanel Orientation="Horizontal">
+
+
+                                                            </StackPanel>
                                                         </StackPanel>
-                                                        <StackPanel Orientation="Horizontal">
+                                                        <!-- ID -->
+                                                        <!-- <Grid Margin="0,25,0,0"> -->
+                                                        <!--     <StackPanel Orientation="Horizontal"> -->
+                                                        <!--         <TextBlock FontSize="10" Foreground="{Binding TrackColor}">(Track</TextBlock> -->
+                                                        <!--         <TextBlock Text="{Binding TrackId}" FontSize="10" -->
+                                                        <!--                    Foreground="{Binding TrackColor}"> -->
+                                                        <!--         </TextBlock> -->
+                                                        <!--         <TextBlock FontSize="10" Foreground="{Binding TrackColor}">)</TextBlock> -->
+                                                        <!--     </StackPanel> -->
+                                                        <!-- </Grid> -->
 
-
-                                                        </StackPanel>
                                                     </StackPanel>
-                                                    <!-- ID -->
-                                                    <!-- <Grid Margin="0,25,0,0"> -->
-                                                    <!--     <StackPanel Orientation="Horizontal"> -->
-                                                    <!--         <TextBlock FontSize="10" Foreground="{Binding TrackColor}">(Track</TextBlock> -->
-                                                    <!--         <TextBlock Text="{Binding TrackId}" FontSize="10" -->
-                                                    <!--                    Foreground="{Binding TrackColor}"> -->
-                                                    <!--         </TextBlock> -->
-                                                    <!--         <TextBlock FontSize="10" Foreground="{Binding TrackColor}">)</TextBlock> -->
-                                                    <!--     </StackPanel> -->
-                                                    <!-- </Grid> -->
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
 
-                                                </StackPanel>
-                                            </Grid>
-                                        </Border>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-
-                            <!-- 添加轨道 -->
-                            <Border Padding="5,2,0,2">
-                                <Border Background="#b2b2b2" Height="100" Margin="0,0,0,0" CornerRadius="12,0,0,12"
-                                        Padding="0">
-                                    <Button VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
-                                            Foreground="#232323"
-                                            FontWeight="Bold" FontSize="18" Background="Transparent"
-                                            Command="{Binding AddTrack}"
-                                            Padding="10" CornerRadius="12,0,0,12">
-                                        <i:Icon Value="fa-plus"></i:Icon>
-                                    </Button>
+                                <!-- 添加轨道 -->
+                                <Border Padding="5,2,0,2">
+                                    <Border Background="#b2b2b2" Height="100" Margin="0,0,0,0" CornerRadius="12,0,0,12"
+                                            Padding="0">
+                                        <Button VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
+                                                Foreground="#232323"
+                                                FontWeight="Bold" FontSize="18" Background="Transparent"
+                                                Command="{Binding AddTrack}"
+                                                Padding="10" CornerRadius="12,0,0,12">
+                                            <i:Icon Value="fa-plus"></i:Icon>
+                                        </Button>
+                                    </Border>
                                 </Border>
-                            </Border>
-                            <!-- <views:PatternPreview Name="PatternPreview"></views:PatternPreview> -->
-                        </StackPanel>
+                                <!-- <views:PatternPreview Name="PatternPreview"></views:PatternPreview> -->
+                            </StackPanel>
 
-                        <views:LineDrawer x:Name="TrackLineDrawer" LineBrush="White" IsVisible="False"></views:LineDrawer>
+                            <views:LineDrawer x:Name="TrackLineDrawer" LineBrush="White" IsVisible="False"></views:LineDrawer>
+                        </Grid>
+                    </ScrollViewer>
+
+                    <Grid Grid.RowDefinitions="*,Auto" Grid.Column="1" Background="#313131">
+                        <views:TrackView x:Name="TrackViewControl" DragDrop.AllowDrop="True"
+                                         HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
+
                     </Grid>
-                </ScrollViewer>
-
-                <Grid Grid.RowDefinitions="*,Auto" Grid.Column="1" Background="#313131">
-                    <views:TrackView x:Name="TrackViewControl" DragDrop.AllowDrop="True"
-                                     HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
-
-                    <!-- 钢琴窗 -->
-                    <views:PianoRollWindow Grid.Row="1" Name="PianoRollWindow" Height="90"></views:PianoRollWindow>
-                </Grid>
-                <Grid Grid.Column="2">
-                    <views:Mixer x:Name="Mixer" IsVisible="False"></views:Mixer>
+                    <Grid Grid.Column="2">
+                        <views:Mixer x:Name="Mixer" IsVisible="False"></views:Mixer>
+                    </Grid>
                 </Grid>
             </Grid>
-            </Grid>
 
+            <!-- 钢琴窗 -->
+            <views:PianoRollWindow Grid.Row="3" Name="PianoRollWindow" Height="90"></views:PianoRollWindow>
         </Grid>
-
-
     </Grid>
 </Window>

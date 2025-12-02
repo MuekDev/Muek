@@ -15,4 +15,9 @@ public class ViewHelper
 
         throw new NotSupportedException();
     }
+
+    public static bool IsDesktopPlatform()
+    {
+        return Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime;
+    }
 }

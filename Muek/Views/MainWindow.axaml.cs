@@ -2,6 +2,7 @@ using System;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Threading;
 using Muek.Services;
 using Muek.ViewModels;
 
@@ -64,5 +65,14 @@ public partial class MainWindow : Window
             ProjectInfo.Show();
             Console.WriteLine("SHOW SETTINGS");
         }
+    }
+
+    private void TrackHead_OnPointerWheelChanged(object? sender, PointerWheelEventArgs e)
+    {
+        Dispatcher.UIThread.Post(() =>
+        {
+            InvalidateVisual();
+            TrackViewControl.OffsetY = TrackHeadScrollViewer.Offset.Y;
+        }, DispatcherPriority.Render);
     }
 }
