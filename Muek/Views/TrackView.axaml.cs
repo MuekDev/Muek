@@ -326,7 +326,6 @@ public partial class TrackView : UserControl
             context.FillRectangle(Background, new Rect(renderSize));
 
         //// 绘制交替色的背景
-
         var beatStart = (int)(OffsetX / ScaleFactor);
         var beatEnd = (int)((OffsetX + renderSize.Width) / ScaleFactor) + 1;
 
@@ -360,6 +359,10 @@ public partial class TrackView : UserControl
             var trackY = i * TrackHeight - OffsetY;
             if (trackY + TrackHeight < 0 || trackY > renderSize.Height)
                 continue;
+
+            // 绘制track的横向分割线
+            var gapLineY = (i + 1) * TrackHeight - OffsetY;
+            context.DrawLine(penGray, new Point(0, gapLineY), new Point(renderSize.Width, gapLineY));
 
             var centerY = trackY + TrackHeight / 2.0;
             var scaleY = TrackHeight / 2.0 * 0.95;
