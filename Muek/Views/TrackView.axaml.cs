@@ -390,30 +390,22 @@ public partial class TrackView : UserControl
                     var waveform = clip.CachedWaveform;
                     var totalSamples = waveform.Length;
 
-                    // 计算裁剪区间
-                    var durationRatio = (float)clip.Duration / clip.SourceDuration;
-                    var offsetRatio = (float)clip.Offset / clip.SourceDuration;
+                    // 1. 计算【密度】：每个像素对应多少个采样点
+                    // 逻辑：源文件总采样数 / (源文件总时长(拍) * 缩放比例)
+                    // 这样计算出来的密度是恒定的，不会因为 Clip 被裁剪而变化
+                    double totalProjectedPixelWidth = clip.SourceDuration * ScaleFactor;
 
-                    var sliceStart = (int)(offsetRatio * totalSamples);
-                    var sliceEnd = (int)((offsetRatio + durationRatio) * totalSamples);
+                    // 防止除零
+                    if (totalProjectedPixelWidth <= 0.1) totalProjectedPixelWidth = 1;
 
-                    // 安全钳制
-                    sliceStart = Math.Clamp(sliceStart, 0, totalSamples - 1);
-                    sliceEnd = Math.Clamp(sliceEnd, sliceStart, totalSamples); // 确保 end >= start
+                    var samplesPerPixel = (double)totalSamples / totalProjectedPixelWidth;
 
-                    var sliceLength = sliceEnd - sliceStart;
-                    if (sliceLength <= 0) continue;
-
-                    //可能修好了(?)
-                    var currentWaveform = waveform;
-                    // var currentWaveform = waveform.Slice(sliceStart, sliceLength);
+                    // 2. 计算【偏移】：由于 clip.Offset (头部裁剪)，我们需要跳过多少采样点
+                    var offsetRatio = (double)clip.Offset / clip.SourceDuration;
+                    var startOffsetSample = (long)(offsetRatio * totalSamples);
 
                     var pixelWidthInt = (int)Math.Ceiling(width);
                     if (pixelWidthInt <= 0) continue;
-
-                    // 使用 double 计算比率
-                    // 很重要的说（可以防止抖动）！！
-                    var samplesPerPixel = (double)currentWaveform.Length / pixelWidthInt;
 
                     var geometry = new StreamGeometry();
                     using (var ctx = geometry.Open())
@@ -427,34 +419,35 @@ public partial class TrackView : UserControl
                             var visibleStartX = Math.Max(0, -x); // 视口左边相对波形起点的偏移，单位像素
                             var visibleEndX = Math.Min(width, renderSize.Width - x);
 
-                            var visibleStartSample = (int)(visibleStartX / width * waveformCount);
-                            var visibleEndSample = (int)(visibleEndX / width * waveformCount);
+                            var visibleStartSample = startOffsetSample + (long)(visibleStartX * samplesPerPixel);
+                            var visibleEndSample = startOffsetSample + (long)(visibleEndX * samplesPerPixel);
 
-                            visibleStartSample = Math.Clamp(visibleStartSample, 0, waveformCount - 1);
-                            visibleEndSample = Math.Clamp(visibleEndSample, 0, waveformCount - 1);
+                            // 边界保护
+                            visibleStartSample = Math.Clamp(visibleStartSample, 0, totalSamples - 1);
+                            visibleEndSample = Math.Clamp(visibleEndSample, 0, totalSamples - 1);
 
                             var visibleSampleCount = visibleEndSample - visibleStartSample + 1;
 
-                            if (visibleSampleCount <= 1) return;
-
-                            var stepX = width / (waveformCount - 1);
-
-                            ctx.BeginFigure(
-                                new Point(x + visibleStartSample * stepX,
-                                    centerY - waveform[visibleStartSample] * scaleY), false);
-
-                            for (var s = visibleStartSample + 1; s <= visibleEndSample; s++)
+                            if (visibleSampleCount > 1)
                             {
-                                var px = x + s * stepX;
-                                var py = centerY - waveform[s] * scaleY;
-                                ctx.LineTo(new Point(px, py));
+                                ctx.BeginFigure(
+                                    new Point(x + visibleStartX, // 起始点 X 近似对齐
+                                        centerY - waveform[visibleStartSample] * scaleY), false);
+
+                                for (var s = visibleStartSample + 1; s <= visibleEndSample; s++)
+                                {
+                                    var relativePixelX = (s - startOffsetSample) / samplesPerPixel;
+                                    var px = x + relativePixelX;
+                                    var py = centerY - waveform[s] * scaleY;
+                                    ctx.LineTo(new Point(px, py));
+                                }
                             }
                         }
                         else
                         {
                             // Min-Max 大几把修剪树
 
-                            // Viewport裁剪中。。
+                            // 计算视口裁剪
                             var renderStartPx = Math.Max(0, (int)Math.Floor(-x));
                             var renderEndPx = Math.Min(pixelWidthInt, (int)Math.Ceiling(renderSize.Width - x));
 
@@ -462,24 +455,21 @@ public partial class TrackView : UserControl
                             {
                                 for (var px = renderStartPx; px < renderEndPx; px++)
                                 {
-                                    // 谨慎修改（？）
-                                    // (int)(px * rate) 和 (int)((px+1) * rate) 确定当前像素覆盖的样本区间。
-                                    // 保证了区间的连续性（没有空隙，也没有重叠）
-                                    var sStart = (int)(px * samplesPerPixel);
-                                    var sEnd = (int)((px + 1) * samplesPerPixel);
+                                    var sStart = (long)(px * samplesPerPixel) + startOffsetSample;
+                                    var sEnd = (long)((px + 1) * samplesPerPixel) + startOffsetSample;
 
                                     // 边界保护
-                                    sStart = Math.Clamp(sStart, 0, currentWaveform.Length - 1);
-                                    sEnd = Math.Clamp(sEnd, sStart + 1, currentWaveform.Length);
+                                    sStart = Math.Clamp(sStart, 0, totalSamples - 1);
+                                    sEnd = Math.Clamp(sEnd, sStart + 1, totalSamples);
 
                                     // 寻找 Min/Max
                                     float min = 0, max = 0;
                                     bool firstSample = true;
 
-                                    // 总次数 = 波形总长，应该不会浪费性能
+                                    // 循环寻找极值
                                     for (var j = sStart; j < sEnd; j++)
                                     {
-                                        var val = currentWaveform[j];
+                                        var val = waveform[(int)j];
                                         if (firstSample)
                                         {
                                             min = val;
@@ -493,19 +483,15 @@ public partial class TrackView : UserControl
                                         }
                                     }
 
-                                    // 极少数情况区间为空（比如 float 精度问题），兜底处理
-                                    if (firstSample && sStart < currentWaveform.Length)
+                                    if (firstSample && sStart < totalSamples)
                                     {
-                                        min = max = currentWaveform[sStart];
+                                        min = max = waveform[(int)sStart];
                                     }
 
                                     var drawX = x + px;
                                     var y1 = centerY - max * scaleY;
                                     var y2 = centerY - min * scaleY;
 
-                                    // 可能的优化（？）
-                                    // 只有当高度有意义时才绘制，或者至少绘制一个点
-                                    // 如果 y1 和 y2 非常接近，LineTo 可能画不出东西，可以略微偏移
                                     if (Math.Abs(y1 - y2) < 0.1) y2 += 0.1;
 
                                     ctx.BeginFigure(new Point(drawX, y1), false);

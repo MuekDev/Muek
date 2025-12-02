@@ -140,6 +140,8 @@ impl AudioEngine {
         buffer.clear();
         buffer.resize(total_samples as usize, 0.0);
 
+        let buffer_len = buffer.len();
+
         for clip in &self.rendered_clips {
             let start = clip.start_sample_idx as usize;
             let end = clip.end_sample_idx as usize;
@@ -148,10 +150,17 @@ impl AudioEngine {
 
             let copy_len = std::cmp::min(target_len, clip.samples.len());
 
-            for i in 0..copy_len {
-                let frame_index = start + i;
-                if frame_index < buffer.len() {
-                    buffer[frame_index] += clip.samples[i];
+            if start >= buffer_len {
+                continue;
+            }
+            let valid_len = std::cmp::min(copy_len, buffer_len - start);
+
+            unsafe {
+                for i in 0..valid_len {
+                    let sample = *clip.samples.get_unchecked(i);
+                    let target = buffer.get_unchecked_mut(start + i);
+
+                    *target += sample;
                 }
             }
         }
