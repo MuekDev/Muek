@@ -20,7 +20,7 @@
     </Design.DataContext>
 
     <Grid ColumnDefinitions="*,Auto">
-        <Grid Background="#232323" RowDefinitions="40,40,*,Auto" Margin="0">
+        <Grid Background="#232323" RowDefinitions="40,40,*,Auto" Margin="4,0,4,4">
             <!-- 导航栏 -->
             <StackPanel Orientation="Horizontal">
                 <Button Background="Transparent" Click="SettingsButton">
