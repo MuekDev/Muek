@@ -1,8 +1,7 @@
 use std::{
-    ops::Index,
     sync::{
-        atomic::{AtomicBool, AtomicU64, Ordering},
         Arc, Mutex,
+        atomic::{AtomicBool, AtomicU64, Ordering},
     },
     thread,
     time::Instant,
@@ -10,7 +9,8 @@ use std::{
 
 use bon::Builder;
 use cpal::{
-    Stream, traits::{DeviceTrait, HostTrait, StreamTrait}
+    Stream,
+    traits::{DeviceTrait, HostTrait, StreamTrait},
 };
 
 use crate::lazy_states::CLIP_CACHES;
@@ -142,10 +142,16 @@ impl AudioEngine {
 
         for clip in &self.rendered_clips {
             let start = clip.start_sample_idx as usize;
-            for (i, sample) in clip.samples.iter().enumerate() {
+            let end = clip.end_sample_idx as usize;
+
+            let target_len = end.saturating_sub(start);
+
+            let copy_len = std::cmp::min(target_len, clip.samples.len());
+
+            for i in 0..copy_len {
                 let frame_index = start + i;
                 if frame_index < buffer.len() {
-                    buffer[frame_index] += *sample;
+                    buffer[frame_index] += clip.samples[i];
                 }
             }
         }
@@ -162,13 +168,17 @@ impl AudioEngine {
         )
     }
 
-    pub fn set_pos_beat(&self, beat:f32){
-        self.state.pos_idx.store(beat_to_sample_idx(
-            beat,
-            self.config.bpm, 
-            self.config.sample_rate,
-             4, 
-             self.config.channels.try_into().unwrap()), Ordering::SeqCst);
+    pub fn set_pos_beat(&self, beat: f32) {
+        self.state.pos_idx.store(
+            beat_to_sample_idx(
+                beat,
+                self.config.bpm,
+                self.config.sample_rate,
+                4,
+                self.config.channels.try_into().unwrap(),
+            ),
+            Ordering::SeqCst,
+        );
     }
 }
 

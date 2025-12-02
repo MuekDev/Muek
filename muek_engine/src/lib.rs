@@ -173,6 +173,7 @@ pub unsafe extern "C" fn sync_all_clips(ptr: *const ClipProto, len: i32) {
     let slice = unsafe { std::slice::from_raw_parts(ptr, len as usize) };
     let mut engine_lock = AUDIO_ENGINE.lock().unwrap();
     let clip_caches_lock = CLIP_CACHES.read().unwrap();
+    engine_lock.rendered_clips.clear();
 
     for item in slice {
         println!("sync clip id ptr={:?} len={} start_time={} end_time={}", item.clip_id, item.clip_id_len, item.start_time, item.end_time);
