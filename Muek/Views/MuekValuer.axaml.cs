@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -10,6 +11,7 @@ namespace Muek.Views;
 
 public partial class MuekValuer : UserControl
 {
+    [SupportedOSPlatform("windows")]
     [DllImport("user32.dll", EntryPoint = "SetCursorPos")]
     private static extern bool SetCursorPos(int x, int y);
     
@@ -256,7 +258,7 @@ public partial class MuekValuer : UserControl
     }
 
     private Point _tempPress;
-
+    
     protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
         base.OnPointerPressed(e);
@@ -272,19 +274,22 @@ public partial class MuekValuer : UserControl
             }
             else
             {
-                Cursor = new Cursor(StandardCursorType.None);
+                if(RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                    Cursor = new Cursor(StandardCursorType.None);
                 switch (Layout)
                 {
                     case LayoutEnum.Knob:
-                        SetCursorPos(this.PointToScreen(new Point(Bounds.Width/2, Bounds.Height/2)).X,
-                            this.PointToScreen(new Point(Bounds.Width/2, Bounds.Height/2)).Y);
+                        if(RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                            SetCursorPos(this.PointToScreen(new Point(Bounds.Width/2, Bounds.Height/2)).X,
+                                this.PointToScreen(new Point(Bounds.Width/2, Bounds.Height/2)).Y);
                         _tempPress = new Point(Bounds.Width/2, Bounds.Height/2);
                         break;
                     case LayoutEnum.Slider:
                     {
                         var percentValue = (Value - MinValue) / (MaxValue - MinValue);
-                        SetCursorPos(this.PointToScreen(new Point(0, (1 - percentValue) * (ValuerHeight - 1))).X,
-                            this.PointToScreen(new Point(0, (1 - percentValue) * (ValuerHeight - 1))).Y);
+                        if(RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                            SetCursorPos(this.PointToScreen(new Point(0, (1 - percentValue) * (ValuerHeight - 1))).X,
+                                this.PointToScreen(new Point(0, (1 - percentValue) * (ValuerHeight - 1))).Y);
                         break;
                     }
                 }
@@ -310,14 +315,16 @@ public partial class MuekValuer : UserControl
         switch (Layout)
         {
             case LayoutEnum.Knob:
-                SetCursorPos(this.PointToScreen(new Point(Bounds.Width/2, Bounds.Height/2)).X,
-                    this.PointToScreen(new Point(Bounds.Width/2, Bounds.Height/2)).Y);
+                if(RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                    SetCursorPos(this.PointToScreen(new Point(Bounds.Width/2, Bounds.Height/2)).X,
+                        this.PointToScreen(new Point(Bounds.Width/2, Bounds.Height/2)).Y);
                 break;
             case LayoutEnum.Slider:
             {
                 var percentValue = (Value - MinValue) / (MaxValue - MinValue);
-                SetCursorPos(this.PointToScreen(new Point(0, (1 - percentValue) * (ValuerHeight - 1))).X,
-                    this.PointToScreen(new Point(0, (1 - percentValue) * (ValuerHeight - 1))).Y);
+                if(RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                    SetCursorPos(this.PointToScreen(new Point(0, (1 - percentValue) * (ValuerHeight - 1))).X,
+                        this.PointToScreen(new Point(0, (1 - percentValue) * (ValuerHeight - 1))).Y);
                 break;
             }
         }
