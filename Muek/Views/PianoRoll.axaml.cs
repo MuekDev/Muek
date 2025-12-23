@@ -1448,12 +1448,12 @@ public partial class PianoRoll : UserControl
             midi.Data.AddTrack();
             foreach (var note in Notes)
             {
-                midi.Data[1].Add(new NoteEvent((long)(note.StartTime * midi.Data.DeltaTicksPerQuarterNote),
+                midi.Data[1].Add(new NoteEvent((long)(note.StartTime * midi.Data.DeltaTicksPerQuarterNote / 4f),
                     1, MidiCommandCode.NoteOn,
                     note.Name,
                     note.Velocity
                 ));
-                midi.Data[1].Add(new NoteEvent((int)(note.EndTime * midi.Data.DeltaTicksPerQuarterNote),
+                midi.Data[1].Add(new NoteEvent((int)(note.EndTime * midi.Data.DeltaTicksPerQuarterNote / 4f),
                     1, MidiCommandCode.NoteOff,
                     note.Name,
                     note.Velocity));
