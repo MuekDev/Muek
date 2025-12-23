@@ -5,6 +5,7 @@ using System.Linq;
 using Avalonia.Media;
 using Muek.Models;
 using Muek.ViewModels;
+using Muek.Views;
 
 namespace Muek.Services;
 
@@ -38,6 +39,7 @@ public static class DataStateService
                     Name = name ?? "New Track",
                 }
             ));
+        ViewHelper.GetMainWindow().TrackViewControl.InvalidateVisual();
     }
     
     public static void RemoveTrack(String trackId)
