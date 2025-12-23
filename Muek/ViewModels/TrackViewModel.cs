@@ -65,13 +65,14 @@ public partial class TrackViewModel : ViewModelBase
     /// <summary>
     /// 添加 clip：会自动更新 proto.Clips 和本地 viewmodel
     /// </summary>
-    public ClipViewModel AddClip(Clip clip)
+    public ClipViewModel AddClip(Clip clip,List<PianoRoll.Note>? notes = null)
     {
         var vm = new ClipViewModel(clip);
         Proto.Clips.Add(clip);
         Clips.Add(vm);
         vm.GenerateWaveformPreviewPure();
-
+        if (notes != null)
+            vm.Notes = notes;
         return vm;
     }
 

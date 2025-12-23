@@ -1,7 +1,11 @@
 using System;
 using System.Collections.Generic;
+using Avalonia.Platform;
 using Muek.Engine;
 using Muek.Models;
+using Muek.Services;
+using Muek.Views;
+using NAudio.Midi;
 using NAudio.Wave;
 
 namespace Muek.ViewModels;
@@ -22,6 +26,8 @@ public class ClipViewModel
     public string Path => Proto.Path;
     public string Name => Proto.Name;
 
+    public List<PianoRoll.Note>? Notes { get; set; } = null;
+
     public double SourceDuration { get; set; }
     // public List<float>? LOD0 { get; private set; }
     // public List<float>? LOD1 { get; private set; }
@@ -38,6 +44,7 @@ public class ClipViewModel
     // ReSharper disable once UnusedMember.Global
     public void GenerateWaveformPreviewAbs(int sampleCount = 10000)
     {
+        if(Notes is not null) return;
         try
         {
             using var reader = new AudioFileReader(Path);
@@ -72,6 +79,7 @@ public class ClipViewModel
 
     public void GenerateWaveformPreviewPure()
     {
+        if (Notes is not null) return;
         try
         {
             using var reader = new AudioFileReader(Path);

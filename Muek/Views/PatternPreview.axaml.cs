@@ -187,7 +187,7 @@ public partial class PatternPreview : UserControl
 
                 noteHeight = Bounds.Height / (noteMax + 1 - noteMin);
                 noteWidth = Bounds.Width /
-                            (noteLast + ViewHelper.GetMainWindow().PianoRollWindow.EditArea.LengthIncreasement);
+                            (noteLast + PianoRoll.LengthIncreasement);
 
                 foreach (var note in Notes)
                 {

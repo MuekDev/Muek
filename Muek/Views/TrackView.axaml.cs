@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -15,6 +16,7 @@ using Muek.Helpers;
 using Muek.Models;
 using Muek.Services;
 using Muek.ViewModels;
+using NAudio.Midi;
 using NAudio.Wave;
 
 namespace Muek.Views;
@@ -266,28 +268,83 @@ public partial class TrackView : UserControl
             foreach (var file in files)
             {
                 if (!Path.Exists(file)) continue;
-
                 var ext = Path.GetExtension(file).ToLower();
-                if (ext != ".wav" && ext != ".mp3" && ext != ".ogg")
+                var isMidi = false;
+                if (ext != ".wav" && ext != ".mp3" && ext != ".ogg" && ext != ".mid")
                     continue;
+                if(ext == ".mid")
+                    isMidi = true;
 
                 var durationSec = GetAudioDurationInSeconds(file);
                 var durationBeats = (durationSec / 60f) * DataStateService.Bpm / Subdivisions;
 
-                var newClip = new Clip
+                List<PianoRoll.Note>? notes = null;
+
+                Clip newClip;
+                if(!isMidi)
+                    newClip = new Clip
+                    {
+                        Name = Path.GetFileNameWithoutExtension(file),
+                        StartBeat = beat,
+                        Duration = durationBeats,
+                        Path = file,
+                        Id = Guid.NewGuid().ToString(),
+                        // CachedWaveform = AudioService.DecodeFromFile(file, 48000, 2).ToArray()
+                    };
+                else
                 {
-                    Name = Path.GetFileNameWithoutExtension(file),
-                    StartBeat = beat,
-                    Duration = durationBeats,
-                    Path = file,
-                    Id = Guid.NewGuid().ToString(),
-                    // CachedWaveform = AudioService.DecodeFromFile(file, 48000, 2).ToArray()
-                };
+                    notes = new List<PianoRoll.Note>();
+                    var midi = new MidiService();
+                    midi.ImportMidi(file);
+                    for (int i = 1; i < midi.Data.Tracks; i++)
+                    {
+                        for (int j = 0; j < midi.Data[i].Count; j++)
+                        {
+                            var note = midi.Data[i][j];
+                            if (note.GetType() == typeof(NoteOnEvent))
+                            {
+                                try
+                                {
+                                    notes.Add(new PianoRoll.Note()
+                                    {
+                                        Name = ((NoteOnEvent)note).NoteNumber,
+                                        // Color = NoteColor3,
+                                        StartTime = ((NoteOnEvent)note).AbsoluteTime /
+                                            (double)midi.Data.DeltaTicksPerQuarterNote * 4,
+                                        EndTime = (((NoteOnEvent)note).AbsoluteTime + ((NoteOnEvent)note).NoteLength) /
+                                            (double)midi.Data.DeltaTicksPerQuarterNote * 4,
+                                        Velocity = ((NoteOnEvent)note).Velocity
+                                    });
+                                }
+                                catch (Exception @exception)
+                                {
+                                    Console.Error.WriteLine(@exception.Message);
+                                }
+                            }
+                        }
+                    }
+                    double trackEnd = 0;
+                    foreach (var note in notes)
+                    {
+                        trackEnd = double.Max(trackEnd, note.EndTime);
+                    }
+
+                    trackEnd /= 64d;
+                    newClip = new Clip
+                    {
+                        Name = Path.GetFileNameWithoutExtension(file),
+                        StartBeat = beat,
+                        Duration = trackEnd,
+                        Path = file,
+                        Id = Guid.NewGuid().ToString(),
+                    };
+                    Console.WriteLine($"Add Midi Clip: Duration: {trackEnd}");
+                }
 
                 // 确保轨道存在
                 if (trackIndex >= 0 && trackIndex < DataStateService.Tracks.Count)
                 {
-                    DataStateService.Tracks[trackIndex].AddClip(newClip);
+                    DataStateService.Tracks[trackIndex].AddClip(newClip,notes);
                 }
 
                 // var track = DataStateService.Tracks[trackIndex].Proto;
@@ -318,10 +375,10 @@ public partial class TrackView : UserControl
     public override void Render(DrawingContext context)
     {
         var renderSize = Bounds.Size;
-        var brushWhite = new SolidColorBrush(Colors.Gray);
-        var brushGray = new SolidColorBrush(Colors.DimGray, 0.5);
-        var penWhite = new Pen(brushWhite);
-        var penGray = new Pen(brushGray);
+        var brushWhite = new SolidColorBrush(Colors.White,0.4);
+        var brushGray = new SolidColorBrush(Colors.White, 0.2);
+        var penWhite = new Pen(brushWhite,.8);
+        var penGray = new Pen(brushGray,.2);
 
         if (Background != null)
             context.FillRectangle(Background, new Rect(renderSize));
@@ -384,9 +441,57 @@ public partial class TrackView : UserControl
                 var rect = new Rect(x, trackY, width, TrackHeight);
                 context.FillRectangle(background, rect);
                 context.DrawRectangle(rectBorderPen, rect);
+                
+                if (clip.Notes != null)
+                {
+                    var midi2TrackFactor = 64d * 4;
+                    var notes = clip.Notes;
+                    double noteHeight;
+                    double noteWidth;
+                    int noteMax = notes[0].Name;
+                    int noteMin = noteMax;
+                
+                    foreach (var note in notes)
+                    {
+                        var position = note.Name;
+                        noteMin = Math.Min(position, noteMin);
+                        noteMax = Math.Max(position, noteMax);
+                    }
+
+                    noteHeight = (double)TrackHeight / (noteMax + 1 - noteMin);
+                    noteWidth = clip.SourceDuration * _scaleFactor;
+
+                    var clipNotes = new List<PianoRoll.Note>();
+                    var clipStart = x+OffsetX;
+                    foreach (var note in notes)
+                    {
+                        var noteStart = (clip.StartBeat - clip.Offset) * _scaleFactor +
+                                        note.StartTime * noteWidth / midi2TrackFactor;
+                        var noteLength = noteWidth * (note.EndTime - note.StartTime) / midi2TrackFactor;
+                        if (noteStart < clipStart && noteStart + noteLength > clipStart)
+                        {
+                            noteLength = noteStart + noteLength - clipStart;
+                            noteStart = clipStart;
+                        }
+                        if (noteStart + noteLength > clipStart + width && noteStart < clipStart + width)
+                            noteLength = clipStart + width - noteStart;
+                        if (noteStart >= clipStart && noteStart + noteLength <= clipStart + width)
+                            clipNotes.Add(note with { StartTime = noteStart, EndTime = noteStart + noteLength });
+                    }
+                    foreach (var note in clipNotes)
+                    {
+                        context.FillRectangle(Brushes.White,
+                            new Rect(
+                                note.StartTime - OffsetX,
+                                TrackHeight * .6 - (note.Name - noteMin + 1) * noteHeight * .6 + TrackHeight * .2 + TrackHeight*i - OffsetY,
+                                note.EndTime - note.StartTime,
+                                noteHeight * .55),
+                            (float)(noteHeight * .1));
+                    }
+                }
 
                 // 渲染波形
-                if (clip.CachedWaveform is { Length: > 1 })
+                else if (clip.CachedWaveform is { Length: > 1 })
                 {
                     var waveform = clip.CachedWaveform;
                     var totalSamples = waveform.Length;

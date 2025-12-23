@@ -63,10 +63,10 @@ public partial class PianoRoll : UserControl
     private MainWindow? _mainWindow;
     private MainWindow MainWindow => _mainWindow ??= ViewHelper.GetMainWindow();
 
-    public const int NoteRangeMax = 9;
-    public const int NoteRangeMin = 0;
+    public static readonly int NoteRangeMax = 9;
+    public static readonly int NoteRangeMin = 0;
 
-    public const int Temperament = 12;
+    public static readonly int Temperament = 12;
 
     private static readonly string[] NotePrefixes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 
@@ -180,7 +180,7 @@ public partial class PianoRoll : UserControl
 
     // private bool _isShowingOptions = false;
     public double Magnet = 1.0;
-    public readonly double LengthIncreasement = 128d;
+    public static readonly double LengthIncreasement = 128d;
 
 
     private static readonly Pen WhitePen = new Pen(new SolidColorBrush(Colors.White, .1));

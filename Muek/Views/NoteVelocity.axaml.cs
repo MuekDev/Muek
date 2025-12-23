@@ -31,7 +31,7 @@ public partial class NoteVelocity : UserControl
         set => ViewHelper.GetMainWindow().PianoRollWindow.EditArea.WidthOfBeat = value;
     }
 
-    private double LengthIncreasement => ViewHelper.GetMainWindow().PianoRollWindow.EditArea.LengthIncreasement;
+    private double LengthIncreasement => PianoRoll.LengthIncreasement;
     private Point ScalingSensitivity => ViewHelper.GetMainWindow().PianoRollWindow.EditArea.ScalingSensitivity;
     private Color Color => ViewHelper.GetMainWindow().PianoRollWindow.EditArea.Pattern?.Color ?? DataStateService.MuekColor;
     private Pen NotePen => new Pen(new SolidColorBrush(Color),2);
