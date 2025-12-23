@@ -211,8 +211,8 @@
                                                                             </Style>
                                                                         </Button.Styles>
                                                                         <i:Icon Value="fa-times" FontSize="10"
-                                                                            Foreground="White"
-                                                                            HorizontalAlignment="Right" />
+                                                                                Foreground="White"
+                                                                                HorizontalAlignment="Right" />
                                                                     </Button>
 
                                                                 </Panel>

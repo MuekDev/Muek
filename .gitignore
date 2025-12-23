@@ -20,3 +20,4 @@ muek_engine/target
 /.vs/Muek/CopilotIndices/18.0.912.14514/SemanticSymbols.db
 /.vs/Muek/CopilotIndices/18.0.912.14514/SemanticSymbols.db-shm
 /.vs/Muek/CopilotIndices/18.0.912.14514/SemanticSymbols.db-wal
+/Muek/libmuek_engine.so
