@@ -92,7 +92,7 @@ public partial class TrackView : UserControl
         AddHandler(DragDrop.DragEnterEvent, OnDropEnter);
         AddHandler(DragDrop.DragLeaveEvent, OnDropLeave);
         AddHandler(DragDrop.DragOverEvent, OnDragOver);
-
+        
         UiStateService.GlobalPlayHeadPosXUpdated += UiStateServiceOnGlobalPlayHeadPosXUpdated;
 
         AudioService.AudioStarted += (_, _) => StartPlayheadTracking();
@@ -166,6 +166,17 @@ public partial class TrackView : UserControl
     private void OnDragOver(object? sender, DragEventArgs e)
     {
         _mousePosition = e.GetPosition(this);
+    
+        if (e.Data.Contains(DataFormats.Files)) 
+        {
+            e.DragEffects = DragDropEffects.Copy;
+            e.Handled = true; 
+        }
+        else
+        {
+            e.DragEffects = DragDropEffects.None;
+        }
+
         InvalidateVisual();
     }
 

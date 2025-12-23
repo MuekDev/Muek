@@ -4,7 +4,9 @@ use std::{
     thread,
 };
 
-use winit::{event_loop::EventLoop, platform::windows::EventLoopBuilderExtWindows};
+use winit::event_loop::EventLoop;
+#[cfg(target_os = "windows")]
+use winit::platform::windows::EventLoopBuilderExtWindows;
 
 use crate::{
     audio::RenderedClip,
@@ -14,15 +16,19 @@ use crate::{
         byte_buffer::ByteBuffer,
         tracks_proto::{ClipProto, TrackProto},
     },
-    winit_app::App,
 };
+
+#[cfg(target_os = "windows")]
+use winit_app::App;
 
 mod audio;
 mod decode;
 mod lazy_states;
 mod muek_event;
 mod protos;
+#[cfg(target_os = "windows")]
 mod vst_box;
+#[cfg(target_os = "windows")]
 mod winit_app;
 
 #[repr(C)]
@@ -77,13 +83,15 @@ pub unsafe extern "C" fn free_c_string(str: *mut c_char) {
 pub unsafe extern "C" fn init_vst_box() {
     let (tx, rx) = std::sync::mpsc::channel::<String>();
 
+    #[cfg(target_os = "windows")]
     thread::spawn(move || {
         let mut app = App::default();
 
-        let event_loop = EventLoop::<MuekEvent>::with_user_event()
-            .with_any_thread(true)
-            .build()
-            .unwrap();
+        let mut builder = EventLoop::<MuekEvent>::with_user_event();
+
+        builder.with_any_thread(true);
+
+        let event_loop = builder.build().unwrap();
 
         let event_loop_proxy = event_loop.create_proxy();
 
@@ -123,6 +131,7 @@ pub unsafe extern "C" fn run_vst_instance_by_path_with_handle(
     let slice = unsafe { std::slice::from_raw_parts(utf16_str, utf16_len as usize) };
     let path = String::from_utf16(slice).unwrap();
 
+    #[cfg(target_os = "windows")]
     std::thread::spawn(move || {
         let hwnd_ptr = hwnd as *mut std::ffi::c_void;
         let mut vst = vst_box::Box::from_path(&path);
@@ -132,6 +141,7 @@ pub unsafe extern "C" fn run_vst_instance_by_path_with_handle(
 }
 
 #[unsafe(no_mangle)]
+#[allow(unused)]
 pub unsafe extern "C" fn verify_vst_instance_by_path(
     utf16_str: *const u16,
     utf16_len: i32,
@@ -139,10 +149,15 @@ pub unsafe extern "C" fn verify_vst_instance_by_path(
     let slice = unsafe { std::slice::from_raw_parts(utf16_str, utf16_len as usize) };
     let str = String::from_utf16(slice).unwrap();
 
-    let name = vst_box::verify_vst(&str).unwrap_or("MUEK_ERR".to_owned());
+    #[cfg(target_os = "windows")]
+    {
+        let name = vst_box::verify_vst(&str).unwrap_or("MUEK_ERR".to_owned());
+        let buf = ByteBuffer::from_vec(name.into_bytes());
+        Box::into_raw(Box::new(buf))
+    }
 
-    let buf = ByteBuffer::from_vec(name.into_bytes());
-    Box::into_raw(Box::new(buf))
+    #[cfg(not(target_os = "windows"))]
+    Box::into_raw(Box::new(ByteBuffer::from_vec(vec![])))
 }
 
 #[unsafe(no_mangle)]
@@ -159,11 +174,7 @@ pub unsafe extern "C" fn cache_clip_data(
     let data_slice = unsafe { std::slice::from_raw_parts(data_ptr, len as usize) };
     let data_vec = data_slice.to_vec(); // copy
 
-    println!(
-        "caching clip id={} len={}",
-        str,
-        data_vec.len()
-    );
+    println!("caching clip id={} len={}", str, data_vec.len());
 
     audio::cache_clip_data(&str, data_vec);
 }
@@ -176,12 +187,15 @@ pub unsafe extern "C" fn sync_all_clips(ptr: *const ClipProto, len: i32) {
     engine_lock.rendered_clips.clear();
 
     for item in slice {
-        println!("sync clip id ptr={:?} len={} start_time={} end_time={}", item.clip_id, item.clip_id_len, item.start_time, item.end_time);
+        println!(
+            "sync clip id ptr={:?} len={} start_time={} end_time={}",
+            item.clip_id, item.clip_id_len, item.start_time, item.end_time
+        );
         let slice = unsafe { std::slice::from_raw_parts(item.clip_id, item.clip_id_len as usize) };
         let str = String::from_utf16(slice).unwrap();
 
         let samples = clip_caches_lock.get(&str).unwrap();
-        
+
         let rendered_clip = RenderedClip {
             start_sample_idx: audio::beat_to_sample_idx(
                 item.start_time,
@@ -216,11 +230,10 @@ pub unsafe extern "C" fn get_current_position_beat() -> f32 {
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn stream_play(beat:f32) {
+pub unsafe extern "C" fn stream_play(beat: f32) {
     let mut engine_lock = AUDIO_ENGINE.lock().unwrap();
     engine_lock.play(beat);
 }
-
 
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn stream_stop() -> bool {
@@ -229,7 +242,7 @@ pub unsafe extern "C" fn stream_stop() -> bool {
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn set_position_beat(beat:f32) {
+pub unsafe extern "C" fn set_position_beat(beat: f32) {
     let mut engine_lock = AUDIO_ENGINE.lock().unwrap();
     engine_lock.set_pos_beat(beat);
 }

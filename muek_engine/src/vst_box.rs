@@ -6,12 +6,12 @@ use std::sync::{Arc, Mutex};
 use raw_window_handle::{HasRawWindowHandle, RawWindowHandle};
 use vst::host::{Host, PluginInstance, PluginLoader};
 use vst::plugin::Plugin;
-use winit::dpi::PhysicalSize;
-use winit::event_loop::EventLoop;
-use winit::window::WindowAttributes;
 use windows::Win32::UI::WindowsAndMessaging::{
     DispatchMessageW, GetMessageW, MSG, TranslateMessage,
 };
+use winit::dpi::PhysicalSize;
+use winit::event_loop::EventLoop;
+use winit::window::WindowAttributes;
 
 struct HostHandle;
 
