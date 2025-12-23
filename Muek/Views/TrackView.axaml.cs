@@ -379,6 +379,8 @@ public partial class TrackView : UserControl
         var brushGray = new SolidColorBrush(Colors.White, 0.2);
         var penWhite = new Pen(brushWhite,.8);
         var penGray = new Pen(brushGray,.2);
+        var clipBorderThickness = 1.5;
+        var highlightPen = new Pen(new SolidColorBrush(Colors.White,0.8),clipBorderThickness);
 
         if (Background != null)
             context.FillRectangle(Background, new Rect(renderSize));
@@ -406,7 +408,7 @@ public partial class TrackView : UserControl
 
         // 将画笔缓存到循环外，减少GC压力
         var waveformPen = new Pen(Brushes.Black, 0.8);
-        var rectBorderPen = new Pen(Brushes.Black);
+        var rectBorderPen = new Pen(Brushes.Black,0.2);
 
         //// 绘制片段
         for (var i = 0; i < DataStateService.Tracks.Count; i++)
@@ -439,8 +441,12 @@ public partial class TrackView : UserControl
 
                 // 片段背景框
                 var rect = new Rect(x, trackY, width, TrackHeight);
-                context.FillRectangle(background, rect);
-                context.DrawRectangle(rectBorderPen, rect);
+                var borderRect = new Rect(x + clipBorderThickness, trackY + clipBorderThickness,
+                    width - clipBorderThickness * 2, TrackHeight - clipBorderThickness * 2);
+                // context.FillRectangle(background, rect);
+                context.DrawRectangle(background,rectBorderPen, rect);
+                if(clip == _activeClip)
+                    context.DrawRectangle(background,highlightPen, borderRect);
                 
                 if (clip.Notes != null)
                 {
@@ -952,7 +958,7 @@ public partial class TrackView : UserControl
         Cursor = state switch
         {
             ClipInteractionMode.None => new Cursor(StandardCursorType.Ibeam),
-            ClipInteractionMode.OnTopTitle => new Cursor(StandardCursorType.Arrow),
+            ClipInteractionMode.OnTopTitle => new Cursor(StandardCursorType.SizeAll),
             ClipInteractionMode.InClipBody => new Cursor(StandardCursorType.Cross),
             ClipInteractionMode.OnLeft => new Cursor(StandardCursorType.LeftSide),
             ClipInteractionMode.OnRight => new Cursor(StandardCursorType.RightSide),
