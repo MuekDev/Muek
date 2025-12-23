@@ -249,7 +249,7 @@
                                                 Foreground="#232323"
                                                 FontWeight="Bold" FontSize="18" Background="Transparent"
                                                 Command="{Binding AddTrack}"
-                                                Padding="10" CornerRadius="12,0,0,12">
+                                                Padding="10" CornerRadius="12,0,0,12" Focusable="False">
                                             <i:Icon Value="fa-plus"></i:Icon>
                                         </Button>
                                     </Border>
