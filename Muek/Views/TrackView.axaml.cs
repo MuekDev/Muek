@@ -35,6 +35,7 @@ public partial class TrackView : UserControl
     private MainWindow? _mainWindow;
     private double _lastClickedBeatOfClip = 0; // 最后一次点击clip title的位置（相对于clip，单位为beat）
     private bool _isResizingClipLeft;
+    private bool _isSnapping = true;
 
     private double _offsetY;
 
@@ -772,6 +773,8 @@ public partial class TrackView : UserControl
         if (_activeClip != null)
         {
             var newStart = pointerBeat;
+            if(_isSnapping)
+                newStart = double.Round(newStart * Subdivisions, 0) / Subdivisions;
             var oldStart = _activeClip.StartBeat;
 
             // 计算偏移的差值
@@ -787,6 +790,7 @@ public partial class TrackView : UserControl
                     _activeClip.Proto.StartBeat = newStart;
                     _activeClip.Proto.Offset = newOffset;
                     _activeClip.Proto.Duration = newDuration;
+                    
 
                     // if (DataStateService.ActiveTrack?.Proto != null)
                     // TODO
@@ -810,6 +814,9 @@ public partial class TrackView : UserControl
             if (newDuration < 0.1 || newDuration > _activeClip.SourceDuration)
                 return;
             _activeClip.Proto.Duration = newDuration;
+            
+            if (_isSnapping)
+                _activeClip.Proto.Duration = double.Round(newDuration * Subdivisions, 0) / Subdivisions;
             // TODO
             // if (DataStateService.ActiveTrack?.Proto != null)
             // ReDurationCommand.Execute(DataStateService.ActiveTrack.Proto, _activeClip.Proto, _activeClip.Duration);
@@ -824,7 +831,8 @@ public partial class TrackView : UserControl
 
         var globalX = Math.Max(0, point.X + OffsetX);
         var pointerBeat = globalX / ScaleFactor - _lastClickedBeatOfClip;
-        pointerBeat = double.Round(pointerBeat * Subdivisions, 0) / Subdivisions;
+        if (_isSnapping)
+            pointerBeat = double.Round(pointerBeat * Subdivisions, 0) / Subdivisions;
         pointerBeat = pointerBeat < 0 ? 0 : pointerBeat;
         Console.WriteLine(pointerBeat);
         if (pointerBeat >= 0)
