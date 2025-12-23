@@ -1328,6 +1328,17 @@ public partial class PianoRoll : UserControl
         MainWindow.PianoRollWindow.PatternPreview.InvalidateVisual();
         MainWindow.PianoRollWindow.NoteVelocity.InvalidateVisual();
         MainWindow.PianoRollWindow.PianoScroller.InvalidateVisual();
+        foreach (var track in DataStateService.Tracks)
+        {
+            foreach (var clip in track.Clips)
+            {
+                if(clip.LinkedPattern == Pattern)
+                {
+                    clip.UpdateFromPattern();
+                    ViewHelper.GetMainWindow().TrackViewControl.InvalidateVisual();
+                }
+            }
+        }
     }
 
     private void SelectedNotesMoveUp(object? sender, RoutedEventArgs e)

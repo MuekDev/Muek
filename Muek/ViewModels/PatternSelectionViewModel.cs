@@ -15,4 +15,9 @@ public partial class PatternSelectionViewModel : ViewModelBase
     {
         Patterns.Add(new PatternViewModel());
     }
+
+    public void AddPattern(PatternViewModel pattern)
+    {
+        Patterns.Add(pattern);
+    }
 }

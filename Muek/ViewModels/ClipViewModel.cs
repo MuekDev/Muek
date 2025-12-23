@@ -33,6 +33,8 @@ public class ClipViewModel
     // public List<float>? LOD1 { get; private set; }
     // public List<float>? LOD2 { get; private set; }
     // public List<float>? LOD3 { get; private set; }
+    
+    public PatternViewModel? LinkedPattern { get; set; } = null;
 
     public ClipViewModel(Clip proto)
     {
@@ -122,5 +124,29 @@ public class ClipViewModel
         {
             Console.WriteLine($"[Waveform] Failed to read: {e.Message}");
         }
+    }
+
+    public void UpdateFromPattern()
+    {
+        if(LinkedPattern is null) return;
+        Notes = new List<PianoRoll.Note>();
+        foreach (var noteList in LinkedPattern.Notes)
+        {
+            Notes.AddRange(noteList);
+        }
+
+        double trackEnd = 0;
+        foreach (var note in Notes)
+        {
+            trackEnd = double.Max(trackEnd, note.EndTime);
+        }
+        trackEnd /= DataStateService.Subdivisions;
+        SourceDuration = trackEnd;
+    }
+
+    public void UpdateFromClip()
+    {
+        if(LinkedPattern is null) return;
+        LinkedPattern.Notes[0] = Notes!;
     }
 }

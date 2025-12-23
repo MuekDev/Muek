@@ -72,7 +72,16 @@ public partial class TrackViewModel : ViewModelBase
         Clips.Add(vm);
         vm.GenerateWaveformPreviewPure();
         if (notes != null)
+        {
             vm.Notes = notes;
+            var pattern = new PatternViewModel()
+            {
+                Name = clip.Name,
+                Notes = [notes]
+            };
+            ViewHelper.GetMainWindow().PianoRollWindow.PatternSelection.ViewModel.AddPattern(pattern);
+            vm.LinkedPattern = pattern;
+        }
         return vm;
     }
 

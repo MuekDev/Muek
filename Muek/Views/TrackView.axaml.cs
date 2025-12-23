@@ -381,6 +381,8 @@ public partial class TrackView : UserControl
         var penGray = new Pen(brushGray,.2);
         var clipBorderThickness = 1.5;
         var highlightPen = new Pen(new SolidColorBrush(Colors.White,0.8),clipBorderThickness);
+        var loopBrush = new SolidColorBrush(Colors.Black, 0.4);
+        var loopPen = new Pen(loopBrush, 2, DashStyle.Dash);
 
         if (Background != null)
             context.FillRectangle(Background, new Rect(renderSize));
@@ -471,20 +473,38 @@ public partial class TrackView : UserControl
 
                         var clipNotes = new List<PianoRoll.Note>();
                         var clipStart = x + OffsetX;
-                        foreach (var note in notes)
+                        var loops = width / _scaleFactor / clip.SourceDuration;
+                        Console.WriteLine($"Loops: {loops}");
+                        for(int loop = 0; loop < loops; loop++)
                         {
-                            var noteStart = (clip.StartBeat - clip.Offset) * _scaleFactor +
-                                            note.StartTime * noteWidth / factor;
-                            var noteLength = noteWidth * (note.EndTime - note.StartTime) / factor;
-                            if (noteStart < clipStart && noteStart + noteLength > clipStart)
+                            foreach (var note in notes)
                             {
-                                noteLength = noteStart + noteLength - clipStart;
-                                noteStart = clipStart;
+                                var noteStart = loop * clip.SourceDuration * _scaleFactor +
+                                                (clip.StartBeat - clip.Offset) * _scaleFactor +
+                                                note.StartTime * noteWidth / factor;
+                                var noteLength = noteWidth * (note.EndTime - note.StartTime) / factor;
+                                if (noteStart < clipStart && noteStart + noteLength > clipStart)
+                                {
+                                    noteLength = noteStart + noteLength - clipStart;
+                                    noteStart = clipStart;
+                                }
+
+                                if (noteStart + noteLength > clipStart + width && noteStart < clipStart + width)
+                                    noteLength = clipStart + width - noteStart;
+                                if (noteStart >= clipStart && noteStart + noteLength <= clipStart + width)
+                                    clipNotes.Add(note with
+                                    {
+                                        StartTime = noteStart, EndTime = noteStart + noteLength
+                                    });
                             }
-                            if (noteStart + noteLength > clipStart + width && noteStart < clipStart + width)
-                                noteLength = clipStart + width - noteStart;
-                            if (noteStart >= clipStart && noteStart + noteLength <= clipStart + width)
-                                clipNotes.Add(note with { StartTime = noteStart, EndTime = noteStart + noteLength });
+                            if(loop!=0)
+                            {
+                                context.DrawLine(loopPen,
+                                    new Point(loop * clip.SourceDuration * _scaleFactor + x+1,
+                                        TrackHeight * i + OffsetY),
+                                    new Point(loop * clip.SourceDuration * _scaleFactor + x+1,
+                                        TrackHeight * (i + 1) + OffsetY));
+                            }
                         }
 
                         foreach (var note in clipNotes)
@@ -932,7 +952,7 @@ public partial class TrackView : UserControl
         if (_activeClip != null && _activeClip.StartBeat < pointerBeat)
         {
             var newDuration = pointerBeat - _activeClip.StartBeat;
-            if (newDuration < 0.1 || newDuration > _activeClip.SourceDuration)
+            if (newDuration < 0.1 || newDuration > _activeClip.SourceDuration && _activeClip.Notes == null)
                 return;
             _activeClip.Proto.Duration = newDuration;
             
