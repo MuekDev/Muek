@@ -386,14 +386,14 @@ public partial class TrackView : UserControl
     public override void Render(DrawingContext context)
     {
         var renderSize = Bounds.Size;
-        var brushWhite = new SolidColorBrush(Colors.White,0.4);
-        var brushGray = new SolidColorBrush(Colors.White, 0.2);
-        var penWhite = new Pen(brushWhite,.8);
+        var brushWhite = new SolidColorBrush(Colors.White,0.2);
+        var brushGray = new SolidColorBrush(Colors.White, 0.15);
+        var penWhite = new Pen(brushWhite,.4);
         var penGray = new Pen(brushGray,.2);
         var clipBorderThickness = 1.5;
         var highlightPen = new Pen(new SolidColorBrush(Colors.White,0.8),clipBorderThickness);
         var loopBrush = new SolidColorBrush(Colors.Black, 0.4);
-        var loopPen = new Pen(loopBrush, 2, DashStyle.Dash);
+        var loopPen = new Pen(loopBrush, 1.5, DashStyle.Dash);
 
         if (Background != null)
             context.FillRectangle(Background, new Rect(renderSize));
@@ -406,7 +406,7 @@ public partial class TrackView : UserControl
         {
             var groupIndex = beat / Subdivisions % 2; // 0 or 1，看拍数是奇数还是偶数了
 
-            var color = groupIndex == 0 ? Color.Parse("#353535") : Color.Parse("#2A2A2A");
+            var color = groupIndex == 0 ? Color.Parse("#303030") : Color.Parse("#2C2C2C");
             var brush = new SolidColorBrush(color);
 
             var x1 = beat * ScaleFactor - OffsetX;

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -39,6 +40,14 @@ public partial class PatternViewModel : ViewModelBase
         pianoBar.InvalidateVisual();
         button.Content = Name;
         color.Background = Brush;
+        try
+        {
+            ViewHelper.GetMainWindow().PianoRollWindow.Channel.SelectedItem = 1;
+        }
+        catch (Exception e)
+        {
+            new DialogWindow().ShowError(e.Message);
+        }
     }
     
     [RelayCommand]

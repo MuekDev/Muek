@@ -355,4 +355,5 @@ public partial class PianoRollWindow : UserControl
             Console.Error.WriteLine(@exception.Message);
         }
     }
+    
 }

@@ -183,9 +183,9 @@ public partial class PianoRoll : UserControl
     public static readonly double LengthIncreasement = 128d;
 
 
-    private static readonly Pen WhitePen = new Pen(new SolidColorBrush(Colors.White, .1));
+    private static readonly Pen WhitePen = new Pen(new SolidColorBrush(Colors.White, .05),.1);
     private static readonly IBrush WhiteBrush = new SolidColorBrush(Colors.White, .05);
-    private static readonly Pen WhiteGridPen = new Pen(new SolidColorBrush(Colors.White, .2), .1);
+    private static readonly Pen WhiteGridPen = new Pen(new SolidColorBrush(Colors.White, .1), .1);
     private static readonly Pen PurpleGridPen = new Pen(new SolidColorBrush(Colors.MediumPurple, .5));
     private static readonly Pen BlueGridPen = new Pen(new SolidColorBrush(Colors.LightSkyBlue, .5));
 
@@ -194,12 +194,12 @@ public partial class PianoRoll : UserControl
     private static readonly Pen OrangePen = new Pen(Brushes.Orange);
     private static readonly Pen BlackPen = new Pen(Brushes.Black);
 
-    private static readonly Pen GridLinePenNormal = new Pen(new SolidColorBrush(Colors.White, .5));
-    private static readonly Pen GridLinePenThin = new Pen(new SolidColorBrush(Colors.White, .5), .5);
-    private static Pen GridLinePenColor => new(new SolidColorBrush(_noteColor3));
-    private static Pen GridLinePenColorThin => new(new SolidColorBrush(_noteColor3), .5);
-    private static Pen GridLinePenColorThinner => new(new SolidColorBrush(_noteColor3), .2);
-    private static readonly SolidColorBrush GridLineTextColor = new SolidColorBrush(Colors.White);
+    private static readonly Pen GridLinePenNormal = new Pen(new SolidColorBrush(Colors.White, .1));
+    private static readonly Pen GridLinePenThin = new Pen(new SolidColorBrush(Colors.White, .1), .5);
+    private static Pen GridLinePenColor => new(new SolidColorBrush(_noteColor3,.4));
+    private static Pen GridLinePenColorThin => new(new SolidColorBrush(_noteColor3,.4), .5);
+    private static Pen GridLinePenColorThinner => new(new SolidColorBrush(_noteColor3,.4), .2);
+    private static readonly SolidColorBrush GridLineTextColor = new SolidColorBrush(Colors.White,.8);
     private static readonly SolidColorBrush GridLineTextColorTranslucent = new SolidColorBrush(Colors.White, .2);
 
     private int _dragNoteVelocity;
