@@ -296,6 +296,7 @@ public partial class TrackView : UserControl
                     notes = new List<PianoRoll.Note>();
                     var midi = new MidiService();
                     midi.ImportMidi(file);
+                    var factor = 16d;
                     for (int i = 1; i < midi.Data.Tracks; i++)
                     {
                         for (int j = 0; j < midi.Data[i].Count; j++)
@@ -310,9 +311,9 @@ public partial class TrackView : UserControl
                                         Name = ((NoteOnEvent)note).NoteNumber,
                                         // Color = NoteColor3,
                                         StartTime = ((NoteOnEvent)note).AbsoluteTime /
-                                            (double)midi.Data.DeltaTicksPerQuarterNote * 4,
+                                            (double)midi.Data.DeltaTicksPerQuarterNote * 4 / factor,
                                         EndTime = (((NoteOnEvent)note).AbsoluteTime + ((NoteOnEvent)note).NoteLength) /
-                                            (double)midi.Data.DeltaTicksPerQuarterNote * 4,
+                                            (double)midi.Data.DeltaTicksPerQuarterNote * 4 / factor,
                                         Velocity = ((NoteOnEvent)note).Velocity
                                     });
                                 }
@@ -328,8 +329,7 @@ public partial class TrackView : UserControl
                     {
                         trackEnd = double.Max(trackEnd, note.EndTime);
                     }
-
-                    trackEnd /= 64d;
+                    trackEnd /= Subdivisions;
                     newClip = new Clip
                     {
                         Name = Path.GetFileNameWithoutExtension(file),
@@ -430,7 +430,7 @@ public partial class TrackView : UserControl
             _ = Color.TryParse(track.Color, out var color) ? color : DataStateService.MuekColor;
             var background = new SolidColorBrush(color);
 
-            foreach (var clip in track.Clips)
+            foreach (var clip in track.Clips.ToList())
             {
                 var x = clip.StartBeat * ScaleFactor - OffsetX;
                 var width = clip.Duration * ScaleFactor;
@@ -450,49 +450,59 @@ public partial class TrackView : UserControl
                 
                 if (clip.Notes != null)
                 {
-                    var midi2TrackFactor = 64d * 4;
-                    var notes = clip.Notes;
-                    double noteHeight;
-                    double noteWidth;
-                    int noteMax = notes[0].Name;
-                    int noteMin = noteMax;
-                
-                    foreach (var note in notes)
+                    try
                     {
-                        var position = note.Name;
-                        noteMin = Math.Min(position, noteMin);
-                        noteMax = Math.Max(position, noteMax);
-                    }
+                        var factor = 16d;
+                        var notes = clip.Notes;
+                        double noteHeight;
+                        double noteWidth;
+                        int noteMax = notes[0].Name;
+                        int noteMin = noteMax;
 
-                    noteHeight = (double)TrackHeight / (noteMax + 1 - noteMin);
-                    noteWidth = clip.SourceDuration * _scaleFactor;
-
-                    var clipNotes = new List<PianoRoll.Note>();
-                    var clipStart = x+OffsetX;
-                    foreach (var note in notes)
-                    {
-                        var noteStart = (clip.StartBeat - clip.Offset) * _scaleFactor +
-                                        note.StartTime * noteWidth / midi2TrackFactor;
-                        var noteLength = noteWidth * (note.EndTime - note.StartTime) / midi2TrackFactor;
-                        if (noteStart < clipStart && noteStart + noteLength > clipStart)
+                        foreach (var note in notes)
                         {
-                            noteLength = noteStart + noteLength - clipStart;
-                            noteStart = clipStart;
+                            var position = note.Name;
+                            noteMin = Math.Min(position, noteMin);
+                            noteMax = Math.Max(position, noteMax);
                         }
-                        if (noteStart + noteLength > clipStart + width && noteStart < clipStart + width)
-                            noteLength = clipStart + width - noteStart;
-                        if (noteStart >= clipStart && noteStart + noteLength <= clipStart + width)
-                            clipNotes.Add(note with { StartTime = noteStart, EndTime = noteStart + noteLength });
+
+                        noteHeight = (double)TrackHeight / (noteMax + 1 - noteMin);
+                        noteWidth = _scaleFactor * 4;
+
+                        var clipNotes = new List<PianoRoll.Note>();
+                        var clipStart = x + OffsetX;
+                        foreach (var note in notes)
+                        {
+                            var noteStart = (clip.StartBeat - clip.Offset) * _scaleFactor +
+                                            note.StartTime * noteWidth / factor;
+                            var noteLength = noteWidth * (note.EndTime - note.StartTime) / factor;
+                            if (noteStart < clipStart && noteStart + noteLength > clipStart)
+                            {
+                                noteLength = noteStart + noteLength - clipStart;
+                                noteStart = clipStart;
+                            }
+                            if (noteStart + noteLength > clipStart + width && noteStart < clipStart + width)
+                                noteLength = clipStart + width - noteStart;
+                            if (noteStart >= clipStart && noteStart + noteLength <= clipStart + width)
+                                clipNotes.Add(note with { StartTime = noteStart, EndTime = noteStart + noteLength });
+                        }
+
+                        foreach (var note in clipNotes)
+                        {
+                            context.FillRectangle(Brushes.White,
+                                new Rect(
+                                    note.StartTime - OffsetX,
+                                    TrackHeight * .6 - (note.Name - noteMin + 1) * noteHeight * .6 + TrackHeight * .2 +
+                                    TrackHeight * i - OffsetY,
+                                    note.EndTime - note.StartTime,
+                                    noteHeight * .55));
+                        }
                     }
-                    foreach (var note in clipNotes)
+                    catch (Exception ex)
                     {
-                        context.FillRectangle(Brushes.White,
-                            new Rect(
-                                note.StartTime - OffsetX,
-                                TrackHeight * .6 - (note.Name - noteMin + 1) * noteHeight * .6 + TrackHeight * .2 + TrackHeight*i - OffsetY,
-                                note.EndTime - note.StartTime,
-                                noteHeight * .55),
-                            (float)(noteHeight * .1));
+                        track.Clips.Remove(clip);
+                        new DialogWindow().ShowError(ex.Message);
+                        continue;
                     }
                 }
 
