@@ -11,6 +11,7 @@ using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Platform.Storage;
 using Avalonia.Styling;
+using CommunityToolkit.Mvvm.Input;
 using Muek.Models;
 using Muek.Services;
 using Muek.ViewModels;
@@ -55,7 +56,7 @@ public partial class PianoRollWindow : UserControl
                 Height = _maxSize;
                 args.Handled = true;
                 if(_maxSize > 150)
-                    Show(sender, args);
+                    Show();
                 else
                 {
                     _isShowing = false;
@@ -73,7 +74,7 @@ public partial class PianoRollWindow : UserControl
                 else
                 if (_maxSize < 150)
                 {
-                    Hide(sender, args);
+                    Hide();
                     _maxSize = 400;
                 }
             }
@@ -182,8 +183,8 @@ public partial class PianoRollWindow : UserControl
             InvalidateVisual();
         };
     }
-
-    private void Hide(object? sender, RoutedEventArgs e)
+    
+    private void Hide()
     {
         if(Height >= _maxSize)
         {
@@ -220,10 +221,10 @@ public partial class PianoRollWindow : UserControl
             _maxSize = 400;
         }
         PatternPreview.InvalidateVisual();
-        e.Handled = true;
+        // e.Handled = true;
     }
-
-    private void Show(object? sender, RoutedEventArgs e)
+    
+    public void Show()
     {
         if (_isDragging)
         {
@@ -259,7 +260,7 @@ public partial class PianoRollWindow : UserControl
             }.RunAsync(this);
         }
         PatternPreview.InvalidateVisual();
-        e.Handled = true;
+        // e.Handled = true;
     }
 
     private void ScrollChange(object? sender, ScrollChangedEventArgs e)
@@ -355,5 +356,14 @@ public partial class PianoRollWindow : UserControl
             Console.Error.WriteLine(@exception.Message);
         }
     }
-    
+
+    private void ShowButtonClicked(object? sender, RoutedEventArgs e)
+    {
+        Show();
+    }
+
+    private void HideButtonClicked(object? sender, RoutedEventArgs e)
+    {
+        Hide();
+    }
 }

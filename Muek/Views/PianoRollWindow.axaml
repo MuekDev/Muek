@@ -71,7 +71,7 @@
             <Button HorizontalAlignment="Right" VerticalAlignment="Center" Margin="10"
                     Background="white"
                     Height="20" Width="20" CornerRadius="20"
-                    Padding="2" Click="Hide" IsVisible="False"
+                    Padding="2" Click="HideButtonClicked" IsVisible="False"
                     Name="CloseButton">
                 <Button.Styles>
                     <Style
@@ -87,7 +87,7 @@
             </Button>
             <Button HorizontalAlignment="Right" VerticalAlignment="Center" Margin="10"
                     Height="20" Width="20" CornerRadius="20"
-                    Padding="2" Click="Show" IsVisible="True"
+                    Padding="2" Click="ShowButtonClicked" IsVisible="True"
                     Name="OpenButton">
                 <Button.Styles>
                     <Style
@@ -157,7 +157,7 @@
         </Grid>
         <Grid Grid.Row="2" Background="#232323" Name="BottomBar"></Grid>
         <Grid Grid.Row="2" Margin="5,0">
-            <views:PatternPreview Height="40" Name="PatternPreview" PointerPressed="Show"/>
+            <views:PatternPreview Height="40" Name="PatternPreview" PointerPressed="ShowButtonClicked"/>
         </Grid>
     </Grid>
 </UserControl>

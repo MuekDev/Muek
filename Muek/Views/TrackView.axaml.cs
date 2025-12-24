@@ -803,6 +803,13 @@ public partial class TrackView : UserControl
                 _isResizingClipLeft = true;
             }
 
+            if (e.ClickCount == 2 && _activeClip is { LinkedPattern: not null })
+            {
+                var pattern = _activeClip.LinkedPattern;
+                pattern.SelectPattern();
+                ViewHelper.GetMainWindow().PianoRollWindow.Show();
+            }
+
             e.Handled = true; // 避免冒泡
         }
     }
