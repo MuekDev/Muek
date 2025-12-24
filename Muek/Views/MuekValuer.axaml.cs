@@ -158,15 +158,19 @@ public partial class MuekValuer : UserControl
                 StrokeThicknessDecrease(_stroke);
             }
 
-            context.DrawRectangle(_transparentBrush, _stroke, new Rect(0, 0, ValuerWidth, ValuerHeight));
+            // context.DrawRectangle(_transparentBrush, _stroke, new Rect(0, 0, ValuerWidth, ValuerHeight));
             // context.DrawRectangle(Brush.Parse("#CC000000"), _stroke, new Rect(0, 0, ValuerWidth, ValuerHeight));
+            context.DrawLine(new Pen(new SolidColorBrush(Colors.Black,0.2),4),
+                new Point(Bounds.Width / 2, 0),
+                new Point(Bounds.Width / 2, Bounds.Height));
             var percentValue = (Value - MinValue) / (MaxValue - MinValue);
             // context.DrawRectangle(Brushes.Black,null, new Rect(0,(1-percentValue)*(ValuerHeight-6)+2, ValuerWidth, 4));
             
             var defaultPercentValue = (DefaultValue - MinValue) / (MaxValue - MinValue);
             
-            context.DrawRectangle(ValuerColor, _stroke,
-                new Rect(-ValuerWidth/2, (1 - percentValue) * (ValuerHeight-1), ValuerWidth * 2, 1));
+            context.DrawRectangle(Brush.Parse("#232323"), _stroke,
+                new Rect(-ValuerWidth/2, (1 - percentValue) * ValuerHeight - 10, ValuerWidth * 2, 20),
+                5D,5D);
 
             if(_hover || _pressed)
             {
@@ -190,8 +194,9 @@ public partial class MuekValuer : UserControl
             {
                 StrokeThicknessDecrease(_stroke);
             }
-            context.DrawEllipse(_transparentBrush, _stroke, center, radius,
-                radius);
+            context.DrawEllipse(new SolidColorBrush(Colors.Black,0.2),null,
+                center, radius * 1.2, radius * 1.2);
+            context.DrawEllipse(Brush.Parse("#232323"), _stroke, center, radius, radius);
             // context.DrawEllipse(Brush.Parse("#CC000000"), _stroke, center,
             //     radius-.05, radius-.05);
 
@@ -212,33 +217,42 @@ public partial class MuekValuer : UserControl
             {
                 //默认值
                 context.DrawEllipse(_whiteBrush, null,
-                    new Point(center.X + radius * 1.2 * -double.Sin(defaultPercentValue * Double.Pi * 2),
-                        center.Y + radius * 1.2 * double.Cos(defaultPercentValue * Double.Pi * 2)), 2,
+                    new Point(center.X + radius * 1.5 * -double.Sin(defaultPercentValue * Double.Pi * 2),
+                        center.Y + radius * 1.5 * double.Cos(defaultPercentValue * Double.Pi * 2)), 2,
                     2);
 
                 //边缘值
                 context.DrawEllipse(_whiteBrush, null,
-                    new Point(center.X + radius * 1.2 * -double.Sin(border * Double.Pi * 2),
-                        center.Y + radius * 1.2 * double.Cos(border * Double.Pi * 2)), 2,
+                    new Point(center.X + radius * 1.5 * -double.Sin(border * Double.Pi * 2),
+                        center.Y + radius * 1.5 * double.Cos(border * Double.Pi * 2)), 2,
                     2);
                 context.DrawEllipse(_whiteBrush, null,
-                    new Point(center.X + radius * 1.2 * -double.Sin((1 - border) * Double.Pi * 2),
-                        center.Y + radius * 1.2 * double.Cos((1 - border) * Double.Pi * 2)), 2,
+                    new Point(center.X + radius * 1.5 * -double.Sin((1 - border) * Double.Pi * 2),
+                        center.Y + radius * 1.5 * double.Cos((1 - border) * Double.Pi * 2)), 2,
                     2);
             }
+
+            var position = new Point(
+                center.X + radius *
+                -double.Sin(percentValue * Double.Pi * 2),
+                center.Y + radius *
+                double.Cos(percentValue * Double.Pi * 2));
             
             //通过三角函数渲染位置
-            context.DrawLine(new Pen(ValuerColor, 2),
-                new Point(
-                    center.X + radius * .7 *
-                    -double.Sin(percentValue * Double.Pi * 2),
-                    center.Y + radius * .7 *
-                    double.Cos(percentValue * Double.Pi * 2)),
-                new Point(
-                    center.X + radius *
-                    -double.Sin(percentValue * Double.Pi * 2),
-                    center.Y + radius *
-                    double.Cos(percentValue * Double.Pi * 2)));
+            // context.DrawLine(new Pen(ValuerColor, 2),
+            //     new Point(
+            //         center.X + radius * .7 *
+            //         -double.Sin(percentValue * Double.Pi * 2),
+            //         center.Y + radius * .7 *
+            //         double.Cos(percentValue * Double.Pi * 2)),
+            //     new Point(
+            //         center.X + radius * 1.3 *
+            //         -double.Sin(percentValue * Double.Pi * 2),
+            //         center.Y + radius * 1.3 *
+            //         double.Cos(percentValue * Double.Pi * 2)));
+            
+            context.DrawEllipse(Brush.Parse("#232323"),new Pen(ValuerColor),
+                position,2,2);
         }
 
         Console.WriteLine($"pressed: {_pressed}\nhover: {_hover}");

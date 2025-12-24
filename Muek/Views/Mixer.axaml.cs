@@ -159,13 +159,13 @@ public partial class Mixer : UserControl
     protected override void OnPointerEntered(PointerEventArgs e)
     {
         base.OnPointerEntered(e);
-        MixerColor.BoxShadow = BoxShadows.Parse($"0 0 25 2 {DataStateService.ActiveTrack.Color}");
+        // MixerColor.BoxShadow = BoxShadows.Parse($"0 0 25 2 {DataStateService.ActiveTrack.Color}");
     }
 
     protected override void OnPointerExited(PointerEventArgs e)
     {
         base.OnPointerExited(e);
-        MixerColor.BoxShadow = BoxShadows.Parse("0 0 0 0 transparent");
+        // MixerColor.BoxShadow = BoxShadows.Parse("0 0 0 0 transparent");
     }
 
 

@@ -12,6 +12,7 @@ using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Muek.Services;
 using Muek.ViewModels;
+using SkiaSharp;
 
 namespace Muek.Views;
 
@@ -76,23 +77,17 @@ public partial class MixerLevelMeter : UserControl
         Dispatcher.UIThread.Post(InvalidateVisual, DispatcherPriority.Render);
     }
 
-    private readonly Pen _orangePen = new Pen(new SolidColorBrush(Colors.Orange, .5));
-    private readonly Pen _redPen = new Pen(new SolidColorBrush(Colors.Red, .5));
-    private Point _orangePoint1;
-    private Point _orangePoint2;
-    private Point _redPoint1;
-    private Point _redPoint2;
-
-    private readonly FormattedText _warningText1 = new FormattedText("-3dB",
-        CultureInfo.CurrentCulture, FlowDirection.LeftToRight, Typeface.Default, 10,
-        new SolidColorBrush(Colors.Orange, .5));
-
-    private readonly FormattedText _warningText2 = new FormattedText("0dB",
-        CultureInfo.CurrentCulture, FlowDirection.LeftToRight, Typeface.Default, 10,
-        new SolidColorBrush(Colors.Red, .5));
-
-    private Point _warningPoint1;
-    private Point _warningPoint2;
+    // private readonly Pen _orangePen = new Pen(new ValurColorBrush(Colors.Orange, .5));
+    // private readonly Pen _redPen = new Pen(new ValurColorBrush(Colors.Red, .5));
+    
+    
+    // private readonly FormattedText _warningText1 = new FormattedText("-3dB",
+    //     CultureInfo.CurrentCulture, FlowDirection.LeftToRight, Typeface.Default, 10,
+    //     new ValurColorBrush(Colors.Orange, .5));
+    //
+    // private readonly FormattedText _warningText2 = new FormattedText("0dB",
+    //     CultureInfo.CurrentCulture, FlowDirection.LeftToRight, Typeface.Default, 10,
+    //     new ValurColorBrush(Colors.Red, .5));
 
     private Rect _backgroundRect;
 
@@ -100,12 +95,18 @@ public partial class MixerLevelMeter : UserControl
 
     private List<Point[]> _gridList = new();
 
-    private IBrush SolidColorBrush => Brush.Parse(Track.Color);
+    private IBrush ValurColorBrush => Brush.Parse(Track.Color);
+    private static readonly Color OrangeColor = Color.FromRgb(255,160,0);
+    private static readonly Color RedColor = Color.FromRgb(255,50,0);
 
-    private IBrush _orangeBrush = new SolidColorBrush(Colors.Orange, .8);
-    private IBrush _redBrush = new SolidColorBrush(Colors.Red, .8);
+    private IBrush _orangeBrush = new SolidColorBrush(OrangeColor, .8);
+    private IBrush _redBrush = new SolidColorBrush(RedColor, .8);
     private double _colorBrushOpacity = .5;
     private IBrush ColorBrush => new SolidColorBrush(Color.Parse(Track.Color), _colorBrushOpacity);
+
+    private readonly IBrush _backgroundOrangeBrush = new SolidColorBrush(OrangeColor, 0.15);
+
+    private readonly IBrush _backgroundRedBrush = new SolidColorBrush(RedColor, 0.15);
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
@@ -114,17 +115,17 @@ public partial class MixerLevelMeter : UserControl
         {
             if (Mode == LevelMeterMode.PeakRms)
             {
-                _orangeBrush = new SolidColorBrush(Colors.Orange, .5);
-                _redBrush = new SolidColorBrush(Colors.Red, .5);
+                _orangeBrush = new SolidColorBrush(OrangeColor, .5);
+                _redBrush = new SolidColorBrush(RedColor, .5);
                 _colorBrushOpacity = .5;
             }
             else
             {
-                _orangeBrush = new SolidColorBrush(Colors.Orange, .75);
-                _redBrush = new SolidColorBrush(Colors.Red, .75);
+                _orangeBrush = new SolidColorBrush(OrangeColor, .75);
+                _redBrush = new SolidColorBrush(RedColor, .75);
                 _colorBrushOpacity = .75;
             }
-            // if (change.Property == TrackProperty) _solidColorBrush = new SolidColorBrush(Color.Parse(Track.Color));
+            // if (change.Property == TrackProperty) _solidColorBrush = new ValurColorBrush(Color.Parse(Track.Color));
         }
     }
 
@@ -132,13 +133,12 @@ public partial class MixerLevelMeter : UserControl
     {
         base.Render(context);
 
-        _orangePoint1 = new Point(Bounds.Width * .7, (1 - NormalizeDb(-3)) * Bounds.Height);
-        _orangePoint2 = new Point(Bounds.Width, (1 - NormalizeDb(-3)) * Bounds.Height);
-        _redPoint1 = new Point(Bounds.Width * .6, (1 - NormalizeDb(0)) * Bounds.Height);
-        _redPoint2 = new Point(Bounds.Width, (1 - NormalizeDb(0)) * Bounds.Height);
-
-        _warningPoint1 = new Point(Bounds.Width + 5, (1 - NormalizeDb(-3)) * Bounds.Height - 8);
-        _warningPoint2 = new Point(Bounds.Width + 5, (1 - NormalizeDb(0)) * Bounds.Height - 8);
+        // _orangePoint1 = new Point(0, (1 - NormalizeDb(-3)) * Bounds.Height);
+        // _orangePoint2 = new Point(Bounds.Width, (1 - NormalizeDb(-3)) * Bounds.Height);
+        // _redPoint1 = new Point(0, (1 - NormalizeDb(0)) * Bounds.Height);
+        // _redPoint2 = new Point(Bounds.Width, (1 - NormalizeDb(0)) * Bounds.Height);
+        var waringLevelOrange = (1 - NormalizeDb(-3)) * Bounds.Height;
+        var waringLevelRed = (1 - NormalizeDb(0)) * Bounds.Height;
 
         _backgroundRect = new Rect(0, 0, Bounds.Width, Bounds.Height);
 
@@ -151,30 +151,44 @@ public partial class MixerLevelMeter : UserControl
             ]);
         }
 
+        context.PushClip(_backgroundRect);
 
-        context.DrawRectangle(Brush.Parse("#232323"), null, _backgroundRect);
+        context.DrawRectangle((new SolidColorBrush(Colors.Black,0.2)), null, _backgroundRect);
 
-
+        
         //警告线
         {
+            var r = 1.5;
             //-3dB Warning 警告电平
-            context.DrawLine(_orangePen,
-                _orangePoint1,
-                _orangePoint2);
-
-            //0dB Warning 警告电平
-            context.DrawLine(_redPen,
-                _redPoint1,
-                _redPoint2);
+            // context.DrawLine(_orangePen,
+            //     _orangePoint1,
+            //     _orangePoint2);
+            context.DrawEllipse(_backgroundOrangeBrush,null,
+                new Point(Bounds.Width,waringLevelOrange),
+                r,r);
+            context.DrawEllipse(_backgroundOrangeBrush,null,
+                new Point(0,waringLevelOrange),
+                r,r);
+            
+            // //0dB Warning 警告电平
+            // context.DrawLine(_redPen,
+            //     _redPoint1,
+            //     _redPoint2);
+            context.DrawEllipse(_backgroundRedBrush,null,
+                new Point(Bounds.Width,waringLevelRed),
+                r,r);
+            context.DrawEllipse(_backgroundRedBrush,null,
+                new Point(0,waringLevelRed),
+                r,r);
         }
         //Text
-        context.DrawText(_warningText1,
-            _warningPoint1);
-        context.DrawText(_warningText2,
-            _warningPoint2);
+        // context.DrawText(_warningText1,
+        //     _warningPoint1);
+        // context.DrawText(_warningText2,
+        //     _warningPoint2);
 
 
-        context.DrawRectangle(null, new Pen(SolidColorBrush), _backgroundRect);
+        // context.DrawRectangle(null, new Pen(ValurColorBrush), _backgroundRect);
 
         //PEAK
         if (Mode is LevelMeterMode.PeakRms or LevelMeterMode.Peak)
