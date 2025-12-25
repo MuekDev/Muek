@@ -77,7 +77,7 @@ public partial class TrackViewModel : ViewModelBase
             var pattern = new PatternViewModel()
             {
                 Name = clip.Name,
-                Notes = [notes]
+                Notes = [notes,[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]]
             };
             ViewHelper.GetMainWindow().PianoRollWindow.PatternSelection.ViewModel.AddPattern(pattern);
             vm.LinkedPattern = pattern;
