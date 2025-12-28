@@ -28,11 +28,12 @@
                     <i:Icon Value="fa-bars" Foreground="White" />
                 </Button>
                 <Panel Width="40" />
-                <Button Background="Transparent" Command="{Binding OnPlayButtonClick}">
-                    <i:Icon Value="fa-play" Foreground="White" />
+                <Button Background="Transparent" Command="{Binding OnPlayButtonClick}"
+                        HotKey="Space">
+                    <i:Icon Value="fa-play" Foreground="White"/>
                 </Button>
                 <Button Background="Transparent" Command="{Binding OnStopButtonClick}">
-                    <i:Icon Value="fa-stop" Foreground="White" />
+                    <i:Icon Value="fa-stop" Foreground="White"/>
                 </Button>
                 <Button Background="Transparent" Command="{Binding OnRecordButtonClick}">
                     <i:Icon Value="fa-circle" FontSize="12" Foreground="White" />

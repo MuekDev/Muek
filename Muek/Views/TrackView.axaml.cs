@@ -35,6 +35,17 @@ public partial class TrackView : UserControl
     private bool _isMovingClip;                // 是否在移动片段
     private bool _isResizingClipRight;         // 是否在调整片段长度
     private ClipViewModel? _activeClip = null; // 当前被激活的片段
+
+    public ClipViewModel? ActiveClip
+    {
+        get => _activeClip;
+        set
+        {
+            _activeClip = value;
+            InvalidateVisual();
+        }
+    }
+    
     private MainWindow? _mainWindow;
     private double _lastClickedBeatOfClip = 0; // 最后一次点击clip title的位置（相对于clip，单位为beat）
     private bool _isResizingClipLeft;
@@ -854,7 +865,7 @@ public partial class TrackView : UserControl
             {
                 if (clip != _activeClip) continue;
                 track.Clips.Remove(clip);
-                _activeClip = null;
+                ActiveClip = null;
                 InvalidateVisual();
             }
         }
@@ -890,7 +901,7 @@ public partial class TrackView : UserControl
         if (trackIndex < 0 || trackIndex >= DataStateService.Tracks.Count)
         {
             Cursor = new Cursor(StandardCursorType.Ibeam);
-            _activeClip = null;
+            ActiveClip = null;
             return ClipInteractionMode.None;
         }
 
@@ -905,7 +916,7 @@ public partial class TrackView : UserControl
 
             if (pointerBeat >= clipStart && pointerBeat <= clipEnd)
             {
-                _activeClip = clip;
+                ActiveClip = clip;
                 var relativeBeat = pointerBeat - clipStart;
                 var scaledPosX = relativeBeat * ScaleFactor;
 
@@ -934,7 +945,7 @@ public partial class TrackView : UserControl
         }
 
         // 没找到匹配的 clip
-        _activeClip = null;
+        ActiveClip = null;
         return ClipInteractionMode.None;
     }
 

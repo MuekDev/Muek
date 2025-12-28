@@ -22,6 +22,7 @@ public partial class MainWindowViewModel : ViewModelBase
 {
     public ObservableCollection<TrackViewModel> Tracks => DataStateService.Tracks;
     [ObservableProperty] private int _count = 0;
+
     private float PlayPosition
     {
         get => AudioService.PlayPosition;
@@ -32,43 +33,51 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         // Tracks = [new TrackViewModel("Master", Brush.Parse("#51cc8c"))];
     }
+    
+    [RelayCommand]
+    public void OnPlayButtonClick()
+    {
+        if(!DataStateService.IsPlaying)
+            Play();
+        else
+            Stop();
+    }
 
     [RelayCommand]
-    public async Task OnPlayButtonClick()
+    public void OnStopButtonClick()
+    {
+        Stop();
+    }
+
+    private unsafe void Play()
     {
         Console.WriteLine("Omg it is playing...");
         // await RpcService.SendCommand(new PlayCommand());
         // AudioService.Play();
-
+        DataStateService.IsPlaying = true;
         var clips = new List<ClipProto>();
         foreach (var track in Tracks)
         {
             foreach (var clip in track.Clips)
             {
                 var id = clip.Proto.Id;
-                unsafe
+                fixed (char* idStr = id)
                 {
-                    fixed (char* idStr = id)
+                    var proto = new ClipProto()
                     {
-                        var proto = new ClipProto()
-                        {
-                            clip_id = (ushort*)idStr,
-                            clip_id_len = id.Length,
-                            end_time = (float)(clip.Proto.StartBeat + clip.Proto.Duration),
-                            start_time = (float)clip.StartBeat
-                        };
-                        clips.Add(proto);
-                    }
+                        clip_id = (ushort*)idStr,
+                        clip_id_len = id.Length,
+                        end_time = (float)(clip.Proto.StartBeat + clip.Proto.Duration),
+                        start_time = (float)clip.StartBeat
+                    };
+                    clips.Add(proto);
                 }
             }
 
             var protoArr = clips.ToArray();
-            unsafe
+            fixed (ClipProto* clipPtr = protoArr)
             {
-                fixed (ClipProto* clipPtr = protoArr)
-                {
-                    MuekEngine.sync_all_clips(clipPtr, protoArr.Length);
-                }
+                MuekEngine.sync_all_clips(clipPtr, protoArr.Length);
             }
         }
         
@@ -76,9 +85,9 @@ public partial class MainWindowViewModel : ViewModelBase
         AudioService.TriggerAudioStarted();
     }
 
-    [RelayCommand]
-    public async Task OnStopButtonClick()
+    private void Stop()
     {
+        DataStateService.IsPlaying = false;
         Console.WriteLine("Omg it is stopping...");
         PlayPosition = MuekEngine.get_current_position_beat();
         if(MuekEngine.stream_stop())

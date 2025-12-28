@@ -13,6 +13,7 @@ namespace Muek.Services;
 public static class DataStateService
 {
     public static Color MuekColor = new Color(255,100, 200, 150);
+    public static IBrush MuekColorBrush = new SolidColorBrush(MuekColor);
     
     public static ObservableCollection<TrackViewModel> Tracks { get; private set; } =
     [
