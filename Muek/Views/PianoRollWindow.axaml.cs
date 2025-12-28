@@ -18,10 +18,11 @@ namespace Muek.Views;
 public partial class PianoRollWindow : UserControl
 {
     private bool _isShowing = false;
-    public bool IsShowing => _isShowing;
+    public bool IsShowing => _isDetached || _isShowing;
     private double _maxSize = 400.0;
     private bool _isDragging = false;
     private bool _velocityIsDragging = false;
+    private bool _isDetached = false;
     
     public PianoRollWindow()
     {
@@ -43,6 +44,7 @@ public partial class PianoRollWindow : UserControl
         };
         ResizePanel.PointerMoved += (sender, args) =>
         {
+            if (_isDetached) return;
             if (_isDragging)
             {
                 _maxSize = double.Clamp(Height - args.GetPosition(this).Y,90,ViewHelper.GetMainWindow().Height * .8);
@@ -185,6 +187,7 @@ public partial class PianoRollWindow : UserControl
     
     private void Hide()
     {
+        if (_isDetached) return;
         if(Height >= _maxSize)
         {
             _isShowing = false;
@@ -225,6 +228,7 @@ public partial class PianoRollWindow : UserControl
     
     public void Show()
     {
+        if (_isDetached) return;
         if (_isDragging)
         {
             _isShowing = true;
@@ -374,17 +378,47 @@ public partial class PianoRollWindow : UserControl
             mainWindow.MainGrid.Children.Remove(this);
             var window = new Window
             {
+                ExtendClientAreaToDecorationsHint = true,
+                SystemDecorations = SystemDecorations.BorderOnly,
+                ExtendClientAreaTitleBarHeightHint = 0,
                 Content = this,
+                MinHeight = 200,
+                MinWidth = 1000
+            };
+            PointerPressed += (_, args) =>
+            {
+                if (args.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+                {
+                    window.BeginMoveDrag(args);
+                }
             };
             Height = window.Height;
             window.Show();
+            _isDetached = true;
+            CloseButton.IsVisible = false;
+            OpenButton.IsVisible = false;
             window.Closed += (o, args) =>
             {
                 window.Content = null;
                 mainWindow.MainGrid.Children.Add(this);
                 Hide();
                 Height = 90;
+                _isDetached = false;
+                OpenButton.IsVisible = true;
+                CloseButton.IsVisible = false;
             };
+        }
+        else
+        {
+            try
+            {
+                if (Parent is Window window)
+                    window.Close();
+            }
+            catch (Exception)
+            {
+                //ignore
+            }
         }
     }
 }

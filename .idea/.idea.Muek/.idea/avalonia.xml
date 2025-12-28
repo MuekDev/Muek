@@ -31,6 +31,7 @@
         <entry key="Muek/Views/PianoRollWindow.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/Views/PianoRollWindowSingle.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/Views/PianoRollYSlider.axaml" value="Muek/Muek.csproj" />
+        <entry key="Muek/Views/PianoScroller.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/Views/PianoSlider.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/Views/PluginManagerWindow.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/Views/ProcessingWindow.axaml" value="Muek/Muek.csproj" />
