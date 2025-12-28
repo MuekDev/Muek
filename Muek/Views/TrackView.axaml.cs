@@ -11,6 +11,7 @@ using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using CommunityToolkit.Mvvm.Input;
 using Muek.Engine;
 using Muek.Helpers;
 using Muek.Models;
@@ -811,6 +812,51 @@ public partial class TrackView : UserControl
             }
 
             e.Handled = true; // 避免冒泡
+        }
+        else if (props.IsRightButtonPressed)
+        {
+            if(_activeClip is null)
+                return;
+            var state = GetClipInteractionMode();
+            if (state == ClipInteractionMode.OnTopTitle)
+            {
+                var menu = new MenuFlyout()
+                {
+                    Items =
+                    {
+                        new MenuItem()
+                        {
+                            Header = "Rename",
+                            //TODO
+                        },
+                        new MenuItem()
+                        {
+                            Header = "Remove",
+                            Command = RemoveClipCommand
+                        }
+                    }
+                };
+                menu.ShowAt(this,true);
+            }
+            else
+            {
+                RemoveClip();
+            }
+        }
+    }
+    
+    [RelayCommand]
+    private void RemoveClip()
+    {
+        foreach (var track in DataStateService.Tracks)
+        {
+            foreach (var clip in track.Clips.ToList())
+            {
+                if (clip != _activeClip) continue;
+                track.Clips.Remove(clip);
+                _activeClip = null;
+                InvalidateVisual();
+            }
         }
     }
 
