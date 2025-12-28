@@ -942,7 +942,8 @@ public partial class TrackView : UserControl
     protected override void OnPointerMoved(PointerEventArgs e)
     {
         base.OnPointerMoved(e);
-
+        _isSnapping = e.KeyModifiers != KeyModifiers.Alt;
+        
         if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
         {
             var point = e.GetPosition(this);

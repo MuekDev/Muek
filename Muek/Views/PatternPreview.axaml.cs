@@ -99,11 +99,6 @@ public partial class PatternPreview : UserControl
             }
         }
 
-        if (_isDragging)
-        {
-            //TODO 拖拽功能
-        }
-
         // 使用缓存的音符渲染
         RenderNotesWithCache(context);
     }

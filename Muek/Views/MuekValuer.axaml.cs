@@ -98,8 +98,7 @@ public partial class MuekValuer : UserControl
         get => GetValue(LayoutProperty);
         set => SetValue(LayoutProperty, value);
     }
-
-    //TODO 普普通通的Value值，等待修改
+    
     public double Value;
 
     private bool _hover;

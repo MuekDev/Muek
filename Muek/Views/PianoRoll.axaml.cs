@@ -119,9 +119,9 @@ public partial class PianoRoll : UserControl
         set
         {
             _pattern = value;
-            MainWindow.PianoRollWindow.ChannelSelectionDisable.IsVisible = _pattern is null;
+            DataStateService.PianoRollWindow.ChannelSelectionDisable.IsVisible = _pattern is null;
             if (_pattern is null)
-                MainWindow.PianoRollWindow.Channel.UnselectAll();
+                DataStateService.PianoRollWindow.Channel.UnselectAll();
             OnPropertyChanged(nameof(Pattern));
         }
     }
@@ -133,14 +133,14 @@ public partial class PianoRoll : UserControl
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         if (Pattern != null)
         {
-            MainWindow.PianoRollWindow.WindowCover.IsVisible = false;
+            DataStateService.PianoRollWindow.WindowCover.IsVisible = false;
         }
         else
         {
-            MainWindow.PianoRollWindow.WindowCover.IsVisible = true;
+            DataStateService.PianoRollWindow.WindowCover.IsVisible = true;
         }
 
-        var patterns = MainWindow.PianoRollWindow.PatternSelection.ViewModel.Patterns;
+        var patterns = DataStateService.PianoRollWindow.PatternSelection.ViewModel.Patterns;
         foreach (var pattern in patterns)
         {
             if (pattern == Pattern) pattern.Background = new SolidColorBrush(pattern.Color);
@@ -152,10 +152,10 @@ public partial class PianoRoll : UserControl
 
     private int CurrentChannel
     {
-        get => (int)(MainWindow.PianoRollWindow.Channel.SelectedItem ?? 1);
+        get => (int)(DataStateService.PianoRollWindow.Channel.SelectedItem ?? 1);
         set
         {
-            MainWindow.PianoRollWindow.Channel.SelectedItem = int.Clamp(value, 1, 16);
+            DataStateService.PianoRollWindow.Channel.SelectedItem = int.Clamp(value, 1, 16);
             InvalidateVisual();
         }
     }
@@ -277,9 +277,9 @@ public partial class PianoRoll : UserControl
         //绘制区域
         else
         {
-            var left = MainWindow.PianoRollWindow.PianoRollRightScroll.Offset.X;
-            var right = MainWindow.PianoRollWindow.PianoRollRightScroll.Offset.X +
-                        MainWindow.PianoRollWindow.PianoRollRightScroll.Bounds.Width;
+            var left = DataStateService.PianoRollWindow.PianoRollRightScroll.Offset.X;
+            var right = DataStateService.PianoRollWindow.PianoRollRightScroll.Offset.X +
+                        DataStateService.PianoRollWindow.PianoRollRightScroll.Bounds.Width;
             var visibleRect = new Rect(left, 0, right - left, Bounds.Height);
             using (context.PushClip(visibleRect))
             {
@@ -738,7 +738,7 @@ public partial class PianoRoll : UserControl
                 }
                 else
                 {
-                    Magnet = MainWindow.PianoRollWindow.MagnetSettingsWindow.SelectedGrid.Value;
+                    Magnet = DataStateService.PianoRollWindow.MagnetSettingsWindow.SelectedGrid.Value;
                 }
 
                 _currentMousePosition = e.GetPosition(this);
@@ -1210,11 +1210,11 @@ public partial class PianoRoll : UserControl
     {
         base.OnPointerWheelChanged(e);
         if(!ViewHelper.IsDesktopPlatform()) return;
-        if (MainWindow.PianoRollWindow.PianoRollRightScroll.Bounds.Width >= Width)
+        if (DataStateService.PianoRollWindow.PianoRollRightScroll.Bounds.Width >= Width)
         {
-            MainWindow.PianoRollWindow.PianoRollRightScroll.Offset = new Vector(
-                Width - MainWindow.PianoRollWindow.PianoRollRightScroll.Bounds.Width,
-                MainWindow.PianoRollWindow.PianoRollRightScroll.Offset.Y);
+            DataStateService.PianoRollWindow.PianoRollRightScroll.Offset = new Vector(
+                Width - DataStateService.PianoRollWindow.PianoRollRightScroll.Bounds.Width,
+                DataStateService.PianoRollWindow.PianoRollRightScroll.Offset.Y);
         }
 
         if (e.KeyModifiers.HasFlag(KeyModifiers.Control))
@@ -1224,16 +1224,16 @@ public partial class PianoRoll : UserControl
                 double currentPosition = e.GetPosition(this).Y / NoteHeight;
                 NoteHeight = double.Clamp(NoteHeight + e.Delta.Y * NoteHeight / 20d * ScalingSensitivity.Y, 10, 30);
                 Height = NoteHeight * (NoteRangeMax - NoteRangeMin + 1) * Temperament;
-                MainWindow.PianoRollWindow.PianoRollRightScroll.Offset = new Vector(
-                    MainWindow.PianoRollWindow.PianoRollRightScroll.Offset.X,
+                DataStateService.PianoRollWindow.PianoRollRightScroll.Offset = new Vector(
+                    DataStateService.PianoRollWindow.PianoRollRightScroll.Offset.X,
                     currentPosition * NoteHeight -
-                    e.GetPosition(MainWindow.PianoRollWindow.PianoRollRightScroll).Y);
+                    e.GetPosition(DataStateService.PianoRollWindow.PianoRollRightScroll).Y);
 
 
                 Console.WriteLine($"CurrentPositionY: {currentPosition}");
 
-                Console.WriteLine(MainWindow.PianoRollWindow.PianoRollRightScroll.Offset);
-                Console.WriteLine(e.GetPosition(MainWindow.PianoRollWindow.PianoRollRightScroll));
+                Console.WriteLine(DataStateService.PianoRollWindow.PianoRollRightScroll.Offset);
+                Console.WriteLine(e.GetPosition(DataStateService.PianoRollWindow.PianoRollRightScroll));
             }
             else
             {
@@ -1247,15 +1247,15 @@ public partial class PianoRoll : UserControl
                 double currentPosition = e.GetPosition(this).X / _widthOfBeat;
 
                 _widthOfBeat = double.Clamp(_widthOfBeat + e.Delta.Y * _widthOfBeat / 50d * ScalingSensitivity.X,
-                    double.Max(1, MainWindow.PianoRollWindow.PianoRollRightScroll.Bounds.Width / trackEnd), 500);
+                    double.Max(1, DataStateService.PianoRollWindow.PianoRollRightScroll.Bounds.Width / trackEnd), 500);
 
-                MainWindow.PianoRollWindow.PianoRollRightScroll.Offset = new Vector(
+                DataStateService.PianoRollWindow.PianoRollRightScroll.Offset = new Vector(
                     currentPosition * _widthOfBeat -
-                    e.GetPosition(MainWindow.PianoRollWindow.PianoRollRightScroll).X,
-                    MainWindow.PianoRollWindow.PianoRollRightScroll.Offset.Y);
+                    e.GetPosition(DataStateService.PianoRollWindow.PianoRollRightScroll).X,
+                    DataStateService.PianoRollWindow.PianoRollRightScroll.Offset.Y);
 
-                // Console.WriteLine(MainWindow.PianoRollWindow.PianoRollRightScroll.Offset);
-                // Console.WriteLine(e.GetPosition(MainWindow.PianoRollWindow.PianoRollRightScroll));
+                // Console.WriteLine(DataStateService.PianoRollWindow.PianoRollRightScroll.Offset);
+                // Console.WriteLine(e.GetPosition(DataStateService.PianoRollWindow.PianoRollRightScroll));
             }
 
             // _ = ShowOptions();
@@ -1312,22 +1312,22 @@ public partial class PianoRoll : UserControl
 
             trackEnd += LengthIncreasement;
             Width = trackEnd * _widthOfBeat;
-            // Console.WriteLine($"Scroll:{MainWindow.PianoRollWindow.PianoRollRightScroll.Offset.X+MainWindow.PianoRollWindow.PianoRollRightScroll.Bounds.Width} Width:{Width}");
-            if (MainWindow.PianoRollWindow.PianoRollRightScroll.Offset.X +
-                MainWindow.PianoRollWindow.PianoRollRightScroll.Bounds.Width > Width)
+            // Console.WriteLine($"Scroll:{DataStateService.PianoRollWindow.PianoRollRightScroll.Offset.X+DataStateService.PianoRollWindow.PianoRollRightScroll.Bounds.Width} Width:{Width}");
+            if (DataStateService.PianoRollWindow.PianoRollRightScroll.Offset.X +
+                DataStateService.PianoRollWindow.PianoRollRightScroll.Bounds.Width > Width)
             {
-                MainWindow.PianoRollWindow.PianoRollRightScroll.Offset = new Vector(
-                    Width - MainWindow.PianoRollWindow.PianoRollRightScroll.Bounds.Width,
-                    MainWindow.PianoRollWindow.PianoRollRightScroll.Offset.Y);
+                DataStateService.PianoRollWindow.PianoRollRightScroll.Offset = new Vector(
+                    Width - DataStateService.PianoRollWindow.PianoRollRightScroll.Bounds.Width,
+                    DataStateService.PianoRollWindow.PianoRollRightScroll.Offset.Y);
             }
 
             _widthOfBeat = double.Max(_widthOfBeat,
-                MainWindow.PianoRollWindow.PianoRollRightScroll.Bounds.Width / trackEnd);
+                DataStateService.PianoRollWindow.PianoRollRightScroll.Bounds.Width / trackEnd);
         }
 
-        MainWindow.PianoRollWindow.PatternPreview.InvalidateVisual();
-        MainWindow.PianoRollWindow.NoteVelocity.InvalidateVisual();
-        MainWindow.PianoRollWindow.PianoScroller.InvalidateVisual();
+        DataStateService.PianoRollWindow.PatternPreview.InvalidateVisual();
+        DataStateService.PianoRollWindow.NoteVelocity.InvalidateVisual();
+        DataStateService.PianoRollWindow.PianoScroller.InvalidateVisual();
         foreach (var track in DataStateService.Tracks)
         {
             foreach (var clip in track.Clips)
@@ -1435,7 +1435,7 @@ public partial class PianoRoll : UserControl
             //     Console.WriteLine($"Start: {note.StartTime}; End: {note.EndTime}; Name: {note.Name}");
             // }
             SaveNotes();
-            MainWindow.PianoRollWindow.PatternPreview.ScrollToNoteFirst();
+            DataStateService.PianoRollWindow.PatternPreview.ScrollToNoteFirst();
             InvalidateVisual();
         }
         // Console.WriteLine($"Notes: {Notes.Count}");
