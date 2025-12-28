@@ -2,10 +2,8 @@ using System;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using Avalonia.Media;
 using Avalonia.Threading;
 using Muek.Services;
-using Muek.ViewModels;
 
 namespace Muek.Views;
 

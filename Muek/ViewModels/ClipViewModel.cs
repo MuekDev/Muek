@@ -1,11 +1,9 @@
 using System;
 using System.Collections.Generic;
-using Avalonia.Platform;
 using Muek.Engine;
 using Muek.Models;
 using Muek.Services;
 using Muek.Views;
-using NAudio.Midi;
 using NAudio.Wave;
 
 namespace Muek.ViewModels;

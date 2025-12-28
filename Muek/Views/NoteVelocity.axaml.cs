@@ -1,12 +1,9 @@
-using System;
 using System.Collections.Generic;
 using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
-using Avalonia.Markup.Xaml;
 using Avalonia.Media;
-using Muek.Models;
 using Muek.Services;
 
 namespace Muek.Views;

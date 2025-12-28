@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace Muek.Models;
 
 public class Clip

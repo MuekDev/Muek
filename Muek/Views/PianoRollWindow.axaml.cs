@@ -1,24 +1,17 @@
 using System;
-using System.Collections;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Animation;
 using Avalonia.Animation.Easings;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using Avalonia.LogicalTree;
 using Avalonia.Media;
 using Avalonia.Platform.Storage;
 using Avalonia.Styling;
-using Avalonia.VisualTree;
-using CommunityToolkit.Mvvm.Input;
 using Muek.Models;
 using Muek.Services;
-using Muek.ViewModels;
 
 namespace Muek.Views;
 

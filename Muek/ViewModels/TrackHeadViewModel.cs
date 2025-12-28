@@ -4,14 +4,11 @@ using Avalonia;
 using Avalonia.Animation;
 using Avalonia.Animation.Easings;
 using Avalonia.Controls;
-using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Controls.Utils;
 using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Styling;
 using Muek.Models;
 using Muek.Services;
-using Muek.Views;
 
 namespace Muek.ViewModels;
 

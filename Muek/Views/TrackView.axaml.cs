@@ -13,7 +13,6 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using CommunityToolkit.Mvvm.Input;
 using Muek.Engine;
-using Muek.Helpers;
 using Muek.Models;
 using Muek.Services;
 using Muek.ViewModels;

@@ -1,8 +1,5 @@
-using System;
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.Input;
-using Muek.Models;
-using Muek.Services;
 
 namespace Muek.ViewModels;
 

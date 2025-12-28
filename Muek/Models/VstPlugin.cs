@@ -1,7 +1,4 @@
-using System;
 using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
-using Muek.Engine;
 using Muek.ViewModels;
 
 namespace Muek.Models;

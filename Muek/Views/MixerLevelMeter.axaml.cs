@@ -1,18 +1,12 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
-using System.Reactive.PlatformServices;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Primitives;
 using Avalonia.Input;
-using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Threading;
-using CommunityToolkit.Mvvm.ComponentModel;
 using Muek.Services;
 using Muek.ViewModels;
-using SkiaSharp;
 
 namespace Muek.Views;
 

@@ -6,9 +6,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Styling;
-using Muek.Models;
 using Muek.Services;
-using Muek.ViewModels;
 
 namespace Muek.Views;
 
