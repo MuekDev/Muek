@@ -29,10 +29,10 @@ public partial class PatternViewModel : ViewModelBase
     [RelayCommand]
     public void SelectPattern()
     {
-        var pianoRoll =  ViewHelper.GetMainWindow().PianoRollWindow.EditArea;
-        var pianoBar = ViewHelper.GetMainWindow().PianoRollWindow.PianoBar;
-        var button = ViewHelper.GetMainWindow().PianoRollWindow.PatternSelectButton;
-        var color = ViewHelper.GetMainWindow().PianoRollWindow.PatternColor;
+        var pianoRoll =  DataStateService.PianoRollWindow.EditArea;
+        var pianoBar = DataStateService.PianoRollWindow.PianoBar;
+        var button = DataStateService.PianoRollWindow.PatternSelectButton;
+        var color = DataStateService.PianoRollWindow.PatternColor;
         pianoRoll.Pattern = this;
         pianoRoll.InvalidateVisual();
         pianoRoll.SaveNotes();
@@ -42,7 +42,7 @@ public partial class PatternViewModel : ViewModelBase
         color.Background = Brush;
         try
         {
-            ViewHelper.GetMainWindow().PianoRollWindow.Channel.SelectedItem = 1;
+            DataStateService.PianoRollWindow.Channel.SelectedItem = 1;
         }
         catch (Exception e)
         {
@@ -53,10 +53,10 @@ public partial class PatternViewModel : ViewModelBase
     [RelayCommand]
     public void RemovePattern()
     {
-        var pianoRoll =  ViewHelper.GetMainWindow().PianoRollWindow.EditArea;
-        var pianoBar = ViewHelper.GetMainWindow().PianoRollWindow.PianoBar;
-        var button = ViewHelper.GetMainWindow().PianoRollWindow.PatternSelectButton;
-        var pattern = ViewHelper.GetMainWindow().PianoRollWindow.PatternSelection;
+        var pianoRoll =  DataStateService.PianoRollWindow.EditArea;
+        var pianoBar = DataStateService.PianoRollWindow.PianoBar;
+        var button = DataStateService.PianoRollWindow.PatternSelectButton;
+        var pattern = DataStateService.PianoRollWindow.PatternSelection;
         if(pianoRoll.Pattern == this)
         {
             pianoRoll.Pattern = null;
@@ -71,10 +71,10 @@ public partial class PatternViewModel : ViewModelBase
     
     public void ShowRenameWindow()
     {
-        var mainWindow = ViewHelper.GetMainWindow();
-        var pianoRoll =  ViewHelper.GetMainWindow().PianoRollWindow.EditArea;
+        // var mainWindow = ViewHelper.GetMainWindow();
+        var pianoRoll =  DataStateService.PianoRollWindow.EditArea;
         var window = new RenameWindow();
-        window.ShowDialog(mainWindow);
+        window.Show();
         window.NameBox.Text = Name;
         window.Submit += (sender, s) =>
         {
@@ -87,7 +87,7 @@ public partial class PatternViewModel : ViewModelBase
     public void ShowRecolorWindow()
     {
         var mainWindow = ViewHelper.GetMainWindow();
-        var pianoRoll =  ViewHelper.GetMainWindow().PianoRollWindow.EditArea;
+        var pianoRoll =  DataStateService.PianoRollWindow.EditArea;
         var recolorWindow = new RecolorWindow();
         recolorWindow.MyColorView.SelectedColor = Color;
         recolorWindow.Show();

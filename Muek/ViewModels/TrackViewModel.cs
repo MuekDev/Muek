@@ -92,7 +92,7 @@ public partial class TrackViewModel : ViewModelBase
                     Name = clip.Name,
                     Notes = notes
                 };
-                ViewHelper.GetMainWindow().PianoRollWindow.PatternSelection.ViewModel.AddPattern(pattern);
+                DataStateService.PianoRollWindow.PatternSelection.ViewModel.AddPattern(pattern);
                 vm.LinkedPattern = pattern;
             }
         }

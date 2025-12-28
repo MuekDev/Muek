@@ -15,25 +15,25 @@ public partial class NoteVelocity : UserControl
 {
     private List<PianoRoll.Note> Notes
     {
-        get => ViewHelper.GetMainWindow().PianoRollWindow.EditArea.Notes;
-        set => ViewHelper.GetMainWindow().PianoRollWindow.EditArea.Notes = value;
+        get => DataStateService.PianoRollWindow.EditArea.Notes;
+        set => DataStateService.PianoRollWindow.EditArea.Notes = value;
     }
 
     private List<PianoRoll.Note> SelectedNotes
     {
-        get => ViewHelper.GetMainWindow().PianoRollWindow.EditArea.SelectedNotes;
-        set => ViewHelper.GetMainWindow().PianoRollWindow.EditArea.SelectedNotes = value;
+        get => DataStateService.PianoRollWindow.EditArea.SelectedNotes;
+        set => DataStateService.PianoRollWindow.EditArea.SelectedNotes = value;
     }
     
     private double WidthOfBeat
     {
-        get => ViewHelper.GetMainWindow().PianoRollWindow.EditArea.WidthOfBeat;
-        set => ViewHelper.GetMainWindow().PianoRollWindow.EditArea.WidthOfBeat = value;
+        get => DataStateService.PianoRollWindow.EditArea.WidthOfBeat;
+        set => DataStateService.PianoRollWindow.EditArea.WidthOfBeat = value;
     }
 
     private double LengthIncreasement => PianoRoll.LengthIncreasement;
-    private Point ScalingSensitivity => ViewHelper.GetMainWindow().PianoRollWindow.EditArea.ScalingSensitivity;
-    private Color Color => ViewHelper.GetMainWindow().PianoRollWindow.EditArea.Pattern?.Color ?? DataStateService.MuekColor;
+    private Point ScalingSensitivity => DataStateService.PianoRollWindow.EditArea.ScalingSensitivity;
+    private Color Color => DataStateService.PianoRollWindow.EditArea.Pattern?.Color ?? DataStateService.MuekColor;
     private Pen NotePen => new Pen(new SolidColorBrush(Color),2);
 
     private static readonly IBrush WhiteBrush = new SolidColorBrush(Colors.White,.1);
@@ -119,7 +119,7 @@ public partial class NoteVelocity : UserControl
             if (!Notes.Equals(newNotes))
             {
                 Notes = newNotes;
-                ViewHelper.GetMainWindow().PianoRollWindow.EditArea.InvalidateVisual();
+                DataStateService.PianoRollWindow.EditArea.InvalidateVisual();
             }
         }
         e.Handled = true;
@@ -135,37 +135,37 @@ public partial class NoteVelocity : UserControl
             if(Bounds.Height > 40)
             {
                 context.DrawLine(_whitePen, new Point(
-                    ViewHelper.GetMainWindow().PianoRollWindow.NoteVelocityScroll.Offset.X + 10
+                    DataStateService.PianoRollWindow.NoteVelocityScroll.Offset.X + 10
                     , 10), new Point(
-                    ViewHelper.GetMainWindow().PianoRollWindow.NoteVelocityScroll.Bounds.Width +
-                    ViewHelper.GetMainWindow().PianoRollWindow.NoteVelocityScroll.Offset.X - 100
+                    DataStateService.PianoRollWindow.NoteVelocityScroll.Bounds.Width +
+                    DataStateService.PianoRollWindow.NoteVelocityScroll.Offset.X - 100
                     , 10));
                 context.DrawLine(_whitePen, new Point(
-                    ViewHelper.GetMainWindow().PianoRollWindow.NoteVelocityScroll.Offset.X + 10
+                    DataStateService.PianoRollWindow.NoteVelocityScroll.Offset.X + 10
                     , Bounds.Height - 10), new Point(
-                    ViewHelper.GetMainWindow().PianoRollWindow.NoteVelocityScroll.Bounds.Width +
-                    ViewHelper.GetMainWindow().PianoRollWindow.NoteVelocityScroll.Offset.X - 100
+                    DataStateService.PianoRollWindow.NoteVelocityScroll.Bounds.Width +
+                    DataStateService.PianoRollWindow.NoteVelocityScroll.Offset.X - 100
                     , Bounds.Height - 10));
                 context.DrawLine(_whitePen, new Point(
-                    ViewHelper.GetMainWindow().PianoRollWindow.NoteVelocityScroll.Offset.X + 10
+                    DataStateService.PianoRollWindow.NoteVelocityScroll.Offset.X + 10
                     , Bounds.Height / 2), new Point(
-                    ViewHelper.GetMainWindow().PianoRollWindow.NoteVelocityScroll.Bounds.Width +
-                    ViewHelper.GetMainWindow().PianoRollWindow.NoteVelocityScroll.Offset.X - 20
+                    DataStateService.PianoRollWindow.NoteVelocityScroll.Bounds.Width +
+                    DataStateService.PianoRollWindow.NoteVelocityScroll.Offset.X - 20
                     , Bounds.Height / 2));
 
                 context.DrawText(
                     _maxVelocityText,
                     new Point(
-                        ViewHelper.GetMainWindow().PianoRollWindow.NoteVelocityScroll.Bounds.Width +
-                        ViewHelper.GetMainWindow().PianoRollWindow.NoteVelocityScroll.Offset.X - 80
+                        DataStateService.PianoRollWindow.NoteVelocityScroll.Bounds.Width +
+                        DataStateService.PianoRollWindow.NoteVelocityScroll.Offset.X - 80
                         , 4)
                 );
 
                 context.DrawText(
                     _minVelocityText,
                     new Point(
-                        ViewHelper.GetMainWindow().PianoRollWindow.NoteVelocityScroll.Bounds.Width +
-                        ViewHelper.GetMainWindow().PianoRollWindow.NoteVelocityScroll.Offset.X - 80
+                        DataStateService.PianoRollWindow.NoteVelocityScroll.Bounds.Width +
+                        DataStateService.PianoRollWindow.NoteVelocityScroll.Offset.X - 80
                         , Bounds.Height - 16)
                 );
             }
@@ -203,11 +203,11 @@ public partial class NoteVelocity : UserControl
     protected override void OnPointerWheelChanged(PointerWheelEventArgs e)
     {
         base.OnPointerWheelChanged(e);
-        if (ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRightScroll.Bounds.Width >= Width)
+        if (DataStateService.PianoRollWindow.PianoRollRightScroll.Bounds.Width >= Width)
         {
-            ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRightScroll.Offset = new Vector(
-                Width - ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRightScroll.Bounds.Width,
-                ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRightScroll.Offset.Y);
+            DataStateService.PianoRollWindow.PianoRollRightScroll.Offset = new Vector(
+                Width - DataStateService.PianoRollWindow.PianoRollRightScroll.Bounds.Width,
+                DataStateService.PianoRollWindow.PianoRollRightScroll.Offset.Y);
         }
         if (e.KeyModifiers.HasFlag(KeyModifiers.Control))
         {
@@ -221,18 +221,18 @@ public partial class NoteVelocity : UserControl
                 double currentPosition = e.GetPosition(this).X / WidthOfBeat;
 
                 WidthOfBeat = double.Clamp(WidthOfBeat + e.Delta.Y * WidthOfBeat / 50d * ScalingSensitivity.X,
-                    double.Max(1, ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRightScroll.Bounds.Width / trackEnd), 500);
+                    double.Max(1, DataStateService.PianoRollWindow.PianoRollRightScroll.Bounds.Width / trackEnd), 500);
 
-                ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRightScroll.Offset = new Vector(
+                DataStateService.PianoRollWindow.PianoRollRightScroll.Offset = new Vector(
                     currentPosition * WidthOfBeat -
-                    e.GetPosition(ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRightScroll).X,
-                    ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRightScroll.Offset.Y);
+                    e.GetPosition(DataStateService.PianoRollWindow.PianoRollRightScroll).X,
+                    DataStateService.PianoRollWindow.PianoRollRightScroll.Offset.Y);
 
-                // Console.WriteLine(ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRightScroll.Offset);
-                // Console.WriteLine(e.GetPosition(ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRightScroll));
+                // Console.WriteLine(DataStateService.PianoRollWindow.PianoRollRightScroll.Offset);
+                // Console.WriteLine(e.GetPosition(DataStateService.PianoRollWindow.PianoRollRightScroll));
             }
 
-            ViewHelper.GetMainWindow().PianoRollWindow.EditArea.SaveNotes();
+            DataStateService.PianoRollWindow.EditArea.SaveNotes();
             InvalidateVisual();
             e.Handled = true;
         }

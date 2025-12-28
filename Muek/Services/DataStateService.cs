@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using Avalonia.Controls;
 using Avalonia.Media;
 using Muek.Models;
 using Muek.ViewModels;
@@ -26,7 +27,15 @@ public static class DataStateService
     
     // 即拍数
     public static int Subdivisions { get; set; } = 4;
-    public static int Midi2TrackFactor = 16;
+    public static readonly int Midi2TrackFactor = 16;
+    
+    private static PianoRollWindow? _pianoRollWindow = null;
+
+    public static PianoRollWindow PianoRollWindow
+    {
+        get => _pianoRollWindow ?? ViewHelper.GetMainWindow().PianoRollWindow;
+        set => _pianoRollWindow = value;
+    }
 
     public static void AddTrack(string? name = null, Color? color = null)
     {

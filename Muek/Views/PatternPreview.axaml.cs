@@ -21,13 +21,13 @@ public partial class PatternPreview : UserControl
     //     AvaloniaProperty.Register<PatternPreview, IBrush>(
     //         nameof(BackgroundColor));
 
-    private IBrush BackgroundColor => ViewHelper.GetMainWindow().PianoRollWindow.PatternColor.Background;
+    private IBrush BackgroundColor => DataStateService.PianoRollWindow.PatternColor.Background;
     // {
     //     get => GetValue(BackgroundColorProperty);
     //     set => SetValue(BackgroundColorProperty, value);
     // }
 
-    private List<PianoRoll.Note> Notes => ViewHelper.GetMainWindow().PianoRollWindow.EditArea.Notes;
+    private List<PianoRoll.Note> Notes => DataStateService.PianoRollWindow.EditArea.Notes;
 
     private bool _isHover = false;
     private bool _isPressed = false;
@@ -65,7 +65,7 @@ public partial class PatternPreview : UserControl
             return;
         }
 
-        if (!ViewHelper.GetMainWindow().PianoRollWindow.IsShowing)
+        if (!DataStateService.PianoRollWindow.IsShowing)
         {
             context.DrawRectangle(BackgroundColor, null, new Rect(0, 0, Bounds.Width, Bounds.Height));
             if (_isHover)
@@ -77,23 +77,23 @@ public partial class PatternPreview : UserControl
         else
         {
             context.DrawRectangle(new SolidColorBrush(Colors.White, .05), null,
-                new Rect(ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRightScroll.Offset.X /
-                         ViewHelper.GetMainWindow().PianoRollWindow.EditArea.Width
+                new Rect(DataStateService.PianoRollWindow.PianoRollRightScroll.Offset.X /
+                         DataStateService.PianoRollWindow.EditArea.Width
                          * Bounds.Width
                     , 0,
-                    ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRightScroll.Bounds.Width /
-                    ViewHelper.GetMainWindow().PianoRollWindow.EditArea.Width
+                    DataStateService.PianoRollWindow.PianoRollRightScroll.Bounds.Width /
+                    DataStateService.PianoRollWindow.EditArea.Width
                     * Bounds.Width,
                     Bounds.Height));
             if (_isHover)
             {
                 context.DrawRectangle(null, new Pen(new SolidColorBrush(Colors.White)),
-                    new Rect(ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRightScroll.Offset.X /
-                             ViewHelper.GetMainWindow().PianoRollWindow.EditArea.Width
+                    new Rect(DataStateService.PianoRollWindow.PianoRollRightScroll.Offset.X /
+                             DataStateService.PianoRollWindow.EditArea.Width
                              * Bounds.Width
                         , 0,
-                        ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRightScroll.Bounds.Width /
-                        ViewHelper.GetMainWindow().PianoRollWindow.EditArea.Width
+                        DataStateService.PianoRollWindow.PianoRollRightScroll.Bounds.Width /
+                        DataStateService.PianoRollWindow.EditArea.Width
                         * Bounds.Width,
                         Bounds.Height));
             }
@@ -228,15 +228,15 @@ public partial class PatternPreview : UserControl
         // {
         // Console.WriteLine(note.Name);
         // }
-        if (!ViewHelper.GetMainWindow().PianoRollWindow.IsShowing)
+        if (!DataStateService.PianoRollWindow.IsShowing)
         {
             ScrollToNoteFirst();
         }
 
         _pressedPosition = e.GetPosition(this).X;
-        _pressedScroll = ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRightScroll.Offset.X;
+        _pressedScroll = DataStateService.PianoRollWindow.PianoRollRightScroll.Offset.X;
         _isPressed = true;
-        if (ViewHelper.GetMainWindow().PianoRollWindow.IsShowing)
+        if (DataStateService.PianoRollWindow.IsShowing)
         {
             e.Handled = true;
         }
@@ -257,10 +257,10 @@ public partial class PatternPreview : UserControl
                 noteFirst = noteFirst.StartTime < note.StartTime ? noteFirst : note;
             }
 
-            ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRightScroll.Offset = new Vector(
-                noteFirst.StartTime * ViewHelper.GetMainWindow().PianoRollWindow.EditArea.WidthOfBeat,
-                ViewHelper.GetMainWindow().PianoRollWindow.EditArea.Height - (noteFirst.Name + 1) *
-                ViewHelper.GetMainWindow().PianoRollWindow.EditArea.NoteHeight);
+            DataStateService.PianoRollWindow.PianoRollRightScroll.Offset = new Vector(
+                noteFirst.StartTime * DataStateService.PianoRollWindow.EditArea.WidthOfBeat,
+                DataStateService.PianoRollWindow.EditArea.Height - (noteFirst.Name + 1) *
+                DataStateService.PianoRollWindow.EditArea.NoteHeight);
         }
     }
 
@@ -291,10 +291,10 @@ public partial class PatternPreview : UserControl
         
         if (_isPressed)
         {
-            ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRightScroll.Offset = new Vector(
+            DataStateService.PianoRollWindow.PianoRollRightScroll.Offset = new Vector(
                 (e.GetPosition(this).X - _pressedPosition) / Bounds.Width
-                * ViewHelper.GetMainWindow().PianoRollWindow.EditArea.Width + _pressedScroll
-                , ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRightScroll.Offset.Y
+                * DataStateService.PianoRollWindow.EditArea.Width + _pressedScroll
+                , DataStateService.PianoRollWindow.PianoRollRightScroll.Offset.Y
             );
             if (!_isDragging)
             {

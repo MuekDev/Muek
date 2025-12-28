@@ -12,6 +12,7 @@ public partial class MainWindow : Window
 {
     public MainWindow()
     {
+        DataStateService.PianoRollWindow = PianoRollWindow;
         InitializeComponent();
     }
 

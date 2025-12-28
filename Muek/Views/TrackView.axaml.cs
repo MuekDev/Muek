@@ -808,7 +808,7 @@ public partial class TrackView : UserControl
             {
                 var pattern = _activeClip.LinkedPattern;
                 pattern.SelectPattern();
-                ViewHelper.GetMainWindow().PianoRollWindow.Show();
+                DataStateService.PianoRollWindow.Show();
             }
 
             e.Handled = true; // 避免冒泡

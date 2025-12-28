@@ -7,6 +7,7 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Muek.Models;
+using Muek.Services;
 
 namespace Muek.Views;
 
@@ -25,13 +26,13 @@ public partial class PianoScroller : UserControl
     //     AvaloniaProperty.Register<PatternPreview, IBrush>(
     //         nameof(BackgroundColor));
 
-    // public IBrush BackgroundColor => ViewHelper.GetMainWindow().PianoRollWindow.PatternColor.Background;
+    // public IBrush BackgroundColor => DataStateService.PianoRollWindow.PatternColor.Background;
     // {
     //     get => GetValue(BackgroundColorProperty);
     //     set => SetValue(BackgroundColorProperty, value);
     // }
 
-    private List<PianoRoll.Note> Notes => ViewHelper.GetMainWindow().PianoRollWindow.EditArea.Notes;
+    private List<PianoRoll.Note> Notes => DataStateService.PianoRollWindow.EditArea.Notes;
 
     private bool _isHover = false;
     private bool _isPressed = false;
@@ -54,8 +55,8 @@ public partial class PianoScroller : UserControl
         {
             return;
         }
-
-        if (!ViewHelper.GetMainWindow().PianoRollWindow.IsShowing)
+        
+        if (!DataStateService.PianoRollWindow.IsShowing)
         {
             // context.DrawRectangle(BackgroundColor, null, new Rect(0, 0, Bounds.Width, Bounds.Height));
             if (_isHover)
@@ -67,24 +68,24 @@ public partial class PianoScroller : UserControl
         else
         {
             context.DrawRectangle(new SolidColorBrush(Colors.White, .05), null,
-                new Rect( 0,ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRightScroll.Offset.Y /
-                            ViewHelper.GetMainWindow().PianoRollWindow.EditArea.Height
+                new Rect( 0,DataStateService.PianoRollWindow.PianoRollRightScroll.Offset.Y /
+                            DataStateService.PianoRollWindow.EditArea.Height
                             * Bounds.Height
                     ,
                     Bounds.Width,
-                    ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRightScroll.Bounds.Height /
-                    ViewHelper.GetMainWindow().PianoRollWindow.EditArea.Height
+                    DataStateService.PianoRollWindow.PianoRollRightScroll.Bounds.Height /
+                    DataStateService.PianoRollWindow.EditArea.Height
                     * Bounds.Height));
             if (_isHover)
             {
                 context.DrawRectangle(null, new Pen(new SolidColorBrush(Colors.White)),
-                    new Rect( 0,ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRightScroll.Offset.Y /
-                                ViewHelper.GetMainWindow().PianoRollWindow.EditArea.Height
+                    new Rect( 0,DataStateService.PianoRollWindow.PianoRollRightScroll.Offset.Y /
+                                DataStateService.PianoRollWindow.EditArea.Height
                                 * Bounds.Height
                        ,
                         Bounds.Width ,
-                        ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRightScroll.Bounds.Height /
-                        ViewHelper.GetMainWindow().PianoRollWindow.EditArea.Height
+                        DataStateService.PianoRollWindow.PianoRollRightScroll.Bounds.Height /
+                        DataStateService.PianoRollWindow.EditArea.Height
                         * Bounds.Height));
             }
         }
@@ -194,15 +195,15 @@ public partial class PianoScroller : UserControl
         // {
         // Console.WriteLine(note.Name);
         // }
-        // if (!ViewHelper.GetMainWindow().PianoRollWindow.IsShowing)
+        // if (!DataStateService.PianoRollWindow.IsShowing)
         // {
         //     ScrollToNoteFirst();
         // }
 
         _pressedPosition = e.GetPosition(this).Y;
-        _pressedScroll = ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRightScroll.Offset.Y;
+        _pressedScroll = DataStateService.PianoRollWindow.PianoRollRightScroll.Offset.Y;
         _isPressed = true;
-        if (ViewHelper.GetMainWindow().PianoRollWindow.IsShowing)
+        if (DataStateService.PianoRollWindow.IsShowing)
         {
             e.Handled = true;
         }
@@ -223,10 +224,10 @@ public partial class PianoScroller : UserControl
     //             noteFirst = noteFirst.StartTime < note.StartTime ? noteFirst : note;
     //         }
     //
-    //         ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRightScroll.Offset = new Vector(
-    //             noteFirst.StartTime * ViewHelper.GetMainWindow().PianoRollWindow.EditArea.WidthOfBeat,
-    //             ViewHelper.GetMainWindow().PianoRollWindow.EditArea.Height - (noteFirst.Name + 1) *
-    //             ViewHelper.GetMainWindow().PianoRollWindow.EditArea.NoteHeight);
+    //         DataStateService.PianoRollWindow.PianoRollRightScroll.Offset = new Vector(
+    //             noteFirst.StartTime * DataStateService.PianoRollWindow.EditArea.WidthOfBeat,
+    //             DataStateService.PianoRollWindow.EditArea.Height - (noteFirst.Name + 1) *
+    //             DataStateService.PianoRollWindow.EditArea.NoteHeight);
     //     }
     // }
 
@@ -257,10 +258,10 @@ public partial class PianoScroller : UserControl
         
         if (_isPressed)
         {
-            ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRightScroll.Offset = new Vector(
-                ViewHelper.GetMainWindow().PianoRollWindow.PianoRollRightScroll.Offset.X,
+            DataStateService.PianoRollWindow.PianoRollRightScroll.Offset = new Vector(
+                DataStateService.PianoRollWindow.PianoRollRightScroll.Offset.X,
                 (e.GetPosition(this).Y - _pressedPosition) / Bounds.Height
-                * ViewHelper.GetMainWindow().PianoRollWindow.EditArea.Height + _pressedScroll
+                * DataStateService.PianoRollWindow.EditArea.Height + _pressedScroll
                 
             );
             if (!_isDragging)
