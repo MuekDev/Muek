@@ -13,7 +13,7 @@ namespace Muek.Views;
 public partial class Settings : UserControl
 {
     public bool IsShowing { get; set; } = false;
-    public double MaxWidth { get; set; } = 400;
+    public new double MaxWidth { get; set; } = 400;
 
     public Settings()
     {

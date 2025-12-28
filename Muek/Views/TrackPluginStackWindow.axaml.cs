@@ -13,6 +13,11 @@ namespace Muek.Views;
 public partial class TrackPluginStackWindow : Window
 {
     private TrackPluginStackWindowViewModel _vm;
+
+    public TrackPluginStackWindow()
+    {
+        throw new Exception("This constructor should never be called");
+    }
     
     public TrackPluginStackWindow(TrackPluginStackWindowViewModel vm)
     {

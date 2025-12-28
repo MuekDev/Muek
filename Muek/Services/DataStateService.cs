@@ -44,7 +44,7 @@ public static class DataStateService
             new TrackViewModel(
                 new Track
                 {
-                    Color = color == null ? Colors.DimGray.ToString() : color.ToString(),
+                    Color = color != null ? color.ToString()! : Colors.DimGray.ToString(),
                     Id = Guid.NewGuid().ToString(),
                     Index = (uint)Tracks.Count,
                     Name = name ?? "New Track",
@@ -61,15 +61,15 @@ public static class DataStateService
         ViewHelper.GetMainWindow().TrackViewControl.InvalidateVisual();
     }
     
-    public static TrackViewModel GetSelectedTrack()
-    {
-        foreach (var track in Tracks)
-        {
-            if (track.Selected)
-            {
-                return track;
-            }
-        }
-        return null;
-    }
+    // public static TrackViewModel GetSelectedTrack()
+    // {
+    //     foreach (var track in Tracks)
+    //     {
+    //         if (track.Selected)
+    //         {
+    //             return track;
+    //         }
+    //     }
+    //     return null;
+    // }
 }

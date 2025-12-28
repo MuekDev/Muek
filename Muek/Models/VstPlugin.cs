@@ -8,8 +8,8 @@ namespace Muek.Models;
 
 public partial class VstPlugin: ViewModelBase, IPlugin
 {
-    [ObservableProperty] public string _name;
-    [ObservableProperty] public string _path;
+    [ObservableProperty] public string _name = "New Plugin";
+    [ObservableProperty] public string _path = "";
 
     // [RelayCommand]
     // public void TestPlugin(string path)

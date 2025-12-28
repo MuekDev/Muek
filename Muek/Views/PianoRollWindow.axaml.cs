@@ -29,7 +29,7 @@ public partial class PianoRollWindow : UserControl
     private double _maxSize = 400.0;
     private bool _isDragging = false;
     private bool _velocityIsDragging = false;
-
+    
     public PianoRollWindow()
     {
         InitializeComponent();
@@ -157,14 +157,16 @@ public partial class PianoRollWindow : UserControl
             1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16
         };
     }
-
-    private EventHandler<DragEventArgs>? MidiDragDrop()
+    
+    private EventHandler<DragEventArgs> MidiDragDrop()
     {
         return (sender, args) =>
         {
             if (args.Data.Contains(DataFormats.Files))
             {
+                #pragma warning disable CS0618
                 var files = args.Data.GetFileNames()?.ToList();
+                #pragma warning restore CS0618
                 if (files == null) return;
                 foreach (var file in files)
                 {

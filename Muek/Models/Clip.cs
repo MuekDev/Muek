@@ -7,8 +7,8 @@ public class Clip
     public double Duration;
     public double StartBeat;
     public double Offset;
-    public string Path;
-    public string Name;
-    public string Id;
+    public string? Path;
+    public string? Name;
+    public required string Id;
     public float[]? CachedWaveform { get; set; }
 }

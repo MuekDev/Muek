@@ -27,13 +27,13 @@ public class TrackHeadViewModel : Button
         base.OnPointerPressed(e);
         if (e.ClickCount == 1 && e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
         {
-            _pressedPosition = e.GetPosition(Parent.Parent.Parent.Parent.Parent as Visual) / 100;
+            var mainWindow = ViewHelper.GetMainWindow();
+            _pressedPosition = e.GetPosition(mainWindow.ItemsControlX) / 100;
             //Console.WriteLine(_pressedPosition);
 
             _switchable = true;
             _isFirstClickTrackHead = true;
-
-            var mainWindow = ViewHelper.GetMainWindow();
+            
             mainWindow.Mixer.Refresh();
             mainWindow.Mixer.Show();
             //mainWindow.TrackLineDrawer.IsVisible = true;

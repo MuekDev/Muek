@@ -12,14 +12,16 @@ namespace Muek.Services;
 
 public static class AudioService
 {
-    public static event EventHandler AudioStarted;
-    public static event EventHandler AudioStopped;
+    public static event EventHandler? AudioStarted;
+    public static event EventHandler? AudioStopped;
     public static float CurrentDb { get; set; }
-    public static event EventHandler<float> DbChanged;
+    #pragma warning disable CS0067
+    public static event EventHandler<float>? DbChanged;
+    public static event EventHandler<float[]>? RmsDbChanged;
+    public static event EventHandler<float[]>? PeakDbChanged;
+    #pragma warning restore CS0067
     public static float[] CurrentRmsDb { get; set; } = [];
     public static float[] CurrentPeakDb { get; set; } = [];
-    public static event EventHandler<float[]> RmsDbChanged;
-    public static event EventHandler<float[]> PeakDbChanged;
     public static float PlayPosition = 0;
 
     public static void TriggerAudioStarted()

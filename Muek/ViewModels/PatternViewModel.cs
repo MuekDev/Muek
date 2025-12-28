@@ -12,7 +12,7 @@ namespace Muek.ViewModels;
 public partial class PatternViewModel : ViewModelBase
 {
     [ObservableProperty] private Color _color;
-    [ObservableProperty] private string _name;
+    [ObservableProperty] private string? _name;
     [ObservableProperty] private List<PianoRoll.Note>[] _notes;
     [ObservableProperty] private IBrush _background;
     

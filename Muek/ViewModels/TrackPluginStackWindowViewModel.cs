@@ -26,13 +26,7 @@ public partial class TrackPluginStackWindowViewModel : ViewModelBase
     [Obsolete]
     public TrackPluginStackWindowViewModel()
     {
-        AimTrack = new Track();
-        Plugins =
-        [
-            new VstPlugin { Name = "Not OTT" }
-        ];
-        
-        WindowTitle = $"[Plugins] {AimTrack.Name}";
+        throw new Exception("This constructor should never be called");
     }
 
     public void PushPlugin(VstPlugin plugin)

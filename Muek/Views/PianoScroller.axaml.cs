@@ -40,7 +40,7 @@ public partial class PianoScroller : UserControl
 
     private readonly Pen _whitePen = new Pen(Brushes.White);
     
-    private RenderTargetBitmap _notesCache;
+    private RenderTargetBitmap? _notesCache;
     private bool _isCacheDirty = true;
     private int _lastNotesCount = 0;
     private double _lastBoundsWidth = 0;

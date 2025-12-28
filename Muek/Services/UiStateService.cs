@@ -10,7 +10,7 @@ public static class UiStateService
     public const int AnimationDelay = 100;
     
     public static double GlobalPlayHeadPosX  { get; set; }
-    public static event EventHandler<double> GlobalPlayHeadPosXUpdated;
+    public static event EventHandler<double>? GlobalPlayHeadPosXUpdated;
 
     public static void InvokeUpdatePlayheadPos(double replyTime)
     {

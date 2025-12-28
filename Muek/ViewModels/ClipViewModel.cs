@@ -15,7 +15,7 @@ public class ClipViewModel
     public Clip Proto { get; }
 
     // 本地缓存字段，不参与 proto 序列化
-    public float[] CachedWaveform { get; set; }
+    public float[]? CachedWaveform { get; set; }
     public int CachedSampleRate { get; set; }
     public int CachedChannels { get; set; }
     public bool IsRendering { get; set; }
@@ -23,8 +23,8 @@ public class ClipViewModel
     public double StartBeat => Proto.StartBeat;
     public double Duration => Proto.Duration;
     public double Offset => Proto.Offset;
-    public string Path => Proto.Path;
-    public string Name => Proto.Name;
+    public string? Path => Proto.Path;
+    public string? Name => Proto.Name;
 
     public List<PianoRoll.Note>? Notes { get; set; } = null;
 

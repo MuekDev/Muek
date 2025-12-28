@@ -95,7 +95,7 @@ public partial class TrackView : UserControl
     }
 
     private CancellationTokenSource? _trackerCts;
-
+    
     public TrackView()
     {
         InitializeComponent();
@@ -257,13 +257,14 @@ public partial class TrackView : UserControl
     {
         _isDropping = true;
     }
-
-    [Obsolete("老子就用GetFileNames能怎么滴")]
+    
     private void OnDrop(object? sender, DragEventArgs e)
     {
         if (e.Data.Contains(DataFormats.Files))
         {
+            #pragma warning disable CS0618
             var files = e.Data.GetFileNames()?.ToList();
+            #pragma warning restore CS0618
             if (files == null) return;
             Console.WriteLine($"[TrackView] Dropped: {files.Count}");
 
@@ -673,7 +674,7 @@ public partial class TrackView : UserControl
 
                 // 绘制文字
                 context.DrawText(
-                    new FormattedText(clip.Name, CultureInfo.CurrentCulture, FlowDirection.LeftToRight,
+                    new FormattedText(clip.Name ?? "New Clip", CultureInfo.CurrentCulture, FlowDirection.LeftToRight,
                         Typeface.Default, 10, Brushes.Black),
                     new Point(x, trackY));
             }

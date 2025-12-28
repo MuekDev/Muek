@@ -21,7 +21,7 @@ public partial class PatternPreview : UserControl
     //     AvaloniaProperty.Register<PatternPreview, IBrush>(
     //         nameof(BackgroundColor));
 
-    private IBrush BackgroundColor => DataStateService.PianoRollWindow.PatternColor.Background;
+    private IBrush BackgroundColor => DataStateService.PianoRollWindow.PatternColor.Background ?? DataStateService.MuekColorBrush;
     // {
     //     get => GetValue(BackgroundColorProperty);
     //     set => SetValue(BackgroundColorProperty, value);
@@ -43,7 +43,7 @@ public partial class PatternPreview : UserControl
         ]
     };
     
-    private RenderTargetBitmap _notesCache;
+    private RenderTargetBitmap? _notesCache;
     private bool _isCacheDirty = true;
     private int _lastNotesCount = 0;
     private double _lastBoundsWidth = 0;
