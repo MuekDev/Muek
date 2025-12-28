@@ -66,6 +66,9 @@
                     <Border Name="ChannelSelectionDisable" IsVisible="True" Background="#44000000"/>
                 </Grid>
                 </Border>
+                <Button Background="Transparent" Click="ShowSingleWindow">
+                    <avalonia:Icon Value="mdi-dock-window" FontSize="20"/>
+                </Button>
             </StackPanel>
             <!-- 关闭 -->
             <Button HorizontalAlignment="Right" VerticalAlignment="Center" Margin="10"

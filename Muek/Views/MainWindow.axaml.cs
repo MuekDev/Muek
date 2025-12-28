@@ -12,8 +12,8 @@ public partial class MainWindow : Window
 {
     public MainWindow()
     {
-        DataStateService.PianoRollWindow = PianoRollWindow;
         InitializeComponent();
+        DataStateService.PianoRollWindow = PianoRollWindow;
     }
 
     public void SyncTimeline(object type)

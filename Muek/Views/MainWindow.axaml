@@ -20,7 +20,8 @@
     </Design.DataContext>
 
     <Grid ColumnDefinitions="*,Auto">
-        <Grid Background="#232323" RowDefinitions="40,40,*,Auto" Margin="4,0,4,4">
+        <Grid Background="#232323" RowDefinitions="40,40,*,Auto" Margin="4,0,4,4"
+              Name="MainGrid">
             <!-- 导航栏 -->
             <StackPanel Orientation="Horizontal">
                 <Button Background="Transparent" Click="SettingsButton">
@@ -273,7 +274,7 @@
             </Grid>
 
             <!-- 钢琴窗 -->
-            <views:PianoRollWindow Grid.Row="3" Name="PianoRollWindow" Height="90"></views:PianoRollWindow>
+            <views:PianoRollWindow Grid.Row="3" Name="PianoRollWindow" Height="90"/>
         </Grid>
     </Grid>
 </Window>
