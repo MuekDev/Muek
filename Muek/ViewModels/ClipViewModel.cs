@@ -132,7 +132,14 @@ public class ClipViewModel
         Notes = new List<PianoRoll.Note>();
         foreach (var noteList in LinkedPattern.Notes)
         {
-            Notes.AddRange(noteList);
+            foreach (var note in noteList)
+            {
+                Notes.AddRange(note with
+                {
+                    StartTime = note.StartTime / DataStateService.Midi2TrackFactor,
+                    EndTime = note.EndTime / DataStateService.Midi2TrackFactor,
+                });
+            }
         }
 
         double trackEnd = 0;
@@ -141,12 +148,12 @@ public class ClipViewModel
             trackEnd = double.Max(trackEnd, note.EndTime);
         }
         trackEnd /= DataStateService.Subdivisions;
+        // trackEnd /= DataStateService.Midi2TrackFactor;
         SourceDuration = trackEnd;
     }
 
     public void UpdateFromClip()
     {
-        if(LinkedPattern is null) return;
-        LinkedPattern.Notes[0] = Notes!;
+        //TODO
     }
 }

@@ -289,7 +289,7 @@ public partial class TrackView : UserControl
                 var durationSec = GetAudioDurationInSeconds(file);
                 var durationBeats = (durationSec / 60f) * DataStateService.Bpm / Subdivisions;
 
-                List<PianoRoll.Note>? notes = null;
+                List<PianoRoll.Note>[]? notes = null;
 
                 Clip newClip;
                 if(!isMidi)
@@ -304,10 +304,9 @@ public partial class TrackView : UserControl
                     };
                 else
                 {
-                    notes = new List<PianoRoll.Note>();
+                    notes = [[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]];
                     var midi = new MidiService();
                     midi.ImportMidi(file);
-                    var factor = 16d;
                     for (int i = 1; i < midi.Data.Tracks; i++)
                     {
                         for (int j = 0; j < midi.Data[i].Count; j++)
@@ -317,14 +316,14 @@ public partial class TrackView : UserControl
                             {
                                 try
                                 {
-                                    notes.Add(new PianoRoll.Note()
+                                    notes[i-1].Add(new PianoRoll.Note()
                                     {
                                         Name = ((NoteOnEvent)note).NoteNumber,
                                         // Color = NoteColor3,
                                         StartTime = ((NoteOnEvent)note).AbsoluteTime /
-                                            (double)midi.Data.DeltaTicksPerQuarterNote * 4 / factor,
+                                            (double)midi.Data.DeltaTicksPerQuarterNote * 4,
                                         EndTime = (((NoteOnEvent)note).AbsoluteTime + ((NoteOnEvent)note).NoteLength) /
-                                            (double)midi.Data.DeltaTicksPerQuarterNote * 4 / factor,
+                                            (double)midi.Data.DeltaTicksPerQuarterNote * 4,
                                         Velocity = ((NoteOnEvent)note).Velocity
                                     });
                                 }
@@ -336,17 +335,19 @@ public partial class TrackView : UserControl
                         }
                     }
                     double trackEnd = 0;
-                    foreach (var note in notes)
+                    foreach (var noteList in notes)
                     {
-                        trackEnd = double.Max(trackEnd, note.EndTime);
+                        foreach (var note in noteList)
+                            trackEnd = double.Max(trackEnd, note.EndTime);
                     }
                     trackEnd /= Subdivisions;
+                    trackEnd /= DataStateService.Midi2TrackFactor;
                     newClip = new Clip
                     {
                         Name = Path.GetFileNameWithoutExtension(file),
                         StartBeat = beat,
                         Duration = trackEnd,
-                        Path = file,
+                        // Path = file,
                         Id = Guid.NewGuid().ToString(),
                     };
                     Console.WriteLine($"Add Midi Clip: Duration: {trackEnd}");
@@ -465,7 +466,6 @@ public partial class TrackView : UserControl
                 {
                     try
                     {
-                        var factor = 16d;
                         var notes = clip.Notes;
                         double noteHeight;
                         double noteWidth;
@@ -492,8 +492,8 @@ public partial class TrackView : UserControl
                             {
                                 var noteStart = loop * clip.SourceDuration * _scaleFactor +
                                                 (clip.StartBeat - clip.Offset) * _scaleFactor +
-                                                note.StartTime * noteWidth / factor;
-                                var noteLength = noteWidth * (note.EndTime - note.StartTime) / factor;
+                                                note.StartTime * noteWidth / DataStateService.Midi2TrackFactor;
+                                var noteLength = noteWidth * (note.EndTime - note.StartTime) / DataStateService.Midi2TrackFactor;
                                 if (noteStart < clipStart && noteStart + noteLength > clipStart)
                                 {
                                     noteLength = noteStart + noteLength - clipStart;

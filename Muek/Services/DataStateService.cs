@@ -26,6 +26,7 @@ public static class DataStateService
     
     // 即拍数
     public static int Subdivisions { get; set; } = 4;
+    public static int Midi2TrackFactor = 16;
 
     public static void AddTrack(string? name = null, Color? color = null)
     {

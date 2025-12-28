@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -65,23 +66,37 @@ public partial class TrackViewModel : ViewModelBase
     /// <summary>
     /// 添加 clip：会自动更新 proto.Clips 和本地 viewmodel
     /// </summary>
-    public ClipViewModel AddClip(Clip clip,List<PianoRoll.Note>? notes = null)
+    public ClipViewModel AddClip(Clip clip,List<PianoRoll.Note>[]? notes = null)
     {
         var vm = new ClipViewModel(clip);
         Proto.Clips.Add(clip);
         Clips.Add(vm);
         vm.GenerateWaveformPreviewPure();
+        var clipNotes = new List<PianoRoll.Note>();
         if (notes != null)
         {
-            vm.Notes = notes;
-            var pattern = new PatternViewModel()
+            foreach (var noteList in notes)
             {
-                Name = clip.Name,
-                Notes = [notes,[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]]
-            };
-            ViewHelper.GetMainWindow().PianoRollWindow.PatternSelection.ViewModel.AddPattern(pattern);
-            vm.LinkedPattern = pattern;
+                foreach (var note in noteList)
+                    clipNotes.Add(note with
+                    {
+                        StartTime = note.StartTime / DataStateService.Midi2TrackFactor,
+                        EndTime = note.EndTime / DataStateService.Midi2TrackFactor,
+                    });
+            }
+
+            {
+                vm.Notes = clipNotes;
+                var pattern = new PatternViewModel()
+                {
+                    Name = clip.Name,
+                    Notes = notes
+                };
+                ViewHelper.GetMainWindow().PianoRollWindow.PatternSelection.ViewModel.AddPattern(pattern);
+                vm.LinkedPattern = pattern;
+            }
         }
+
         return vm;
     }
 
