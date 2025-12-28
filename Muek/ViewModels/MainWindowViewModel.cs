@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,6 +23,12 @@ public partial class MainWindowViewModel : ViewModelBase
 {
     public ObservableCollection<TrackViewModel> Tracks => DataStateService.Tracks;
     [ObservableProperty] private int _count = 0;
+    [ObservableProperty] private string _playIcon = "fa-play";
+    [ObservableProperty]private float _bpm = DataStateService.Bpm;
+    partial void OnBpmChanged(float value)
+    {
+        DataStateService.Bpm = value;
+    }
 
     private float PlayPosition
     {
@@ -54,6 +61,7 @@ public partial class MainWindowViewModel : ViewModelBase
         Console.WriteLine("Omg it is playing...");
         // await RpcService.SendCommand(new PlayCommand());
         // AudioService.Play();
+        PlayIcon = "fa-pause";
         DataStateService.IsPlaying = true;
         var clips = new List<ClipProto>();
         foreach (var track in Tracks)
@@ -87,6 +95,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private void Stop()
     {
+        PlayIcon = "fa-play";
         DataStateService.IsPlaying = false;
         Console.WriteLine("Omg it is stopping...");
         PlayPosition = MuekEngine.get_current_position_beat();

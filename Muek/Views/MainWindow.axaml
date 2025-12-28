@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:i="https://github.com/projektanker/icons.avalonia"
         xmlns:views="clr-namespace:Muek.Views"
+        xmlns:services="clr-namespace:Muek.Services"
         mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
         x:Class="Muek.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
@@ -20,17 +21,17 @@
     </Design.DataContext>
 
     <Grid ColumnDefinitions="*,Auto">
-        <Grid Background="#232323" RowDefinitions="40,40,*,Auto" Margin="4,0,4,4"
+        <Grid Background="#232323" RowDefinitions="40,40,*,Auto" Margin="4,10,4,4"
               Name="MainGrid">
             <!-- 导航栏 -->
             <StackPanel Orientation="Horizontal">
                 <Button Background="Transparent" Click="SettingsButton">
-                    <i:Icon Value="fa-bars" Foreground="White" />
+                    <i:Icon Value="fa-bars" Foreground="White"/>
                 </Button>
                 <Panel Width="40" />
                 <Button Background="Transparent" Command="{Binding OnPlayButtonClick}"
                         HotKey="Space">
-                    <i:Icon Value="fa-play" Foreground="White"/>
+                    <i:Icon Value="{Binding PlayIcon}" Foreground="White"/>
                 </Button>
                 <Button Background="Transparent" Command="{Binding OnStopButtonClick}">
                     <i:Icon Value="fa-stop" Foreground="White"/>
@@ -38,20 +39,21 @@
                 <Button Background="Transparent" Command="{Binding OnRecordButtonClick}">
                     <i:Icon Value="fa-circle" FontSize="12" Foreground="White" />
                 </Button>
-                <Panel Width="40" />
-                <Border Background="#1B1B1B" VerticalAlignment="Center" CornerRadius="12,0,0,12" Padding="8,0">
-                    <Label Foreground="#FFFFFF" Content="1.2.00 / 0:00.244" />
+                <!-- <Panel Width="40" /> -->
+                <!-- <Border Background="#1B1B1B" VerticalAlignment="Center" CornerRadius="12,0,0,12" Padding="8,0"> -->
+                <!--     <Label Foreground="#FFFFFF" Content="1.2.00 / 0:00.244" /> -->
+                <!-- </Border> -->
+                <!-- <Border Background="#852221" VerticalAlignment="Center" CornerRadius="0,12,12,0" Padding="8,0"> -->
+                <!--     <Label Foreground="#F9DEDC" Content="已停止" /> -->
+                <!-- </Border> -->
+                <Border Margin="20,0">
+                    <NumericUpDown Value="{Binding Bpm}" BorderBrush="Transparent"
+                                   VerticalAlignment="Center" FormatString="0.00"/>
                 </Border>
-                <Border Background="#852221" VerticalAlignment="Center" CornerRadius="0,12,12,0" Padding="8,0">
-                    <Label Foreground="#F9DEDC" Content="已停止" />
-                </Border>
-                <Panel Width="20" />
-                <Border Background="#1B1B1B" VerticalAlignment="Center" CornerRadius="12,0,0,12" Padding="8,0">
-                    <Label Foreground="#FFFFFF" Content="120" />
-                </Border>
-                <Border Background="#4F378A" VerticalAlignment="Center" CornerRadius="0,12,12,0" Padding="8,0">
-                    <Label Foreground="#EADDFF" Content="TAP" />
-                </Border>
+                
+                <!-- <Border Background="#4F378A" VerticalAlignment="Center" CornerRadius="0,12,12,0" Padding="8,0"> -->
+                <!--     <Label Foreground="#EADDFF" Content="TAP" /> -->
+                <!-- </Border> -->
             </StackPanel>
 
             <!-- 工作区 -->

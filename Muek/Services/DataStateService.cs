@@ -21,7 +21,13 @@ public static class DataStateService
             { Color = DataStateService.MuekColor.ToString(), Id = Guid.NewGuid().ToString(), Name = "Master" })
     ];
 
-    public static float Bpm { get; set; } = 120f;
+    private static float _bpm = 120f;
+
+    public static float Bpm
+    {
+        get => _bpm;
+        set => _bpm = value;
+    }
 
     public static bool IsPlaying { get; set; }
     public static TrackViewModel? ActiveTrack { get; set; }
