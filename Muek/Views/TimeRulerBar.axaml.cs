@@ -6,6 +6,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.VisualTree;
+using Muek.Models;
 using Muek.Services;
 
 namespace Muek.Views;
@@ -14,6 +15,7 @@ public partial class TimeRulerBar : UserControl
 {
     private double _offsetX;
     private int _scaleFactor = 100;
+    private bool _isDragging = false;
 
     public TimeRulerBar()
     {
@@ -134,5 +136,28 @@ public partial class TimeRulerBar : UserControl
             var parent = this.GetVisualAncestors().OfType<MainWindow>().FirstOrDefault();
             parent?.SyncTimeline(this);
         }
+    }
+
+    protected override void OnPointerMoved(PointerEventArgs e)
+    {
+        base.OnPointerMoved(e);
+        if (e.GetPosition(this).Y > 0 && e.GetPosition(this).Y <= Bounds.Height)
+            Cursor = new Cursor(StandardCursorType.Ibeam);
+        if (_isDragging)
+            ViewHelper.GetMainWindow().TrackViewControl.UpdatePlayHeadFromPointer(e.GetPosition(this));
+    }
+
+    protected override void OnPointerPressed(PointerPressedEventArgs e)
+    {
+        base.OnPointerPressed(e);
+        if (e.GetPosition(this).Y > 0 && e.GetPosition(this).Y <= Bounds.Height)
+            _isDragging = true;
+        e.Handled = true;
+    }
+
+    protected override void OnPointerReleased(PointerReleasedEventArgs e)
+    {
+        base.OnPointerReleased(e);
+        _isDragging = false;
     }
 }

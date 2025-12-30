@@ -23,7 +23,7 @@ namespace Muek.Views;
 
 public partial class TrackView : UserControl
 {
-    private bool _isDraggingPlayhead;          // 是否在拖拽播放指针 （TODO: 改成ruler
+    // private bool _isDraggingPlayhead;          // 是否在拖拽播放指针
     private double _offsetX;                   // 横向的轨道滚动距离
     private double _playHeadPosX;              // 播放指示指针
     private int _scaleFactor = 100;            // 横向的轨道缩放
@@ -198,17 +198,17 @@ public partial class TrackView : UserControl
 
     public new IBrush? Background { get; set; } = Brushes.Transparent;
 
-    public double TimeRulerPosX
-    {
-        get => _timeRulerPosX;
-        set
-        {
-            if (Math.Abs(_timeRulerPosX - value) < 0.01) return;
-            if (value < 0) return;
-            _timeRulerPosX = value;
-            InvalidateVisual();
-        }
-    }
+    // public double TimeRulerPosX
+    // {
+    //     get => _timeRulerPosX;
+    //     set
+    //     {
+    //         if (Math.Abs(_timeRulerPosX - value) < 0.01) return;
+    //         if (value < 0) return;
+    //         _timeRulerPosX = value;
+    //         InvalidateVisual();
+    //     }
+    // }
 
     public double PlayHeadPosX
     {
@@ -753,7 +753,7 @@ public partial class TrackView : UserControl
         base.Render(context);
     }
 
-    private void UpdatePlayHeadFromPointer(Point point)
+    public void UpdatePlayHeadFromPointer(Point point)
     {
         // pointer.X 是当前控件内部位置，+ OffsetX 得到全局位置
         var globalX = Math.Max(0, point.X + OffsetX);
@@ -783,12 +783,13 @@ public partial class TrackView : UserControl
             UpdateTrackSelect(point);
 
             var state = GetClipInteractionMode(); // HACK: 此处设置了_activeClip
-            if (state == ClipInteractionMode.None)
-            {
-                _isDraggingPlayhead = true;
-                UpdatePlayHeadFromPointer(point);
-            }
-            else if (state == ClipInteractionMode.OnTopTitle)
+            // if (state == ClipInteractionMode.None)
+            // {
+            //     _isDraggingPlayhead = true;
+            //     UpdatePlayHeadFromPointer(point);
+            // }
+            // else
+            if (state == ClipInteractionMode.OnTopTitle)
             {
                 if (_activeClip == null)
                     return;
@@ -892,7 +893,7 @@ public partial class TrackView : UserControl
     /// </returns>
     private ClipInteractionMode GetClipInteractionMode()
     {
-        if (_isMovingClip || _isDraggingPlayhead || _isResizingClipRight || _isResizingClipLeft)
+        if (_isMovingClip || _isResizingClipRight || _isResizingClipLeft)
             return ClipInteractionMode.None;
 
         var trackIndex = (int)Math.Floor((_mousePosition.Y + OffsetY) / TrackHeight);
@@ -958,12 +959,13 @@ public partial class TrackView : UserControl
         if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
         {
             var point = e.GetPosition(this);
-            if (_isDraggingPlayhead)
-            {
-                UpdatePlayHeadFromPointer(point);
-                e.Handled = true;
-            }
-            else if (_isMovingClip)
+            // if (_isDraggingPlayhead)
+            // {
+            //     UpdatePlayHeadFromPointer(point);
+            //     e.Handled = true;
+            // }
+            // else
+            if (_isMovingClip)
             {
                 MoveActiveClipTo(point);
             }
@@ -1063,7 +1065,7 @@ public partial class TrackView : UserControl
         var state = GetClipInteractionMode();
         Cursor = state switch
         {
-            ClipInteractionMode.None => new Cursor(StandardCursorType.Ibeam),
+            ClipInteractionMode.None => new Cursor(StandardCursorType.Arrow),
             ClipInteractionMode.OnTopTitle => new Cursor(StandardCursorType.SizeAll),
             ClipInteractionMode.InClipBody => new Cursor(StandardCursorType.Cross),
             ClipInteractionMode.OnLeft => new Cursor(StandardCursorType.LeftSide),
@@ -1075,7 +1077,7 @@ public partial class TrackView : UserControl
     protected override void OnPointerReleased(PointerReleasedEventArgs e)
     {
         base.OnPointerReleased(e);
-        _isDraggingPlayhead = false;
+        // _isDraggingPlayhead = false;
         _isMovingClip = false;
         _isResizingClipRight = false;
         _isResizingClipLeft = false;
