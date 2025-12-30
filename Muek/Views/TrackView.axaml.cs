@@ -27,7 +27,7 @@ public partial class TrackView : UserControl
     private double _offsetX;                   // 横向的轨道滚动距离
     private double _playHeadPosX;              // 播放指示指针
     private int _scaleFactor = 100;            // 横向的轨道缩放
-    private double _timeRulerPosX;             // 好像没被使用
+    // private double _timeRulerPosX;             // 好像没被使用
     private bool _isDropping = false;          // 是否正在向轨道上拖拽文件
     private Point _mousePosition = new();      // 鼠标指针位置
     public int TrackHeight = 100;              // 轨道高度（可变）
@@ -783,12 +783,48 @@ public partial class TrackView : UserControl
             UpdateTrackSelect(point);
 
             var state = GetClipInteractionMode(); // HACK: 此处设置了_activeClip
-            // if (state == ClipInteractionMode.None)
-            // {
-            //     _isDraggingPlayhead = true;
-            //     UpdatePlayHeadFromPointer(point);
-            // }
-            // else
+            if (state == ClipInteractionMode.None)
+            {
+                // _isDraggingPlayhead = true;
+                // UpdatePlayHeadFromPointer(point);
+                var pattern = DataStateService.PianoRollWindow.EditArea.Pattern;
+                if (pattern == null) return;
+                
+                var (x, y) = e.GetPosition(this);
+
+                // var beat = (int)Math.Floor(x / ScaleFactor);
+                x = e.GetPosition(this).X + OffsetX;
+
+                var beat = x / ScaleFactor;
+                beat = double.Round(beat * Subdivisions, 0) / Subdivisions;
+
+                var absoluteY = y + OffsetY;
+                var trackIndex = (int)Math.Floor(absoluteY / TrackHeight);
+                
+                double trackEnd = 0;
+                var notes = pattern.Notes;
+                foreach (var noteList in notes)
+                {
+                    foreach (var note in noteList)
+                        trackEnd = double.Max(trackEnd, note.EndTime);
+                }
+                trackEnd /= Subdivisions;
+                trackEnd /= DataStateService.Midi2TrackFactor;
+                var newClip = new Clip
+                {
+                    Name = pattern.Name,
+                    StartBeat = beat,
+                    Duration = trackEnd,
+                    // Path = file,
+                    Id = Guid.NewGuid().ToString(),
+                };
+                
+                if (trackIndex >= 0 && trackIndex < DataStateService.Tracks.Count)
+                {
+                    DataStateService.Tracks[trackIndex].AddClip(newClip,pattern);
+                }
+            }
+            else
             if (state == ClipInteractionMode.OnTopTitle)
             {
                 if (_activeClip == null)

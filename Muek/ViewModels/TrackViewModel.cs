@@ -97,6 +97,32 @@ public partial class TrackViewModel : ViewModelBase
 
         return vm;
     }
+    
+    public ClipViewModel AddClip(Clip clip,PatternViewModel pattern)
+    {
+        var vm = new ClipViewModel(clip);
+        Proto.Clips.Add(clip);
+        Clips.Add(vm);
+        vm.GenerateWaveformPreviewPure();
+        var notes = pattern.Notes;
+        var clipNotes = new List<PianoRoll.Note>();
+        foreach (var noteList in notes)
+        {
+            foreach (var note in noteList)
+                clipNotes.Add(note with
+                {
+                    StartTime = note.StartTime / DataStateService.Midi2TrackFactor,
+                    EndTime = note.EndTime / DataStateService.Midi2TrackFactor,
+                });
+        }
+
+        {
+            vm.Notes = clipNotes;
+            vm.LinkedPattern = pattern;
+        }
+
+        return vm;
+    }
 
 
     [RelayCommand]
