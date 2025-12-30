@@ -474,7 +474,7 @@ public partial class TrackView : UserControl
                 if(clip == _activeClip)
                     context.DrawRectangle(background,highlightPen, borderRect);
                 
-                if (clip.Notes != null)
+                if (clip.Notes is { Count: > 0 })
                 {
                     try
                     {
@@ -783,7 +783,7 @@ public partial class TrackView : UserControl
             UpdateTrackSelect(point);
 
             var state = GetClipInteractionMode(); // HACK: 此处设置了_activeClip
-            if (state == ClipInteractionMode.None)
+            if (state == ClipInteractionMode.None && e.KeyModifiers == KeyModifiers.Control)
             {
                 // _isDraggingPlayhead = true;
                 // UpdatePlayHeadFromPointer(point);
