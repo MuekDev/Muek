@@ -821,7 +821,8 @@ public partial class TrackView : UserControl
                 
                 if (trackIndex >= 0 && trackIndex < DataStateService.Tracks.Count)
                 {
-                    DataStateService.Tracks[trackIndex].AddClip(newClip,pattern);
+                    _activeClip = DataStateService.Tracks[trackIndex].AddClip(newClip,pattern);
+                    _isResizingClipRight = true;
                 }
             }
             else
