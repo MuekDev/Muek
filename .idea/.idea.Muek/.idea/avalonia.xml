@@ -6,6 +6,7 @@
         <entry key="Muek/App.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/ViewModels/PatternViewModel.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/Views/ClipItem.axaml" value="Muek/Muek.csproj" />
+        <entry key="Muek/Views/DialogWindow.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/Views/ErrorWindow.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/Views/LineDrawer.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/Views/MIDIView.axaml" value="Muek/Muek.csproj" />

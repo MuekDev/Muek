@@ -17,7 +17,13 @@
             <Label FontSize="24" FontWeight="Bold">Error</Label>
             <Label FontSize="10">Muek occured an error, you can close this window if you have known what was happened.</Label>
         </StackPanel>
-        <Border VerticalAlignment="Top" Grid.Row="1" Margin="12,0" Background="#4d0218" CornerRadius="4">
+        <Border VerticalAlignment="Top" Grid.Row="1" Margin="20,5" CornerRadius="4">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
+                    <GradientStop Color="#550000" Offset="0.0"/>
+                    <GradientStop Color="#00550000" Offset="1.0"/>
+                </LinearGradientBrush>
+            </Border.Background>
             <StackPanel Margin="4">
                 <Label Foreground="#fe1c55" FontWeight="Bold">Traceback</Label>
                 <TextBlock Name="ErrorText" TextWrapping="WrapWithOverflow" Foreground="#ffa1ad" FontSize="12" Margin="4,0,0,4">123123</TextBlock>
