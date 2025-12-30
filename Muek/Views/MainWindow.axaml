@@ -46,9 +46,11 @@
                 <!-- <Border Background="#852221" VerticalAlignment="Center" CornerRadius="0,12,12,0" Padding="8,0"> -->
                 <!--     <Label Foreground="#F9DEDC" Content="已停止" /> -->
                 <!-- </Border> -->
+                
+                <!-- BPM -->
                 <Border Margin="20,0">
                     <NumericUpDown Value="{Binding Bpm}" BorderBrush="Transparent"
-                                   VerticalAlignment="Center" FormatString="0.00"/>
+                                   VerticalAlignment="Center" FormatString="0.00" ClipValueToMinMax="True" Minimum="1"/>
                 </Border>
                 
                 <!-- <Border Background="#4F378A" VerticalAlignment="Center" CornerRadius="0,12,12,0" Padding="8,0"> -->
