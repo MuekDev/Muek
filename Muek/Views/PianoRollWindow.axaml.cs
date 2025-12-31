@@ -30,8 +30,9 @@ public partial class PianoRollWindow : UserControl
         ClipToBounds = false;
         ResizePanel.PointerPressed += (sender, args) =>
         {
+            if (_isDetached) return;
             _isDragging = true;
-            if(_isShowing)
+            if (_isShowing)
             {
                 CloseButton.IsVisible = true;
                 OpenButton.IsVisible = false;
@@ -40,6 +41,7 @@ public partial class PianoRollWindow : UserControl
             {
                 _maxSize = 90;
             }
+
             args.Handled = true;
         };
         ResizePanel.PointerMoved += (sender, args) =>
@@ -80,6 +82,7 @@ public partial class PianoRollWindow : UserControl
         };
         ResizePanel.PointerReleased += (sender, args) =>
         {
+            if (_isDetached) return;
             _isDragging = false;
             ResizeBorder.IsVisible = false;
             Cursor = new Cursor(StandardCursorType.Arrow);
@@ -87,12 +90,13 @@ public partial class PianoRollWindow : UserControl
         };
         ResizePanel.PointerEntered += (sender, args) =>
         {
+            if (_isDetached) return;
             ResizeBorder.IsVisible = true;
             Cursor = new Cursor(StandardCursorType.TopSide);
         };
         ResizePanel.PointerExited += (sender, args) =>
         {
-            if(_isDragging) return;
+            if (_isDragging) return;
             ResizeBorder.IsVisible = false;
             Cursor = new Cursor(StandardCursorType.Arrow);
         };
