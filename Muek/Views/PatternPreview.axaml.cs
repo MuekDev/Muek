@@ -220,7 +220,8 @@ public partial class PatternPreview : UserControl
 
         _pressedPosition = e.GetPosition(this).X;
         _pressedScroll = DataStateService.PianoRollWindow.PianoRollRightScroll.Offset.X;
-        _isPressed = true;
+        if(_isHover)
+            _isPressed = true;
         if (DataStateService.PianoRollWindow.IsShowing)
         {
             e.Handled = true;
@@ -273,18 +274,19 @@ public partial class PatternPreview : UserControl
             DataStateService.PianoRollWindow.EditArea.Width
             * Bounds.Width,
             Bounds.Height);
-        if (e.GetPosition(this).X > sliderRect.X && e.GetPosition(this).Y > sliderRect.Y &&
-            e.GetPosition(this).X < sliderRect.X + sliderRect.Width &&
-            e.GetPosition(this).Y < sliderRect.Y + sliderRect.Height)
-        {
-            _isHover = true;
-            InvalidateVisual();
-        }
-        else
-        {
-            _isHover = false;
-            InvalidateVisual();
-        }
+        if(DataStateService.PianoRollWindow.IsShowing)
+            if (e.GetPosition(this).X > sliderRect.X && e.GetPosition(this).Y > sliderRect.Y &&
+                e.GetPosition(this).X < sliderRect.X + sliderRect.Width &&
+                e.GetPosition(this).Y < sliderRect.Y + sliderRect.Height)
+            {
+                _isHover = true;
+                InvalidateVisual();
+            }
+            else
+            {
+                _isHover = false;
+                InvalidateVisual();
+            }
         
         if (_isPressed)
         {
@@ -302,7 +304,22 @@ public partial class PatternPreview : UserControl
             InvalidateVisual();
         }
     }
-    
+
+    protected override void OnPointerEntered(PointerEventArgs e)
+    {
+        base.OnPointerEntered(e);
+        if (!DataStateService.PianoRollWindow.IsShowing)
+            _isHover = true;
+        InvalidateVisual();
+    }
+
+    protected override void OnPointerExited(PointerEventArgs e)
+    {
+        base.OnPointerExited(e);
+        _isHover = false;
+        InvalidateVisual();
+    }
+
 
     // public void OpenPianoRoll()
     // {
