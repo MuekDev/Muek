@@ -532,7 +532,7 @@ public partial class TrackView : UserControl
 
                         foreach (var note in clipNotes)
                         {
-                            context.FillRectangle(Brushes.White,
+                            context.FillRectangle(new SolidColorBrush(Colors.White,note.Velocity / 127f),
                                 new Rect(
                                     note.StartTime - OffsetX,
                                     TrackHeight * .6 - (note.Name - noteMin + 1) * noteHeight * .6 + TrackHeight * .2 +

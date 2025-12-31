@@ -117,6 +117,7 @@ public partial class NoteVelocity : UserControl
             {
                 Notes = newNotes;
                 DataStateService.PianoRollWindow.EditArea.InvalidateVisual();
+                DataStateService.PianoRollWindow.EditArea.SaveNotes();
             }
         }
         e.Handled = true;
