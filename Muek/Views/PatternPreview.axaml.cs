@@ -71,26 +71,21 @@ public partial class PatternPreview : UserControl
         }
         else
         {
+            var sliderRect = new Rect(DataStateService.PianoRollWindow.PianoRollRightScroll.Offset.X /
+                                 DataStateService.PianoRollWindow.EditArea.Width
+                                 * Bounds.Width
+                , 0,
+                DataStateService.PianoRollWindow.PianoRollRightScroll.Bounds.Width /
+                DataStateService.PianoRollWindow.EditArea.Width
+                * Bounds.Width,
+                Bounds.Height);
+            
             context.DrawRectangle(new SolidColorBrush(Colors.White, .05), null,
-                new Rect(DataStateService.PianoRollWindow.PianoRollRightScroll.Offset.X /
-                         DataStateService.PianoRollWindow.EditArea.Width
-                         * Bounds.Width
-                    , 0,
-                    DataStateService.PianoRollWindow.PianoRollRightScroll.Bounds.Width /
-                    DataStateService.PianoRollWindow.EditArea.Width
-                    * Bounds.Width,
-                    Bounds.Height));
+                sliderRect);
             if (_isHover)
             {
                 context.DrawRectangle(null, new Pen(new SolidColorBrush(Colors.White)),
-                    new Rect(DataStateService.PianoRollWindow.PianoRollRightScroll.Offset.X /
-                             DataStateService.PianoRollWindow.EditArea.Width
-                             * Bounds.Width
-                        , 0,
-                        DataStateService.PianoRollWindow.PianoRollRightScroll.Bounds.Width /
-                        DataStateService.PianoRollWindow.EditArea.Width
-                        * Bounds.Width,
-                        Bounds.Height));
+                    sliderRect);
             }
         }
 
@@ -260,15 +255,7 @@ public partial class PatternPreview : UserControl
         _isPressed = false;
         e.Handled = true;
     }
-
-    protected override void OnPointerEntered(PointerEventArgs e)
-    {
-        base.OnPointerEntered(e);
-        _isHover = true;
-        InvalidateVisual();
-
-        e.Handled = true;
-    }
+    
 
     protected override void OnPointerMoved(PointerEventArgs e)
     {
@@ -277,6 +264,26 @@ public partial class PatternPreview : UserControl
         if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime)
         {
             return;
+        }
+        var sliderRect = new Rect(DataStateService.PianoRollWindow.PianoRollRightScroll.Offset.X /
+                                  DataStateService.PianoRollWindow.EditArea.Width
+                                  * Bounds.Width
+            , 0,
+            DataStateService.PianoRollWindow.PianoRollRightScroll.Bounds.Width /
+            DataStateService.PianoRollWindow.EditArea.Width
+            * Bounds.Width,
+            Bounds.Height);
+        if (e.GetPosition(this).X > sliderRect.X && e.GetPosition(this).Y > sliderRect.Y &&
+            e.GetPosition(this).X < sliderRect.X + sliderRect.Width &&
+            e.GetPosition(this).Y < sliderRect.Y + sliderRect.Height)
+        {
+            _isHover = true;
+            InvalidateVisual();
+        }
+        else
+        {
+            _isHover = false;
+            InvalidateVisual();
         }
         
         if (_isPressed)
@@ -295,14 +302,7 @@ public partial class PatternPreview : UserControl
             InvalidateVisual();
         }
     }
-
-    protected override void OnPointerExited(PointerEventArgs e)
-    {
-        base.OnPointerExited(e);
-        _isHover = false;
-        InvalidateVisual();
-        e.Handled = true;
-    }
+    
 
     // public void OpenPianoRoll()
     // {
