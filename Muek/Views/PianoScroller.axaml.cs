@@ -65,26 +65,21 @@ public partial class PianoScroller : UserControl
         }
         else
         {
+            var scrollRect = new Rect( 0,DataStateService.PianoRollWindow.PianoRollRightScroll.Offset.Y /
+                                    DataStateService.PianoRollWindow.EditArea.Height
+                                    * Bounds.Height
+                ,
+                Bounds.Width,
+                DataStateService.PianoRollWindow.PianoRollRightScroll.Bounds.Height /
+                DataStateService.PianoRollWindow.EditArea.Height
+                * Bounds.Height);
+            
             context.DrawRectangle(new SolidColorBrush(Colors.White, .05), null,
-                new Rect( 0,DataStateService.PianoRollWindow.PianoRollRightScroll.Offset.Y /
-                            DataStateService.PianoRollWindow.EditArea.Height
-                            * Bounds.Height
-                    ,
-                    Bounds.Width,
-                    DataStateService.PianoRollWindow.PianoRollRightScroll.Bounds.Height /
-                    DataStateService.PianoRollWindow.EditArea.Height
-                    * Bounds.Height));
+                scrollRect);
             if (_isHover)
             {
                 context.DrawRectangle(null, new Pen(new SolidColorBrush(Colors.White)),
-                    new Rect( 0,DataStateService.PianoRollWindow.PianoRollRightScroll.Offset.Y /
-                                DataStateService.PianoRollWindow.EditArea.Height
-                                * Bounds.Height
-                       ,
-                        Bounds.Width ,
-                        DataStateService.PianoRollWindow.PianoRollRightScroll.Bounds.Height /
-                        DataStateService.PianoRollWindow.EditArea.Height
-                        * Bounds.Height));
+                    scrollRect);
             }
         }
 
@@ -200,7 +195,8 @@ public partial class PianoScroller : UserControl
 
         _pressedPosition = e.GetPosition(this).Y;
         _pressedScroll = DataStateService.PianoRollWindow.PianoRollRightScroll.Offset.Y;
-        _isPressed = true;
+        if(_isHover)
+            _isPressed = true;
         if (DataStateService.PianoRollWindow.IsShowing)
         {
             e.Handled = true;
@@ -236,14 +232,14 @@ public partial class PianoScroller : UserControl
         e.Handled = true;
     }
 
-    protected override void OnPointerEntered(PointerEventArgs e)
-    {
-        base.OnPointerEntered(e);
-        _isHover = true;
-        InvalidateVisual();
-
-        e.Handled = true;
-    }
+    // protected override void OnPointerEntered(PointerEventArgs e)
+    // {
+    //     base.OnPointerEntered(e);
+    //     _isHover = true;
+    //     InvalidateVisual();
+    //
+    //     e.Handled = true;
+    // }
 
     protected override void OnPointerMoved(PointerEventArgs e)
     {
@@ -253,6 +249,29 @@ public partial class PianoScroller : UserControl
         {
             return;
         }
+        
+        var sliderRect = new Rect( 0,DataStateService.PianoRollWindow.PianoRollRightScroll.Offset.Y /
+                                     DataStateService.PianoRollWindow.EditArea.Height
+                                     * Bounds.Height
+            ,
+            Bounds.Width,
+            DataStateService.PianoRollWindow.PianoRollRightScroll.Bounds.Height /
+            DataStateService.PianoRollWindow.EditArea.Height
+            * Bounds.Height);
+        
+        if(DataStateService.PianoRollWindow.IsShowing)
+            if (e.GetPosition(this).X > sliderRect.X && e.GetPosition(this).Y > sliderRect.Y &&
+                e.GetPosition(this).X < sliderRect.X + sliderRect.Width &&
+                e.GetPosition(this).Y < sliderRect.Y + sliderRect.Height)
+            {
+                _isHover = true;
+                InvalidateVisual();
+            }
+            else
+            {
+                _isHover = false;
+                InvalidateVisual();
+            }
         
         if (_isPressed)
         {
