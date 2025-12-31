@@ -18,6 +18,9 @@ public partial class PatternViewModel : ViewModelBase
     
     public IBrush Brush => new SolidColorBrush(Color);
 
+    public bool IsLooping { get; set; } = false;
+    public double LoopTime { get; set; } = 0.0f;
+
     public PatternViewModel()
     {
         _color = DataStateService.MuekColor;

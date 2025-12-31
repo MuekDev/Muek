@@ -94,7 +94,8 @@ public partial class TrackView : UserControl
     }
 
     private CancellationTokenSource? _trackerCts;
-    
+    private bool _isSettingClipLoop = false;
+
     public TrackView()
     {
         InitializeComponent();
@@ -474,7 +475,7 @@ public partial class TrackView : UserControl
                 if(clip == _activeClip)
                     context.DrawRectangle(background,highlightPen, borderRect);
                 
-                if (clip.Notes is { Count: > 0 })
+                if (clip is { Notes.Count: > 0, LinkedPattern: not null })
                 {
                     try
                     {
@@ -496,13 +497,16 @@ public partial class TrackView : UserControl
 
                         var clipNotes = new List<PianoRoll.Note>();
                         var clipStart = x + OffsetX;
-                        var loops = width / _scaleFactor / clip.SourceDuration;
+                        var loopTime = Math.Max(clip.SourceDuration, clip.LinkedPattern.LoopTime);
+                        var loops = width / _scaleFactor / loopTime;
                         Console.WriteLine($"Loops: {loops}");
                         for(int loop = 0; loop < loops; loop++)
                         {
+                            if (clip.LinkedPattern.IsLooping == false && loop > 0)
+                                break;
                             foreach (var note in notes)
                             {
-                                var noteStart = loop * clip.SourceDuration * _scaleFactor +
+                                var noteStart = loop * loopTime * _scaleFactor +
                                                 (clip.StartBeat - clip.Offset) * _scaleFactor +
                                                 note.StartTime * noteWidth / DataStateService.Midi2TrackFactor;
                                 var noteLength = noteWidth * (note.EndTime - note.StartTime) / DataStateService.Midi2TrackFactor;
@@ -523,9 +527,9 @@ public partial class TrackView : UserControl
                             if(loop!=0)
                             {
                                 context.DrawLine(loopPen,
-                                    new Point(loop * clip.SourceDuration * _scaleFactor + x+1,
+                                    new Point(loop * loopTime * _scaleFactor + x+1,
                                         TrackHeight * i + OffsetY),
-                                    new Point(loop * clip.SourceDuration * _scaleFactor + x+1,
+                                    new Point(loop * loopTime * _scaleFactor + x+1,
                                         TrackHeight * (i + 1) + OffsetY));
                             }
                         }
@@ -852,6 +856,17 @@ public partial class TrackView : UserControl
 
                 _isResizingClipLeft = true;
             }
+            else if (state == ClipInteractionMode.InClipBody)
+            {
+                if (_activeClip == null)
+                    return;
+
+                _isSettingClipLoop = true;
+
+                var globalX = Math.Max(0, _mousePosition.X + OffsetX);
+                var pointerBeat = globalX / ScaleFactor;
+                var clickBeat = pointerBeat - _activeClip.StartBeat;
+            }
 
             if (e.ClickCount == 2 && _activeClip is { LinkedPattern: not null })
             {
@@ -885,6 +900,15 @@ public partial class TrackView : UserControl
                         }
                     }
                 };
+                if (_activeClip is { LinkedPattern: not null })
+                {
+                    menu.Items.Add(new CheckBox()
+                    {
+                        Content = "Loop",
+                        IsChecked = _activeClip.LinkedPattern.IsLooping,
+                        Command = SetLoopCommand
+                    });
+                }
                 menu.ShowAt(this,true);
             }
             else
@@ -893,19 +917,24 @@ public partial class TrackView : UserControl
             }
         }
     }
+
+    [RelayCommand]
+    private void SetLoop()
+    {
+        if (_activeClip is { LinkedPattern: not null })
+            _activeClip.LinkedPattern.IsLooping = !_activeClip.LinkedPattern.IsLooping;
+        InvalidateVisual();
+    }
     
     [RelayCommand]
     private void RemoveClip()
     {
         foreach (var track in DataStateService.Tracks)
         {
-            foreach (var clip in track.Clips.ToList())
-            {
-                if (clip != _activeClip) continue;
-                track.Clips.Remove(clip);
-                ActiveClip = null;
-                InvalidateVisual();
-            }
+            if (_activeClip == null || !track.Clips.Contains(_activeClip)) continue;
+            track.Clips.Remove(_activeClip);
+            ActiveClip = null;
+            InvalidateVisual();
         }
     }
 
@@ -1014,11 +1043,31 @@ public partial class TrackView : UserControl
             {
                 ReOffsetForActiveClip(point);
             }
+            else if (_isSettingClipLoop)
+            {
+                ReSetActiveClipLoop(point);
+            }
         }
 
         _mousePosition = e.GetPosition(this);
 
         CheckIfPointerInClipBounds(_mousePosition);
+    }
+
+    private void ReSetActiveClipLoop(Point point)
+    {
+        
+        var globalX = Math.Max(0, point.X + OffsetX);
+        var pointerBeat = globalX / ScaleFactor;
+
+        if (_activeClip != null)
+        {
+            var newLoop = pointerBeat;
+            if (_isSnapping)
+                newLoop = double.Round(newLoop * Subdivisions, 0) / Subdivisions;
+            if (_activeClip.LinkedPattern != null) 
+                _activeClip.LinkedPattern.LoopTime = newLoop - _activeClip.StartBeat;
+        }
     }
 
     private void ReOffsetForActiveClip(Point point)
@@ -1118,6 +1167,7 @@ public partial class TrackView : UserControl
         _isMovingClip = false;
         _isResizingClipRight = false;
         _isResizingClipLeft = false;
+        _isSettingClipLoop = false;
     }
 
     protected override void OnPointerWheelChanged(PointerWheelEventArgs e)
