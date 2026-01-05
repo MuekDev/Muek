@@ -374,7 +374,7 @@ public partial class PianoRollWindow : UserControl
         Hide();
     }
 
-    private void ShowSingleWindow(object? sender, RoutedEventArgs e)
+    private void ShowDetachedWindow(object? sender, RoutedEventArgs e)
     {
         var mainWindow = ViewHelper.GetMainWindow();
         if(mainWindow.MainGrid.Children.Contains(this))
@@ -388,6 +388,10 @@ public partial class PianoRollWindow : UserControl
                 Content = this,
                 MinHeight = 200,
                 MinWidth = 1000
+            };
+            mainWindow.Closed += (o, args) =>
+            {
+                window.Close();
             };
             PointerPressed += (_, args) =>
             {
