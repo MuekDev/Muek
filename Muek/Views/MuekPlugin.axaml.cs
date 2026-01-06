@@ -333,30 +333,6 @@ public partial class MuekPlugin : UserControl
                     {
                         Children =
                         {
-                            new Line()
-                            {
-                                StartPoint  = new Point(1000/50d,0),
-                                EndPoint = new Point(1000/50d,80),
-                                Stroke = _stroke,
-                                StrokeThickness = 0.5,
-                                StrokeDashArray = [10,5]
-                            },
-                            new Line()
-                            {
-                                StartPoint  = new Point(2000/50d,0),
-                                EndPoint = new Point(2000/50d,80),
-                                Stroke = _stroke,
-                                StrokeThickness = 0.5,
-                                StrokeDashArray = [10,5]
-                            },
-                            new Line()
-                            {
-                                StartPoint  = new Point(5000/50d,0),
-                                EndPoint = new Point(5000/50d,80),
-                                Stroke = _stroke,
-                                StrokeThickness = 0.5,
-                                StrokeDashArray = [10,5]
-                            },
                             adsrWave,
                             adsrFill,
                             }
@@ -377,13 +353,12 @@ public partial class MuekPlugin : UserControl
         Grid.SetRow(adsr, 1);
         var pitch = new NumericUpDown()
         {
-            HorizontalAlignment = HorizontalAlignment.Center,
+            HorizontalAlignment = HorizontalAlignment.Stretch,
             Minimum = -24,
             Maximum = 24,
             Value = 0,
             Increment = 1,
             Height = 25,
-            Width = 100,
             Padding = Thickness.Parse("0"),
             BorderBrush = Brushes.Transparent,
             Styles =
@@ -394,13 +369,12 @@ public partial class MuekPlugin : UserControl
         };
         var cents = new NumericUpDown()
         {
-            HorizontalAlignment = HorizontalAlignment.Center,
+            HorizontalAlignment = HorizontalAlignment.Stretch,
             Minimum = -50,
             Maximum = 50,
             Value = 0,
             Increment = 1,
             Height = 25,
-            Width = 100,
             Padding = Thickness.Parse("0"),
             BorderBrush = Brushes.Transparent,
             Styles =
@@ -416,8 +390,8 @@ public partial class MuekPlugin : UserControl
             Maximum = 1,
             Value = 0,
             Width = 100,
-            Height = 8,
-            TickPlacement = TickPlacement.TopLeft,
+            Height = 10,
+            TickPlacement = TickPlacement.BottomRight,
             TickFrequency = 1,
             Styles =
             {
@@ -432,8 +406,8 @@ public partial class MuekPlugin : UserControl
             Maximum = 100,
             Value = 100,
             Width = 100,
-            Height = 8,
-            TickPlacement = TickPlacement.TopLeft,
+            Height = 10,
+            TickPlacement = TickPlacement.BottomRight,
             TickFrequency = 10,
             Styles =
             {
@@ -441,6 +415,42 @@ public partial class MuekPlugin : UserControl
             },
             Margin = Thickness.Parse("0 0 0 20")
         };
+        var panText = new TextBox()
+        {
+            Width = 50,
+            Height = 10,
+            Background = Brushes.Transparent,
+            BorderBrush = Brushes.Transparent,
+            Text = pan.Value.ToString("0.0"),
+            Margin = Thickness.Parse("0 -20 0 0")
+        };
+        panText.TextChanged += (_, _) =>
+        {
+            if (panText.Text == "-")
+                panText.Text = "-0";
+            pan.Value = double.Parse(panText.Text);
+            panText.Text = pan.Value.ToString("0.0");
+        };
+        var volumeText = new TextBox()
+        {
+            Width = 50,
+            Height = 10,
+            Background = Brushes.Transparent,
+            BorderBrush = Brushes.Transparent,
+            Text = volume.Value.ToString("0.0"),
+            Margin = Thickness.Parse("0 -20 0 0")
+        };
+        volume.ValueChanged += (_, _) =>
+        {
+            volume.Value = double.Round(volume.Value,2);
+            volumeText.Text = volume.Value.ToString("0.0");
+        };
+        volumeText.TextChanged += (_, _) =>
+        {
+            volume.Value = double.Parse(volumeText.Text);
+            volumeText.Text = volume.Value.ToString("0.0");
+        };
+
         var settingsBorder = new Border()
         {
             Background = Brush.Parse("#232323"),
@@ -472,14 +482,30 @@ public partial class MuekPlugin : UserControl
                         FontSize = 10,
                         Content = "Pan",
                     },
-                    pan,
+                    new StackPanel()
+                    {
+                        Orientation = Orientation.Horizontal,
+                        Children =
+                        {
+                            pan,
+                            panText
+                        }
+                    },
                     new Label()
                     {
                         HorizontalAlignment = HorizontalAlignment.Center,
                         FontSize = 10,
                         Content = "Volume",
                     },
-                    volume,
+                    new StackPanel()
+                    {
+                        Orientation = Orientation.Horizontal,
+                        Children =
+                        {
+                            volume,
+                            volumeText
+                        }
+                    },
                 }
             }
         };
@@ -495,6 +521,44 @@ public partial class MuekPlugin : UserControl
             Fill = new SolidColorBrush(DataStateService.MuekColor, 0.1),
             Height = 100,
             Width = 100,
+        };
+        var panFill = new Rectangle()
+        {
+            Fill = new LinearGradientBrush()
+            {
+                Opacity = 0.1,
+                StartPoint = new RelativePoint(0,0,RelativeUnit.Relative),
+                EndPoint = new RelativePoint(1,0, RelativeUnit.Relative),
+                GradientStops = [
+                    new GradientStop(DataStateService.MuekColor, 0),
+                    new GradientStop(Colors.Transparent, 1)
+                ]
+            },
+            Height = 100,
+            Width = 0,
+            Margin = Thickness.Parse("50 0 0 0"),
+            HorizontalAlignment = HorizontalAlignment.Left,
+            RenderTransform = new RotateTransform(0)
+        };
+        pan.ValueChanged += (_, _) =>
+        {
+            pan.Value = double.Clamp(pan.Value, -1, 1);
+            pan.Value = double.Round(pan.Value, 2);
+            panText.Text = pan.Value.ToString("0.0");
+            panFill.Width = pan.Value == 0 ? 0 : 50;
+            panFill.Fill = new LinearGradientBrush()
+            {
+                Opacity = 0.1,
+                StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative),
+                EndPoint = new RelativePoint(1, 0, RelativeUnit.Relative),
+                GradientStops =
+                [
+                    new GradientStop(DataStateService.MuekColor, 0),
+                    new GradientStop(Colors.Transparent, double.Abs(pan.Value))
+                ]
+            };
+            panFill.Margin = pan.Value >= 0 ? Thickness.Parse("50 0 0 0") : Thickness.Parse("0");
+            panFill.RenderTransform = pan.Value >= 0 ? new RotateTransform(0) : new RotateTransform(180);
         };
         WavetableChange();
         waveType.SelectionChanged += (sender, args) =>
@@ -536,47 +600,61 @@ public partial class MuekPlugin : UserControl
             BoxShadow = _boxShadows,
             Background = Brush.Parse("#232323"),
             Padding = _thickness,
-            Child = new Border(){
-                Background = Brush.Parse("#23000000"),
-                CornerRadius = _cornerRadius,
-                BoxShadow = _insetBoxShadow,
-                Child = new Viewbox()
+            Child = new Grid(){
+                Children =
                 {
-                    ClipToBounds = false,
-                    Height = 120,
-                    StretchDirection = StretchDirection.UpOnly,
-                    Stretch = Stretch.Fill,
-                    Child = new Grid()
+                    new Border()
                     {
-                        Children =
+                        Background = Brush.Parse("#23000000"),
+                        CornerRadius = _cornerRadius,
+                        Margin = Thickness.Parse("20 0 0 0"),
+                        BoxShadow = _insetBoxShadow,
+                        Child = new Viewbox()
                         {
-                            new Line()
+                            ClipToBounds = false,
+                            Height = 180,
+                            StretchDirection = StretchDirection.UpOnly,
+                            Stretch = Stretch.Fill,
+                            Child = new Grid()
                             {
-                                StartPoint = new Point(0,50),
-                                EndPoint = new Point(100,50),
-                                Stroke = _stroke,
-                                StrokeThickness = 0.5,
-                                StrokeDashArray = [20,5]
-                            },
-                            new Line()
-                            {
-                                StartPoint = new Point(0,0),
-                                EndPoint = new Point(100,0),
-                                Stroke = _stroke,
-                                StrokeThickness = 0.5,
-                                StrokeDashArray = [20,5]
-                            },
-                            new Line()
-                            {
-                                StartPoint = new Point(0,100),
-                                EndPoint = new Point(100,100),
-                                Stroke = _stroke,
-                                StrokeThickness = 0.5,
-                                StrokeDashArray = [20,5]
-                            },
-                            waveFill,
-                            wave
+                                Children =
+                                {
+                                    panFill,
+                                    waveFill,
+                                    wave
+                                }
+                            }
                         }
+                    },
+                    new Line()
+                    {
+                        Stroke = Brush.Parse("#23ffffff"),
+                        StartPoint = Point.Parse("8 94"),
+                        EndPoint = Point.Parse("15 94")
+                    },
+                    new Line()
+                    {
+                        Stroke = Brush.Parse("#23ffffff"),
+                        StartPoint = Point.Parse("12 49"),
+                        EndPoint = Point.Parse("15 49"),
+                    },
+                    new Line()
+                    {
+                        Stroke = Brush.Parse("#23ffffff"),
+                        StartPoint = Point.Parse("12 139"),
+                        EndPoint = Point.Parse("15 139"),
+                    },
+                    new Line()
+                    {
+                        Stroke = Brush.Parse("#23ffffff"),
+                        StartPoint = Point.Parse("8 4"),
+                        EndPoint = Point.Parse("15 4"),
+                    },
+                    new Line()
+                    {
+                        Stroke = Brush.Parse("#23ffffff"),
+                        StartPoint = Point.Parse("8 184"),
+                        EndPoint = Point.Parse("15 184"),
                     }
                 }
             }

@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:avalonia="https://github.com/projektanker/icons.avalonia"
              xmlns:services="clr-namespace:Muek.Services"
-             mc:Ignorable="d" d:DesignWidth="400"
+             mc:Ignorable="d" d:DesignWidth="500"
              x:Class="Muek.Views.MuekPlugin">
     <Border Padding="5" Background="#232323" CornerRadius="10" Margin="10"
             BoxShadow="0 0 10 1 #88000000">
