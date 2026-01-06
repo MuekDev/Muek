@@ -47,7 +47,14 @@ public partial class MuekPlugin : UserControl
         Meter
     }
 
-    private MuekPluginType PluginType { get; } = MuekPluginType.Equalizer;
+    private MuekPluginType PluginType { get; } = MuekPluginType.Oscillator;
+
+    private readonly BoxShadows _boxShadows = BoxShadows.Parse("0 0 10 #000000");
+    private readonly BoxShadows _insetBoxShadow = BoxShadows.Parse("inset 0 0 10 #88000000");
+    private readonly CornerRadius _cornerRadius = CornerRadius.Parse("4");
+
+    private readonly IBrush _stroke = Brush.Parse("#88000000");
+    private readonly Thickness _thickness = Thickness.Parse("4");
     
     public MuekPlugin()
     {
@@ -134,6 +141,8 @@ public partial class MuekPlugin : UserControl
                     Width = 45,
                     Padding = Thickness.Parse("5"),
                     Background = Brush.Parse("#232323"),
+                    CornerRadius = _cornerRadius,
+                    BoxShadow = _boxShadows,
                     Child = waveType
                 },
             }
@@ -201,6 +210,8 @@ public partial class MuekPlugin : UserControl
                 {
                     Padding = Thickness.Parse("5"),
                     Background = Brush.Parse("#232323"),
+                    CornerRadius = _cornerRadius,
+                    BoxShadow = _boxShadows,
                     Child = new StackPanel()
                     {
                         Children =
@@ -306,45 +317,51 @@ public partial class MuekPlugin : UserControl
         
         var adsrBorder = new Border()
         {
-            BorderBrush = Brush.Parse("#232323"),
-            BorderThickness = Thickness.Parse("4"),
-            Child = new Viewbox()
-            {
-                Stretch = Stretch.Fill,
-                HorizontalAlignment = HorizontalAlignment.Left,
-                Child = new Grid()
+            CornerRadius = _cornerRadius,
+            BoxShadow = _boxShadows,
+            Background = Brush.Parse("#232323"),
+            Padding = _thickness,
+            Child = new Border(){
+                Background = Brush.Parse("#23000000"),
+                CornerRadius = _cornerRadius,
+                BoxShadow = _insetBoxShadow,
+                Child = new Viewbox()
                 {
-                    Children =
+                    Stretch = Stretch.Fill,
+                    HorizontalAlignment = HorizontalAlignment.Left,
+                    Child = new Grid()
                     {
-                        new Line()
+                        Children =
                         {
-                            StartPoint  = new Point(1000/50d,0),
-                            EndPoint = new Point(1000/50d,80),
-                            Stroke = Brush.Parse("#15ffffff"),
-                            StrokeThickness = 1,
-                            StrokeDashArray = [10,5]
-                        },
-                        new Line()
-                        {
-                            StartPoint  = new Point(2000/50d,0),
-                            EndPoint = new Point(2000/50d,80),
-                            Stroke = Brush.Parse("#15ffffff"),
-                            StrokeThickness = 1,
-                            StrokeDashArray = [10,5]
-                        },
-                        new Line()
-                        {
-                            StartPoint  = new Point(5000/50d,0),
-                            EndPoint = new Point(5000/50d,80),
-                            Stroke = Brush.Parse("#15ffffff"),
-                            StrokeThickness = 1,
-                            StrokeDashArray = [10,5]
-                        },
-                        adsrWave,
-                        adsrFill,
-                        
+                            new Line()
+                            {
+                                StartPoint  = new Point(1000/50d,0),
+                                EndPoint = new Point(1000/50d,80),
+                                Stroke = _stroke,
+                                StrokeThickness = 0.5,
+                                StrokeDashArray = [10,5]
+                            },
+                            new Line()
+                            {
+                                StartPoint  = new Point(2000/50d,0),
+                                EndPoint = new Point(2000/50d,80),
+                                Stroke = _stroke,
+                                StrokeThickness = 0.5,
+                                StrokeDashArray = [10,5]
+                            },
+                            new Line()
+                            {
+                                StartPoint  = new Point(5000/50d,0),
+                                EndPoint = new Point(5000/50d,80),
+                                Stroke = _stroke,
+                                StrokeThickness = 0.5,
+                                StrokeDashArray = [10,5]
+                            },
+                            adsrWave,
+                            adsrFill,
+                            }
+                        }
                     }
-                }
             }
         };
         var grid = new Grid()
@@ -428,6 +445,8 @@ public partial class MuekPlugin : UserControl
         {
             Background = Brush.Parse("#232323"),
             Padding = Thickness.Parse("5"),
+            CornerRadius = _cornerRadius,
+            BoxShadow = _boxShadows,
             Child = new StackPanel()
             {
                 VerticalAlignment = VerticalAlignment.Center,
@@ -513,44 +532,51 @@ public partial class MuekPlugin : UserControl
 
         var viewBorder = new Border()
         {
-            BorderThickness = Thickness.Parse("4"),
-            BorderBrush = Brush.Parse("#232323"),
-            Child = new Viewbox()
-            {
-                ClipToBounds = false,
-                Height = 120,
-                StretchDirection = StretchDirection.UpOnly,
-                Stretch = Stretch.Fill,
-                Child = new Grid()
+            CornerRadius = _cornerRadius,
+            BoxShadow = _boxShadows,
+            Background = Brush.Parse("#232323"),
+            Padding = _thickness,
+            Child = new Border(){
+                Background = Brush.Parse("#23000000"),
+                CornerRadius = _cornerRadius,
+                BoxShadow = _insetBoxShadow,
+                Child = new Viewbox()
                 {
-                    Children =
+                    ClipToBounds = false,
+                    Height = 120,
+                    StretchDirection = StretchDirection.UpOnly,
+                    Stretch = Stretch.Fill,
+                    Child = new Grid()
                     {
-                        new Line()
+                        Children =
                         {
-                            StartPoint = new Point(0,50),
-                            EndPoint = new Point(100,50),
-                            Stroke = Brush.Parse("#15ffffff"),
-                            StrokeThickness = 0.5,
-                            StrokeDashArray = [20,5]
-                        },
-                        new Line()
-                        {
-                            StartPoint = new Point(0,0),
-                            EndPoint = new Point(100,0),
-                            Stroke = Brush.Parse("#15ffffff"),
-                            StrokeThickness = 0.5,
-                            StrokeDashArray = [20,5]
-                        },
-                        new Line()
-                        {
-                            StartPoint = new Point(0,100),
-                            EndPoint = new Point(100,100),
-                            Stroke = Brush.Parse("#15ffffff"),
-                            StrokeThickness = 0.5,
-                            StrokeDashArray = [20,5]
-                        },
-                        waveFill,
-                        wave
+                            new Line()
+                            {
+                                StartPoint = new Point(0,50),
+                                EndPoint = new Point(100,50),
+                                Stroke = _stroke,
+                                StrokeThickness = 0.5,
+                                StrokeDashArray = [20,5]
+                            },
+                            new Line()
+                            {
+                                StartPoint = new Point(0,0),
+                                EndPoint = new Point(100,0),
+                                Stroke = _stroke,
+                                StrokeThickness = 0.5,
+                                StrokeDashArray = [20,5]
+                            },
+                            new Line()
+                            {
+                                StartPoint = new Point(0,100),
+                                EndPoint = new Point(100,100),
+                                Stroke = _stroke,
+                                StrokeThickness = 0.5,
+                                StrokeDashArray = [20,5]
+                            },
+                            waveFill,
+                            wave
+                        }
                     }
                 }
             }
@@ -717,6 +743,8 @@ public partial class MuekPlugin : UserControl
         {
             Padding = Thickness.Parse("8"),
             Background = Brush.Parse("#232323"),
+            CornerRadius = _cornerRadius,
+            BoxShadow = _boxShadows,
             Child = new StackPanel()
             {
                 Children =
@@ -935,22 +963,29 @@ public partial class MuekPlugin : UserControl
         var view = new Border()
         {
             Height = 150,
-            BorderBrush = Brush.Parse("#232323"),
-            BorderThickness = Thickness.Parse("4"),
-            Child = new Viewbox()
-            {
-                ClipToBounds = false,
-                Child = new Grid()
+            Background = Brush.Parse("#232323"),
+            Padding = _thickness,
+            CornerRadius = _cornerRadius,
+            BoxShadow = _boxShadows,
+            Child = new Border(){
+                Background = Brush.Parse("#23000000"),
+                CornerRadius = _cornerRadius,
+                BoxShadow = _insetBoxShadow,
+                Child = new Viewbox()
                 {
-                    Children =
+                    ClipToBounds = false,
+                    Child = new Grid()
                     {
-                        curve,
-                        point1,
-                        point2,
-                        point3,
-                        point4,
-                        point5,
-                        point6,
+                        Children =
+                        {
+                            curve,
+                            point1,
+                            point2,
+                            point3,
+                            point4,
+                            point5,
+                            point6,
+                        }
                     }
                 }
             },

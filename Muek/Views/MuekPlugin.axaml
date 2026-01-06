@@ -3,41 +3,71 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:avalonia="https://github.com/projektanker/icons.avalonia"
+             xmlns:services="clr-namespace:Muek.Services"
              mc:Ignorable="d" d:DesignWidth="400"
              x:Class="Muek.Views.MuekPlugin">
     <Border Padding="5" Background="#232323" CornerRadius="10" Margin="10"
             BoxShadow="0 0 10 1 #88000000">
-            <Grid RowDefinitions="40,*" Background="#232323" RowSpacing="4">
-            <Border Background="#23000000" Margin="4 0"
-                    VerticalAlignment="Center" Padding="6"
-                    CornerRadius="5">
-                <Grid>
-                <StackPanel Orientation="Horizontal">
-                    <Border Width="4" Name="PluginColor" Margin="0 0 5 0" Height="12"/>
-                    <TextBlock Name="PluginName" FontWeight="Bold"
-                               VerticalAlignment="Center"/>
-                </StackPanel>
-                    <Button HorizontalAlignment="Right" VerticalAlignment="Center" Margin="10"
-                            Background="white"
-                            Height="15" Width="15" CornerRadius="20"
-                            Padding="2" Click="RemovePlugin" >
-                        <Button.Styles>
-                            <Style
-                                Selector="Button:pointerover/template/ContentPresenter">
-                                <Setter Property="Background"
-                                        Value="#ff5656">
-                                </Setter>
-                            </Style>
-                        </Button.Styles>
-                        <avalonia:Icon Value="fa-times" FontSize="10"
-                                       Foreground="White"
-                                       HorizontalAlignment="Right" />
-                    </Button>
-                </Grid>
+        <Grid RowDefinitions="40,*" Background="#232323" RowSpacing="4">
+            <Border BorderThickness="1" CornerRadius="5" Margin="4 0"
+                    BoxShadow="inset 0 0 10 #88000000">
+                <Border.BorderBrush>
+                    <LinearGradientBrush StartPoint="0 0" EndPoint="50 150" Opacity="0.1">
+                        <GradientStops>
+                            <GradientStop Color="White" Offset="0"/>
+                            <GradientStop Color="Black" Offset="0.5"/>
+                            <GradientStop Color="White" Offset="1"/>
+                        </GradientStops>
+                    </LinearGradientBrush>
+                </Border.BorderBrush>
+                <Border Background="#23000000"
+                        VerticalAlignment="Center" Padding="6"
+                        CornerRadius="5">
+                    <Grid>
+                    <StackPanel Orientation="Horizontal">
+                        <Border Width="4" Name="PluginColor" Margin="0 0 10 0" Height="16"
+                                CornerRadius="2"/>
+                        
+                        <!-- 插件名称 -->
+                        
+                        <TextBlock Name="PluginName" FontWeight="Bold"
+                                   VerticalAlignment="Center" LetterSpacing="4"
+                                   />
+                    </StackPanel>
+                        <Button HorizontalAlignment="Right" VerticalAlignment="Center" Margin="10"
+                                Background="white"
+                                Height="15" Width="15" CornerRadius="20"
+                                Padding="2" Click="RemovePlugin" >
+                            <Button.Styles>
+                                <Style
+                                    Selector="Button:pointerover/template/ContentPresenter">
+                                    <Setter Property="Background"
+                                            Value="#ff5656">
+                                    </Setter>
+                                </Style>
+                            </Button.Styles>
+                            <avalonia:Icon Value="fa-times" FontSize="10"
+                                           Foreground="White"
+                                           HorizontalAlignment="Right" />
+                        </Button>
+                    </Grid>
+                </Border>
             </Border>
-            <Border Grid.Row="1" Background="#23000000" Margin="4 0" Padding="8"
+            <Border  Grid.Row="1"  BorderThickness="1" CornerRadius="5" Margin="4 0"
+                     BoxShadow="inset 0 0 10 #88000000">
+                <Border.BorderBrush>
+                    <LinearGradientBrush StartPoint="0 0" EndPoint="50 150" Opacity="0.1">
+                        <GradientStops>
+                            <GradientStop Color="White" Offset="0"/>
+                            <GradientStop Color="Black" Offset="0.5"/>
+                            <GradientStop Color="White" Offset="1"/>
+                        </GradientStops>
+                    </LinearGradientBrush>
+                </Border.BorderBrush>
+            <Border Background="#23000000" Padding="8"
                     Name="PluginContent" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                     CornerRadius="5"/>
+            </Border>
             </Grid>
     </Border>
 </UserControl>

@@ -74,19 +74,31 @@
             <Border Grid.Column="0" Background="White" Width=".1" HorizontalAlignment="Left" IsVisible="False" Name="ResizeBorder"/>
             <Border Grid.Column="0" Background="Black" Name="ResizePanel" Opacity="0" HorizontalAlignment="Left" Width="10"/>
             <Border Grid.Column="1" Padding="20">
-                <Grid Background="#1B1B1B">
-                    <ScrollViewer>
-                        <StackPanel Name="Plugins">
-                            <Button Click="AddPlugin" Background="{x:Static services:DataStateService.MuekColorBrush}"
-                                    HorizontalAlignment="Stretch" Margin="4">
-                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="4">
-                                    <avalonia:Icon Value="mdi-tune" FontSize="12"/>
-                                    <Label FontSize="12">Add New Plugin</Label>
-                                </StackPanel>
-                            </Button>
-                        </StackPanel>
-                    </ScrollViewer>
-                </Grid>
+                <Border Background="#1B1B1B" CornerRadius="8" MaxWidth="600" BoxShadow="inset 0 0 10 #88000000"
+                        BorderThickness="0.5">
+                    <Border.BorderBrush>
+                        <LinearGradientBrush StartPoint="0 0" EndPoint="800 200" Opacity="0.1">
+                            <GradientStops>
+                                <GradientStop Color="White" Offset="0"/>
+                                <GradientStop Color="Black" Offset="0.5"/>
+                                <GradientStop Color="White" Offset="1"/>
+                            </GradientStops>
+                        </LinearGradientBrush>
+                    </Border.BorderBrush>
+                    <Grid>
+                        <ScrollViewer>
+                            <StackPanel Name="Plugins">
+                                <Button Click="AddPlugin" Background="{x:Static services:DataStateService.MuekColorBrush}"
+                                        HorizontalAlignment="Stretch" Margin="4">
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="4">
+                                        <avalonia:Icon Value="mdi-tune" FontSize="12"/>
+                                        <Label FontSize="12">Add New Plugin</Label>
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </Grid>
+                </Border>
             </Border>
         </Grid>
         <Grid Grid.Column="1">
