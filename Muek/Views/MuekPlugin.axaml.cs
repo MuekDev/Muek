@@ -399,7 +399,7 @@ public partial class MuekPlugin : UserControl
             },
             Margin = Thickness.Parse("0 0 0 20")
         };
-        var volume = new Slider
+        var Level = new Slider
         {
             Foreground = DataStateService.MuekColorBrush,
             Minimum = 0,
@@ -431,24 +431,24 @@ public partial class MuekPlugin : UserControl
             pan.Value = double.Parse(panText.Text);
             panText.Text = pan.Value.ToString("0.0");
         };
-        var volumeText = new TextBox()
+        var LevelText = new TextBox()
         {
             Width = 50,
             Height = 10,
             Background = Brushes.Transparent,
             BorderBrush = Brushes.Transparent,
-            Text = volume.Value.ToString("0.0"),
+            Text = Level.Value.ToString("0.0"),
             Margin = Thickness.Parse("0 -20 0 0")
         };
-        volume.ValueChanged += (_, _) =>
+        Level.ValueChanged += (_, _) =>
         {
-            volume.Value = double.Round(volume.Value,2);
-            volumeText.Text = volume.Value.ToString("0.0");
+            Level.Value = double.Round(Level.Value,2);
+            LevelText.Text = Level.Value.ToString("0.0");
         };
-        volumeText.TextChanged += (_, _) =>
+        LevelText.TextChanged += (_, _) =>
         {
-            volume.Value = double.Parse(volumeText.Text);
-            volumeText.Text = volume.Value.ToString("0.0");
+            Level.Value = double.Parse(LevelText.Text);
+            LevelText.Text = Level.Value.ToString("0.0");
         };
 
         var settingsBorder = new Border()
@@ -495,15 +495,15 @@ public partial class MuekPlugin : UserControl
                     {
                         HorizontalAlignment = HorizontalAlignment.Center,
                         FontSize = 10,
-                        Content = "Volume",
+                        Content = "Level",
                     },
                     new StackPanel()
                     {
                         Orientation = Orientation.Horizontal,
                         Children =
                         {
-                            volume,
-                            volumeText
+                            Level,
+                            LevelText
                         }
                     },
                 }
@@ -565,7 +565,7 @@ public partial class MuekPlugin : UserControl
         {
             WavetableChange();
         };
-        volume.ValueChanged += (sender, args) =>
+        Level.ValueChanged += (sender, args) =>
         {
             WavetableChange();
         };
@@ -576,17 +576,17 @@ public partial class MuekPlugin : UserControl
             {
                 case 0:
                     wave.Points = Enumerable.Range(0, 101).Select(i =>
-                        new Point(i, -50 * volume.Value / 100d * Math.Sin(2 * Math.PI * i / 100) + 50)
+                        new Point(i, -50 * Level.Value / 100d * Math.Sin(2 * Math.PI * i / 100) + 50)
                     ).ToList();
                     break;
                 case 1:
                     wave.Points = Enumerable.Range(0, 101).Select(i =>
-                        new Point(i, 100-(i + 50)%100 * volume.Value / 100d - 50 * (100-volume.Value) / 100d)
+                        new Point(i, 100-(i + 50)%100 * Level.Value / 100d - 50 * (100-Level.Value) / 100d)
                     ).ToList();
                     break;
                 case 2:
                     wave.Points = Enumerable.Range(0, 101).Select(i =>
-                        new Point(i,i is 0 or 100 ? 50 : i < 50 ? 0 + (50-volume.Value/2d) : 50 + volume.Value/2d)
+                        new Point(i,i is 0 or 100 ? 50 : i < 50 ? 0 + (50-Level.Value/2d) : 50 + Level.Value/2d)
                     ).ToList();
                     break;
             }
@@ -594,6 +594,53 @@ public partial class MuekPlugin : UserControl
             
         }
 
+        var waveBorder = new Border()
+        {
+            Background = Brush.Parse("#23000000"),
+            CornerRadius = _cornerRadius,
+            Margin = Thickness.Parse("20 0 0 0"),
+            BoxShadow = _insetBoxShadow,
+            Child = new Viewbox()
+            {
+                ClipToBounds = false,
+                Height = 180,
+                StretchDirection = StretchDirection.UpOnly,
+                Stretch = Stretch.Fill,
+                Child = new Grid()
+                {
+                    Children =
+                    {
+                        panFill,
+                        waveFill,
+                        wave
+                    }
+                }
+            }
+        };
+
+        var waveBorderPressed = false;
+        var waveBorderPressedPosition = new Point();
+        var waveBorderPressedValue = Level.Value;
+        waveBorder.PointerPressed += (sender, args) =>
+        {
+            waveBorderPressed = true;
+            waveBorderPressedPosition = args.GetPosition(sender as Visual);
+            waveBorderPressedValue = Level.Value;
+            args.Handled = true;
+        };
+        waveBorder.PointerMoved += (sender, args) =>
+        {
+            if (!waveBorderPressed) return;
+            var position = args.GetPosition(sender as Visual);
+            Level.Value = waveBorderPressedValue - position.Y + waveBorderPressedPosition.Y;
+            args.Handled = true;
+        };
+        waveBorder.PointerReleased += (sender, args) =>
+        {
+            waveBorderPressed = false;
+            args.Handled = true;
+        };
+        
         var viewBorder = new Border()
         {
             CornerRadius = _cornerRadius,
@@ -603,29 +650,7 @@ public partial class MuekPlugin : UserControl
             Child = new Grid(){
                 Children =
                 {
-                    new Border()
-                    {
-                        Background = Brush.Parse("#23000000"),
-                        CornerRadius = _cornerRadius,
-                        Margin = Thickness.Parse("20 0 0 0"),
-                        BoxShadow = _insetBoxShadow,
-                        Child = new Viewbox()
-                        {
-                            ClipToBounds = false,
-                            Height = 180,
-                            StretchDirection = StretchDirection.UpOnly,
-                            Stretch = Stretch.Fill,
-                            Child = new Grid()
-                            {
-                                Children =
-                                {
-                                    panFill,
-                                    waveFill,
-                                    wave
-                                }
-                            }
-                        }
-                    },
+                    waveBorder,
                     new Line()
                     {
                         Stroke = Brush.Parse("#23ffffff"),
