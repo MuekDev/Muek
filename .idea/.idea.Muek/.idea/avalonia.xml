@@ -19,6 +19,7 @@
         <entry key="Muek/Views/MixerWindow.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/Views/MuekColorPicker.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/Views/MuekKnob.axaml" value="Muek/Muek.csproj" />
+        <entry key="Muek/Views/MuekPlugin.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/Views/MuekTrack.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/Views/MuekValuer.axaml" value="Muek/Muek.csproj" />
         <entry key="Muek/Views/NoteVelocity.axaml" value="Muek/Muek.csproj" />

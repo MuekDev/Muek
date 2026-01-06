@@ -2,35 +2,23 @@ using System;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using Avalonia;
+using Avalonia.Automation.Provider;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Media;
 
 namespace Muek.Views;
 
-public partial class MuekValuer : UserControl
+public partial class MuekValuer : Slider
 {
+    #if REL
     [SupportedOSPlatform("windows")]
     [DllImport("user32.dll", EntryPoint = "SetCursorPos")]
     private static extern bool SetCursorPos(int x, int y);
-    
-    public static readonly StyledProperty<double> MinValueProperty = AvaloniaProperty.Register<MuekValuer, double>(
-        nameof(MinValue));
-
-    public double MinValue
-    {
-        get => GetValue(MinValueProperty);
-        set => SetValue(MinValueProperty, value);
-    }
-
-    public static readonly StyledProperty<double> MaxValueProperty = AvaloniaProperty.Register<MuekValuer, double>(
-        nameof(MaxValue));
-
-    public double MaxValue
-    {
-        get => GetValue(MaxValueProperty);
-        set => SetValue(MaxValueProperty, value);
-    }
+    #else
+    private static void SetCursorPos(int x, int y) { }
+    #endif
 
     public static readonly StyledProperty<IBrush> ValuerColorProperty = AvaloniaProperty.Register<MuekValuer, IBrush>(
         nameof(ValuerColor));
@@ -98,7 +86,6 @@ public partial class MuekValuer : UserControl
         set => SetValue(LayoutProperty, value);
     }
     
-    public double Value;
 
     private bool _hover;
     private bool _pressed;
@@ -119,6 +106,10 @@ public partial class MuekValuer : UserControl
         Speed = .005;
         ValuerColor = Brushes.White;
         InitializeComponent();
+        ValueChanged += (sender, args) =>
+        {
+            InvalidateVisual();
+        };
     }
 
     protected override void OnInitialized()
@@ -161,10 +152,10 @@ public partial class MuekValuer : UserControl
             context.DrawLine(new Pen(new SolidColorBrush(Colors.Black,0.2),4),
                 new Point(Bounds.Width / 2, 0),
                 new Point(Bounds.Width / 2, Bounds.Height));
-            var percentValue = (Value - MinValue) / (MaxValue - MinValue);
+            var percentValue = (Value - Minimum) / (Maximum - Minimum);
             // context.DrawRectangle(Brushes.Black,null, new Rect(0,(1-percentValue)*(ValuerHeight-6)+2, ValuerWidth, 4));
             
-            var defaultPercentValue = (DefaultValue - MinValue) / (MaxValue - MinValue);
+            var defaultPercentValue = (DefaultValue - Minimum) / (Maximum - Minimum);
             
             context.DrawRectangle(Brush.Parse("#232323"), _stroke,
                 new Rect(-ValuerWidth/2, (1 - percentValue) * ValuerHeight - 10, ValuerWidth * 2, 20),
@@ -201,14 +192,14 @@ public partial class MuekValuer : UserControl
             //左右边缘的值
             var border = .16;
             //百分比
-            var percentValue = (Value - MinValue) / (MaxValue - MinValue);
+            var percentValue = (Value - Minimum) / (Maximum - Minimum);
             percentValue = border +  percentValue * (1 - 2 * border);
             
             // context.DrawEllipse(Brushes.Black, null,
             //     new Point(ValuerHeight + ValuerHeight * .8 * -double.Sin(percentValue * Double.Pi * 2),
             //         ValuerHeight + ValuerHeight * .8 * double.Cos(percentValue * Double.Pi * 2)), ValuerHeight * .2, ValuerHeight * .2);
 
-            var defaultPercentValue = (DefaultValue - MinValue) / (MaxValue - MinValue);
+            var defaultPercentValue = (DefaultValue - Minimum) / (Maximum - Minimum);
             defaultPercentValue = border + defaultPercentValue * (1 - 2 * border);
             
             if(_hover || _pressed)
@@ -298,7 +289,7 @@ public partial class MuekValuer : UserControl
                         break;
                     case LayoutEnum.Slider:
                     {
-                        var percentValue = (Value - MinValue) / (MaxValue - MinValue);
+                        var percentValue = (Value - Minimum) / (Maximum - Minimum);
                         if(RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                             SetCursorPos(this.PointToScreen(new Point(0, (1 - percentValue) * (ValuerHeight - 1))).X,
                                 this.PointToScreen(new Point(0, (1 - percentValue) * (ValuerHeight - 1))).Y);
@@ -333,7 +324,7 @@ public partial class MuekValuer : UserControl
                 break;
             case LayoutEnum.Slider:
             {
-                var percentValue = (Value - MinValue) / (MaxValue - MinValue);
+                var percentValue = (Value - Minimum) / (Maximum - Minimum);
                 if(RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                     SetCursorPos(this.PointToScreen(new Point(0, (1 - percentValue) * (ValuerHeight - 1))).X,
                         this.PointToScreen(new Point(0, (1 - percentValue) * (ValuerHeight - 1))).Y);
@@ -357,21 +348,21 @@ public partial class MuekValuer : UserControl
                 case LayoutEnum.Knob:
                 {
                     var deltaY = pos.Y - _tempPress.Y;
-                    Value -= deltaY * Speed * (MaxValue - MinValue);
+                    Value -= deltaY * Speed * (Maximum - Minimum);
                     _tempPress = pos;
                     break;
                 }
                 case LayoutEnum.Slider:
                 {
                     var ratio = 1.0 - (pos.Y / Bounds.Height);
-                    Value = MinValue + ratio * (MaxValue - MinValue);
+                    Value = Minimum + ratio * (Maximum - Minimum);
                     break;
                 }
                 default:
                     throw new ArgumentOutOfRangeException();
             }
 
-            Value = double.Clamp(Value, MinValue, MaxValue);
+            Value = double.Clamp(Value, Minimum, Maximum);
         }
         InvalidateVisual();
     }
@@ -404,5 +395,10 @@ public partial class MuekValuer : UserControl
     private void StrokeThicknessDecrease(Pen stroke)
     {
         stroke.Thickness = 1;
+    }
+
+    public void SetValue(double value)
+    {
+        throw new NotImplementedException();
     }
 }
