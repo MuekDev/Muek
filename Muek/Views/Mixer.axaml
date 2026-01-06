@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:views="clr-namespace:Muek.Views"
              xmlns:avalonia="https://github.com/projektanker/icons.avalonia"
+             xmlns:services="clr-namespace:Muek.Services"
              mc:Ignorable="d" d:DesignWidth="100" d:DesignHeight="*"
              x:Class="Muek.Views.Mixer">
     <Grid RowDefinitions="Auto,*" Background="#232323">
@@ -19,7 +20,7 @@
             </Border>
         </Grid>
         <Grid Grid.Row="1"  ColumnDefinitions="*,Auto">
-        <Grid Grid.Column="0" ColumnDefinitions="Auto,20,*">
+        <Grid Grid.Column="0" ColumnDefinitions="Auto,*">
             <Grid RowDefinitions="Auto,*,Auto">
                 
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Top">
@@ -37,7 +38,7 @@
                 
                 
                 </StackPanel>
-                <StackPanel Grid.Row="1" Orientation="Horizontal">
+                <Grid Grid.Row="1" ColumnDefinitions="Auto,*">
                     <Grid RowDefinitions="65,*" HorizontalAlignment="Center" Width="40" Margin="25,25,0,0">
                         <!-- 调整左右声道 -->
                         <Grid RowDefinitions="*,Auto">
@@ -58,7 +59,7 @@
                                 <Label Grid.Row="1" HorizontalAlignment="Center" Margin="0,10">Vol</Label>
                             </Grid>
                         </Grid>
-                    </StackPanel>
+                </Grid>
                 <Button Grid.Row="2" Name="MeterModeButton" Background="Transparent" Content="Peak/RMS" HorizontalAlignment="Center">
                     <Button.Flyout>
                         <MenuFlyout>
@@ -68,11 +69,27 @@
                         </MenuFlyout>
                     </Button.Flyout>
                 </Button>
+                
             </Grid>
             <Border Grid.Column="0" Background="White" Width=".1" HorizontalAlignment="Left" IsVisible="False" Name="ResizeBorder"/>
             <Border Grid.Column="0" Background="Black" Name="ResizePanel" Opacity="0" HorizontalAlignment="Left" Width="10"/>
+            <Border Grid.Column="1" Padding="20">
+                <Grid Background="#1B1B1B">
+                    <ScrollViewer>
+                        <StackPanel Name="Plugins">
+                            <Button Click="AddPlugin" Background="{x:Static services:DataStateService.MuekColorBrush}"
+                                    HorizontalAlignment="Stretch">
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="4">
+                                    <avalonia:Icon Value="mdi-tune" FontSize="12"/>
+                                    <Label FontSize="12">Add New Plugin</Label>
+                                </StackPanel>
+                                
+                            </Button>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
         </Grid>
-            <!-- 删除 -->
         <Grid Grid.Column="1">
             <Button HorizontalAlignment="Right" VerticalAlignment="Top" Margin="10"
                     Background="white"

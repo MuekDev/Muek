@@ -6,6 +6,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Styling;
+using CommunityToolkit.Mvvm.Input;
 using Muek.Services;
 
 namespace Muek.Views;
@@ -192,5 +193,28 @@ public partial class Mixer : UserControl
         MeterModeButton.Content = "RMS";
         LevelMeter.Mode = MixerLevelMeter.LevelMeterMode.Rms;
         InvalidateVisual();
+    }
+
+    private void AddPlugin(object? sender, RoutedEventArgs e)
+    {
+        var menu = new MenuFlyout()
+        {
+            Items =
+            {
+                new MenuItem(){ Header = "Empty", Command = new RelayCommand(() =>
+                {
+                    Plugins.Children.Add(new MuekPlugin(MuekPlugin.MuekPluginType.Empty));
+                })},
+                new MenuItem(){ Header = "Oscillator", Command = new RelayCommand(() =>
+                {
+                    Plugins.Children.Add(new MuekPlugin(MuekPlugin.MuekPluginType.Oscillator));
+                })},
+                new MenuItem(){ Header = "Equalizer", Command = new RelayCommand(() =>
+                {
+                    Plugins.Children.Add(new MuekPlugin(MuekPlugin.MuekPluginType.Equalizer));
+                })},
+            }
+        };
+        menu.ShowAt(sender as Control);
     }
 }

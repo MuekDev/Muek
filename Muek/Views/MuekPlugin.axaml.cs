@@ -15,7 +15,7 @@ namespace Muek.Views;
 
 public partial class MuekPlugin : UserControl
 {
-    enum MuekPluginType
+    public enum MuekPluginType
     {
         Empty,
         Oscillator,
@@ -46,12 +46,23 @@ public partial class MuekPlugin : UserControl
         Meter
     }
 
-    private readonly MuekPluginType _pluginType = MuekPluginType.Equalizer;
+    private MuekPluginType PluginType { get; } = MuekPluginType.Equalizer;
     
     public MuekPlugin()
     {
         InitializeComponent();
-        switch (_pluginType)
+        SwitchPluginType();
+    }
+    public MuekPlugin(MuekPluginType pluginType)
+    {
+        PluginType = pluginType;
+        InitializeComponent();
+        SwitchPluginType();
+    }
+
+    private void SwitchPluginType()
+    {
+        switch (PluginType)
         {
             case MuekPluginType.Empty:
                 InitEmpty();
@@ -850,12 +861,12 @@ public partial class MuekPlugin : UserControl
         var point4Pressed = false;
         var point5Pressed = false;
         var point6Pressed = false;
-        point1.PointerPressed += (sender, args) => { point1Pressed = true; };
-        point2.PointerPressed += (sender, args) => { point2Pressed = true; };
-        point3.PointerPressed += (sender, args) => { point3Pressed = true; };
-        point4.PointerPressed += (sender, args) => { point4Pressed = true; };
-        point5.PointerPressed += (sender, args) => { point5Pressed = true; };
-        point6.PointerPressed += (sender, args) => { point6Pressed = true; };
+        point1.PointerPressed += (sender, args) => { point1Pressed = true; args.Handled = true; };
+        point2.PointerPressed += (sender, args) => { point2Pressed = true; args.Handled = true; };
+        point3.PointerPressed += (sender, args) => { point3Pressed = true; args.Handled = true; };
+        point4.PointerPressed += (sender, args) => { point4Pressed = true; args.Handled = true; };
+        point5.PointerPressed += (sender, args) => { point5Pressed = true; args.Handled = true; };
+        point6.PointerPressed += (sender, args) => { point6Pressed = true; args.Handled = true; };
         
         point1.PointerMoved += (sender, args) =>
         {
@@ -864,6 +875,7 @@ public partial class MuekPlugin : UserControl
             position = new Point(double.Min(position.X,700-10), double.Min(position.Y,100-10));
             point1Freq.Value = position.X;
             point1Level.Value = -position.Y + 50;
+            args.Handled = true;
         };
         point2.PointerMoved += (sender, args) =>
         {
@@ -872,6 +884,7 @@ public partial class MuekPlugin : UserControl
             position = new Point(double.Min(position.X,700-10), double.Min(position.Y,100-10));
             point2Freq.Value = position.X;
             point2Level.Value = -position.Y + 50;
+            args.Handled = true;
         };
         point3.PointerMoved += (sender, args) =>
         {
@@ -880,6 +893,7 @@ public partial class MuekPlugin : UserControl
             position = new Point(double.Min(position.X,700-10), double.Min(position.Y,100-10));
             point3Freq.Value = position.X;
             point3Level.Value = -position.Y + 50;
+            args.Handled = true;
         };
         point4.PointerMoved += (sender, args) =>
         {
@@ -888,6 +902,7 @@ public partial class MuekPlugin : UserControl
             position = new Point(double.Min(position.X,700-10), double.Min(position.Y,100-10));
             point4Freq.Value = position.X;
             point4Level.Value = -position.Y + 50;
+            args.Handled = true;
         };
         point5.PointerMoved += (sender, args) =>
         {
@@ -896,6 +911,7 @@ public partial class MuekPlugin : UserControl
             position = new Point(double.Min(position.X,700-10), double.Min(position.Y,100-10));
             point5Freq.Value = position.X;
             point5Level.Value = -position.Y + 50;
+            args.Handled = true;
         };
         point6.PointerMoved += (sender, args) =>
         {
@@ -904,15 +920,16 @@ public partial class MuekPlugin : UserControl
             position = new Point(double.Min(position.X,700-10), double.Min(position.Y,100-10));
             point6Freq.Value = position.X;
             point6Level.Value = -position.Y + 50;
+            args.Handled = true;
         };
         
         
-        point1.PointerReleased += (sender, args) => { point1Pressed = false; };
-        point2.PointerReleased += (sender, args) => { point2Pressed = false; };
-        point3.PointerReleased += (sender, args) => { point3Pressed = false; };
-        point4.PointerReleased += (sender, args) => { point4Pressed = false; };
-        point5.PointerReleased += (sender, args) => { point5Pressed = false; };
-        point6.PointerReleased += (sender, args) => { point6Pressed = false; };
+        point1.PointerReleased += (sender, args) => { point1Pressed = false; args.Handled = true; };
+        point2.PointerReleased += (sender, args) => { point2Pressed = false; args.Handled = true; };
+        point3.PointerReleased += (sender, args) => { point3Pressed = false; args.Handled = true; };
+        point4.PointerReleased += (sender, args) => { point4Pressed = false; args.Handled = true; };
+        point5.PointerReleased += (sender, args) => { point5Pressed = false; args.Handled = true; };
+        point6.PointerReleased += (sender, args) => { point6Pressed = false; args.Handled = true; };
 
         var view = new Border()
         {

@@ -5,7 +5,7 @@
              xmlns:neumorphism="https://github.com/flarive/Neumorphism.Avalonia"
              mc:Ignorable="d" d:DesignWidth="400"
              x:Class="Muek.Views.MuekPlugin">
-    <Border Padding="5" Background="#232323">
+    <Border Padding="5" Background="#232323" Margin="4" CornerRadius="5">
     <Grid RowDefinitions="40,*" Background="#232323">
         <Border Background="#23000000" Margin="4 0"
                 VerticalAlignment="Center" Padding="6">
