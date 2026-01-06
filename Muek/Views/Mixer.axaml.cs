@@ -197,24 +197,25 @@ public partial class Mixer : UserControl
 
     private void AddPlugin(object? sender, RoutedEventArgs e)
     {
+        var plugins = Plugins.Children;
         var menu = new MenuFlyout()
         {
             Items =
             {
                 new MenuItem(){ Header = "Empty", Command = new RelayCommand(() =>
                 {
-                    Plugins.Children.Add(new MuekPlugin(MuekPlugin.MuekPluginType.Empty));
+                    plugins.Insert(plugins.Count-1,new MuekPlugin(MuekPlugin.MuekPluginType.Empty));
                 })},
                 new MenuItem(){ Header = "Oscillator", Command = new RelayCommand(() =>
                 {
-                    Plugins.Children.Add(new MuekPlugin(MuekPlugin.MuekPluginType.Oscillator));
+                    plugins.Insert(plugins.Count-1,new MuekPlugin(MuekPlugin.MuekPluginType.Oscillator));
                 })},
                 new MenuItem(){ Header = "Equalizer", Command = new RelayCommand(() =>
                 {
-                    Plugins.Children.Add(new MuekPlugin(MuekPlugin.MuekPluginType.Equalizer));
+                    plugins.Insert(plugins.Count-1,new MuekPlugin(MuekPlugin.MuekPluginType.Equalizer));
                 })},
             }
         };
-        menu.ShowAt(sender as Control);
+        menu.ShowAt(sender as Control ?? throw new InvalidOperationException());
     }
 }

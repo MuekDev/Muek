@@ -83,7 +83,6 @@
                                     <avalonia:Icon Value="mdi-tune" FontSize="12"/>
                                     <Label FontSize="12">Add New Plugin</Label>
                                 </StackPanel>
-                                
                             </Button>
                         </StackPanel>
                     </ScrollViewer>
