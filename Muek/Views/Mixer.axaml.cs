@@ -15,7 +15,7 @@ public partial class Mixer : UserControl
 {
     //Mixer部分
     private bool _isDragging = false;
-    private double _maxSize = 200;
+    private double _maxSize = 300;
     public Mixer()
     {
         InitializeComponent();
@@ -29,7 +29,7 @@ public partial class Mixer : UserControl
         ResizePanel.PointerMoved += (sender, args) =>
         {
             if (!_isDragging) return;
-            _maxSize = double.Clamp(Width - args.GetPosition(this).X,120,600);
+            _maxSize = double.Clamp(Width - args.GetPosition(this).X,300,1000);
             Width = _maxSize;
             args.Handled = true;
         };
