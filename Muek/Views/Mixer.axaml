@@ -78,7 +78,7 @@
                     <ScrollViewer>
                         <StackPanel Name="Plugins">
                             <Button Click="AddPlugin" Background="{x:Static services:DataStateService.MuekColorBrush}"
-                                    HorizontalAlignment="Stretch">
+                                    HorizontalAlignment="Stretch" Margin="4">
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="4">
                                     <avalonia:Icon Value="mdi-tune" FontSize="12"/>
                                     <Label FontSize="12">Add New Plugin</Label>
