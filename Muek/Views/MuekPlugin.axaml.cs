@@ -4,6 +4,7 @@ using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Shapes;
+using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Themes.Neumorphism;
@@ -996,5 +997,11 @@ public partial class MuekPlugin : UserControl
             }
         };
         Grid.SetRow(parameters, 1);
+    }
+
+    private void RemovePlugin(object? sender, RoutedEventArgs e)
+    {
+        var parent = Parent as StackPanel;
+        parent?.Children.Remove(this);
     }
 }
