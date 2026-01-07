@@ -273,7 +273,7 @@
 
                     </Grid>
                     <Grid Grid.Column="2">
-                        <views:Mixer x:Name="Mixer" IsVisible="False"></views:Mixer>
+                        <views:Mixer x:Name="Mixer" IsVisible="False" Width="0"></views:Mixer>
                     </Grid>
                 </Grid>
             </Grid>

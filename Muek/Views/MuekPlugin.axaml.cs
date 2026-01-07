@@ -176,7 +176,7 @@ public partial class MuekPlugin : UserControl
         };
         var sustain = new Slider()
         {
-            Width = adsrWidth,
+            Width = adsrWidth * 1.5,
             Height = 10,
             Minimum = 0,
             Maximum = 1,
@@ -249,6 +249,41 @@ public partial class MuekPlugin : UserControl
             release.Value = double.Parse(releaseText.Text);
             releaseText.Text = release.Value.ToString("0.0");
         };
+
+
+        var attackBend = new MuekValuer()
+        {
+            ValuerColor = DataStateService.MuekColorBrush,
+            Layout = MuekValuer.LayoutEnum.Knob,
+            Width = 15,
+            Height = 15,
+            Margin = Thickness.Parse("10"),
+            Minimum = -1,
+            Maximum = 1,
+            DefaultValue = 0,
+        };
+        var decayBend = new MuekValuer()
+        {
+            ValuerColor = DataStateService.MuekColorBrush,
+            Layout = MuekValuer.LayoutEnum.Knob,
+            Width = 15,
+            Height = 15,
+            Margin = Thickness.Parse("10"),
+            Minimum = -1,
+            Maximum = 1,
+            DefaultValue = 0,
+        };
+        var releaseBend = new MuekValuer()
+        {
+            ValuerColor = DataStateService.MuekColorBrush,
+            Layout = MuekValuer.LayoutEnum.Knob,
+            Width = 15,
+            Height = 15,
+            Margin = Thickness.Parse("10"),
+            Minimum = -1,
+            Maximum = 1,
+            DefaultValue = 0,
+        };
         
         
         var adsr = new Grid()
@@ -287,7 +322,8 @@ public partial class MuekPlugin : UserControl
                                                 VerticalAlignment = VerticalAlignment.Center
                                             },
                                             attack,
-                                            attackText
+                                            attackText,
+                                            attackBend
                                         }
                                     },
                                     new StackPanel()
@@ -303,7 +339,8 @@ public partial class MuekPlugin : UserControl
                                                 VerticalAlignment = VerticalAlignment.Center
                                             },
                                             decay,
-                                            decayText
+                                            decayText,
+                                            decayBend
                                         }
                                     },
                                     new StackPanel()
@@ -335,7 +372,8 @@ public partial class MuekPlugin : UserControl
                                                 VerticalAlignment = VerticalAlignment.Center
                                             },
                                             release,
-                                            releaseText
+                                            releaseText,
+                                            releaseBend
                                         }
                                     }
                                 }
@@ -345,16 +383,17 @@ public partial class MuekPlugin : UserControl
                 },
             }
         };
+        var waveHeight = 150;
         var adsrWave = new Polyline()
         {
             Stroke = DataStateService.MuekColorBrush,
             StrokeThickness = 1,
-            MinWidth = 120,
+            Height = waveHeight
         };
         var adsrFill = new Polygon()
         {
             Fill = new SolidColorBrush(DataStateService.MuekColor, 0.1),
-            MinWidth = 120,
+            Height = waveHeight
         };
 
 
@@ -370,6 +409,7 @@ public partial class MuekPlugin : UserControl
             Margin = new Thickness(attack.Value/50-radius/2d,-radius/2d,0,0),
         };
 
+        
         var sustainPoint = new Ellipse()
         {
             Fill = DataStateService.MuekColorBrush,
@@ -377,7 +417,7 @@ public partial class MuekPlugin : UserControl
             HorizontalAlignment = HorizontalAlignment.Left,
             Height = radius,
             Width = radius,
-            Margin = new Thickness((attack.Value + decay.Value)/50-radius/2d,80 - 80 * sustain.Value - radius/2d,0,0),
+            Margin = new Thickness((attack.Value + decay.Value)/50-radius/2d,waveHeight - waveHeight * sustain.Value - radius/2d,0,0),
         };
 
         var releasePoint = new Ellipse()
@@ -421,7 +461,7 @@ public partial class MuekPlugin : UserControl
             if (!sustainPointPressed) return;
             var position = args.GetPosition((sender as Visual)!.Parent as Visual);
             decay.Value = position.X * 50 - attack.Value;
-            sustain.Value = (80 - position.Y) / 80;
+            sustain.Value = (waveHeight - position.Y) / waveHeight;
             args.Handled = true;
         };
         
@@ -487,19 +527,76 @@ public partial class MuekPlugin : UserControl
             releaseText.Text = release.Value.ToString("0.0");
         };
 
+        attackBend.ValueChanged += (sender, args) => { UpdateAdsr(); };
+        decayBend.ValueChanged += (sender, args) => { UpdateAdsr(); };
+        releaseBend.ValueChanged += (sender, args) => { UpdateAdsr(); };
+
         void UpdateAdsr()
         {
-            adsrWave.Points =
+            Point[] points = 
             [
-                new Point(0, 80),
-                new Point(attack.Value / 50, 0),
-                new Point((attack.Value + decay.Value) / 50, 80 - 80 * sustain.Value),
-                new Point((attack.Value + decay.Value + release.Value) / 50, 80)
+                new(0, waveHeight),
+                new(attack.Value / 50, 0),
+                new((attack.Value + decay.Value) / 50, waveHeight - waveHeight * sustain.Value),
+                new((attack.Value + decay.Value + release.Value) / 50, waveHeight)
             ];
+
+            var bendCount = 20;
+            
+            adsrWave.Points =
+                new List<Point>()
+                {
+                    points[0]
+                }
+                .Concat(
+                    Enumerable.Range(1, bendCount).Select(i =>
+                    {
+                        var index = (double)i /  bendCount;
+                        var x = index * attack.Value / 50;
+                        var value = -attackBend.Value * 10;
+                        var y = value == 0 ? index
+                            :(double.Exp(value * index) - 1) / (double.Exp(value) - 1);
+                        var point = new Point(x, waveHeight - waveHeight * y);
+                        return point;
+                    }).ToList())
+                .Concat(new List<Point>()
+                {
+                    points[1]
+                })
+                .Concat(
+                    Enumerable.Range(1, bendCount).Select(i =>
+                    {
+                        var index = (double)i /  bendCount;
+                        var x = attack.Value / 50 + index * decay.Value / 50;
+                        var value = decayBend.Value * 10;
+                        var y = value == 0 ? index
+                            :(double.Exp(value * index) - 1) / (double.Exp(value) - 1);
+                        var point = new Point(x, (1 - sustain.Value) * waveHeight * y);
+                        return point;
+                    }).ToList())
+                .Concat(new List<Point>() 
+                {
+                    points[2] 
+                })
+                .Concat(
+                    Enumerable.Range(1, bendCount).Select(i =>
+                    {
+                        var index = (double)i /  bendCount;
+                        var x = (attack.Value + decay.Value) / 50 + index * release.Value / 50;
+                        var value = releaseBend.Value * 10;
+                        var y = value == 0 ? index
+                            :(double.Exp(value * index) - 1) / (double.Exp(value) - 1);
+                        var point = new Point(x, (1 - sustain.Value) * waveHeight + sustain.Value * waveHeight * y);
+                        return point;
+                    }).ToList())
+                .Concat(new List<Point>() 
+                {
+                    points[3] 
+                }).ToList();
             adsrFill.Points = adsrWave.Points;
             attackPoint.Margin = new Thickness(attack.Value / 50 - radius / 2d, -radius / 2d, 0, 0);
             sustainPoint.Margin = new Thickness((attack.Value + decay.Value) / 50 - radius / 2d,
-                80 - 80 * sustain.Value - radius/2d, 0, 0);
+                waveHeight - waveHeight * sustain.Value - radius/2d, 0, 0);
             releasePoint.Margin =
                 new Thickness((attack.Value + decay.Value + release.Value) / 50 - radius / 2d, 0, 0, -radius/2d);
         }
@@ -521,10 +618,9 @@ public partial class MuekPlugin : UserControl
                         Margin = Thickness.Parse("20 0 0 0"),
                         CornerRadius = _cornerRadius,
                         BoxShadow = _insetBoxShadow,
-
-                        Child = new Viewbox()
+                        ClipToBounds = true,
+                        Child = new Border()
                         {
-                            Stretch = Stretch.Uniform,
                             VerticalAlignment = VerticalAlignment.Bottom,
                             HorizontalAlignment = HorizontalAlignment.Left,
                             Margin = new Thickness(0,0,0,radius/2d),
@@ -545,6 +641,7 @@ public partial class MuekPlugin : UserControl
                 }
             }
         };
+        
         var grid = new Grid()
         {
             RowDefinitions = RowDefinitions.Parse("auto,auto"),
@@ -594,7 +691,6 @@ public partial class MuekPlugin : UserControl
             Minimum = -1,
             Maximum = 1,
             Value = 0,
-            Width = 100,
             Height = 10,
             TickPlacement = TickPlacement.BottomRight,
             TickFrequency = 1,
@@ -602,7 +698,8 @@ public partial class MuekPlugin : UserControl
             {
                 new NeumorphismTheme()
             },
-            Margin = Thickness.Parse("0 0 0 20")
+            Margin = Thickness.Parse("0 0 0 20"),
+            Width = 100,
         };
         var level = new Slider
         {
@@ -610,7 +707,6 @@ public partial class MuekPlugin : UserControl
             Minimum = 0,
             Maximum = 100,
             Value = 100,
-            Width = 100,
             Height = 10,
             TickPlacement = TickPlacement.BottomRight,
             TickFrequency = 10,
@@ -618,7 +714,8 @@ public partial class MuekPlugin : UserControl
             {
                 new NeumorphismTheme()
             },
-            Margin = Thickness.Parse("0 0 0 20")
+            Margin = Thickness.Parse("0 0 0 20"),
+            Width = 100,
         };
         var panText = new TextBox()
         {
@@ -714,6 +811,7 @@ public partial class MuekPlugin : UserControl
                 }
             }
         };
+        
         var wave = new Polyline()
         {
             Height = 100,
@@ -805,6 +903,7 @@ public partial class MuekPlugin : UserControl
             CornerRadius = _cornerRadius,
             Margin = Thickness.Parse("20 0 0 0"),
             BoxShadow = _insetBoxShadow,
+            ClipToBounds = true,
             Child = new Viewbox()
             {
                 ClipToBounds = false,
@@ -845,6 +944,64 @@ public partial class MuekPlugin : UserControl
             waveBorderPressed = false;
             args.Handled = true;
         };
+
+        var waveReference = new Grid()
+        {
+            Children =
+            {
+                new Line()
+                {
+                    Stroke = Brush.Parse("#23ffffff"),
+                    StartPoint = Point.Parse("8 94"),
+                    EndPoint = Point.Parse("15 94")
+                },
+                new Label()
+                {
+                    Content  = "-inf",
+                    Margin = Thickness.Parse("0 80 0 0"),
+                    Foreground = Brush.Parse("#23ffffff"),
+                    FontSize = 8
+                },
+                new Line()
+                {
+                    Stroke = Brush.Parse("#23ffffff"),
+                    StartPoint = Point.Parse("12 49"),
+                    EndPoint = Point.Parse("15 49"),
+                },
+                new Line()
+                {
+                    Stroke = Brush.Parse("#23ffffff"),
+                    StartPoint = Point.Parse("12 139"),
+                    EndPoint = Point.Parse("15 139"),
+                },
+                new Line()
+                {
+                    Stroke = Brush.Parse("#23ffffff"),
+                    StartPoint = Point.Parse("8 4"),
+                    EndPoint = Point.Parse("15 4"),
+                },
+                new Label()
+                {
+                    Content  = "-6dB",
+                    Margin = Thickness.Parse("-4 4 0 0"),
+                    Foreground = Brush.Parse("#23ffffff"),
+                    FontSize = 8
+                },
+                new Line()
+                {
+                    Stroke = Brush.Parse("#23ffffff"),
+                    StartPoint = Point.Parse("8 184"),
+                    EndPoint = Point.Parse("15 184"),
+                },
+                new Label()
+                {
+                    Content  = "-6dB",
+                    Margin = Thickness.Parse("-4 170 0 0"),
+                    Foreground = Brush.Parse("#23ffffff"),
+                    FontSize = 8
+                },
+            }
+        };
         
         var viewBorder = new Border()
         {
@@ -856,60 +1013,16 @@ public partial class MuekPlugin : UserControl
                 Children =
                 {
                     waveBorder,
-                    new Line()
-                    {
-                        Stroke = Brush.Parse("#23ffffff"),
-                        StartPoint = Point.Parse("8 94"),
-                        EndPoint = Point.Parse("15 94")
-                    },
-                    new Label()
-                    {
-                        Content  = "-inf",
-                        Margin = Thickness.Parse("0 80 0 0"),
-                        Foreground = Brush.Parse("#23ffffff"),
-                        FontSize = 8
-                    },
-                    new Line()
-                    {
-                        Stroke = Brush.Parse("#23ffffff"),
-                        StartPoint = Point.Parse("12 49"),
-                        EndPoint = Point.Parse("15 49"),
-                    },
-                    new Line()
-                    {
-                        Stroke = Brush.Parse("#23ffffff"),
-                        StartPoint = Point.Parse("12 139"),
-                        EndPoint = Point.Parse("15 139"),
-                    },
-                    new Line()
-                    {
-                        Stroke = Brush.Parse("#23ffffff"),
-                        StartPoint = Point.Parse("8 4"),
-                        EndPoint = Point.Parse("15 4"),
-                    },
-                    new Label()
-                    {
-                        Content  = "-6dB",
-                        Margin = Thickness.Parse("-4 4 0 0"),
-                        Foreground = Brush.Parse("#23ffffff"),
-                        FontSize = 8
-                    },
-                    new Line()
-                    {
-                        Stroke = Brush.Parse("#23ffffff"),
-                        StartPoint = Point.Parse("8 184"),
-                        EndPoint = Point.Parse("15 184"),
-                    },
-                    new Label()
-                    {
-                        Content  = "-6dB",
-                        Margin = Thickness.Parse("-4 170 0 0"),
-                        Foreground = Brush.Parse("#23ffffff"),
-                        FontSize = 8
-                    },
+                    waveReference
                 }
             }
         };
+
+        viewBorder.SizeChanged += (sender, args) =>
+        {
+            waveReference.IsVisible = viewBorder.Bounds.Width >= 20;
+        };
+        
         osc.Children.Add(settingsBorder);
         osc.Children.Add(viewBorder);
         Grid.SetColumn(settingsBorder, 1);
