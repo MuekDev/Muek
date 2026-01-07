@@ -503,8 +503,144 @@ public partial class MuekPlugin : UserControl
             releasePoint.Fill = DataStateService.MuekColorBrush;
             args.Handled = true;
         };
+
+        var attackBendPoint = new Ellipse()
+        {
+            Fill = Brushes.Transparent,
+            Stroke = DataStateService.MuekColorBrush,
+            StrokeThickness = 1,
+            VerticalAlignment = VerticalAlignment.Top,
+            HorizontalAlignment = HorizontalAlignment.Left,
+            Height = radius,
+            Width = radius,
+        };
+        var sustainBendPoint = new Ellipse()
+        {
+            Fill = Brushes.Transparent,
+            Stroke = DataStateService.MuekColorBrush,
+            StrokeThickness = 1,
+            VerticalAlignment = VerticalAlignment.Top,
+            HorizontalAlignment = HorizontalAlignment.Left,
+            Height = radius,
+            Width = radius,
+        };
+        var releaseBendPoint = new Ellipse()
+        {
+            Fill = Brushes.Transparent,
+            Stroke = DataStateService.MuekColorBrush,
+            StrokeThickness = 1,
+            VerticalAlignment = VerticalAlignment.Top,
+            HorizontalAlignment = HorizontalAlignment.Left,
+            Height = radius,
+            Width = radius,
+        };
+
+        var attackBendPointPressed = false;
+        var sustainBendPointPressed = false;
+        var releaseBendPointPressed = false;
+
+        Point attackBendPointPressedPosition = default;
+        Point sustainBendPointPressedPosition = default;
+        Point releaseBendPointPressedPosition = default;
+
+        double attackBendPressedValue = attackBend.Value;
+        double sustainBendPressedValue = decayBend.Value;
+        double releaseBendPressedValue = releaseBend.Value;
         
+        attackBendPoint.PointerPressed += (sender, args) =>
+        {
+            attackBendPointPressed = true;
+            attackBendPointPressedPosition = args.GetPosition((sender as Visual)!.Parent as Visual);
+            attackBendPressedValue = attackBend.Value;
+            args.Handled = true;
+        };
+        sustainBendPoint.PointerPressed += (sender, args) =>
+        {
+            sustainBendPointPressed = true;
+            sustainBendPointPressedPosition = args.GetPosition((sender as Visual)!.Parent as Visual);
+            sustainBendPressedValue = decayBend.Value;
+            args.Handled = true;
+        };
+        releaseBendPoint.PointerPressed += (sender, args) =>
+        {
+            releaseBendPointPressed = true;
+            releaseBendPointPressedPosition = args.GetPosition((sender as Visual)!.Parent as Visual);
+            releaseBendPressedValue = releaseBend.Value;
+            args.Handled = true;
+        };
+        attackBendPoint.PointerReleased += (sender, args) =>
+        {
+            attackBendPointPressed = false;
+            args.Handled = true;
+        };
+        sustainBendPoint.PointerReleased += (sender, args) =>
+        {
+            sustainBendPointPressed = false;
+            args.Handled = true;
+        };
+        releaseBendPoint.PointerReleased += (sender, args) =>
+        {
+            releaseBendPointPressed = false;
+            args.Handled = true;
+        };
         
+        attackBendPoint.PointerMoved += (sender, args) =>
+        {
+            if (!attackBendPointPressed) return;
+            var position = args.GetPosition((sender as Visual)!.Parent as Visual);
+            var offset = (position - attackBendPointPressedPosition).Y;
+            attackBend.Value = attackBendPressedValue - offset / waveHeight;
+            args.Handled = true;
+        };
+        sustainBendPoint.PointerMoved += (sender, args) =>
+        {
+            if (!sustainBendPointPressed) return;
+            var position = args.GetPosition((sender as Visual)!.Parent as Visual);
+            var offset = (position - sustainBendPointPressedPosition).Y;
+            decayBend.Value = sustainBendPressedValue - offset / waveHeight;
+            args.Handled = true;
+        };
+        releaseBendPoint.PointerMoved += (sender, args) =>
+        {
+            if (!releaseBendPointPressed) return;
+            var position = args.GetPosition((sender as Visual)!.Parent as Visual);
+            var offset = (position - releaseBendPointPressedPosition).Y;
+            releaseBend.Value = releaseBendPressedValue - offset / waveHeight;
+            args.Handled = true;
+        };
+
+        attackBendPoint.PointerEntered += (sender, args) =>
+        {
+            attackBendPoint.Stroke = Brushes.White;
+            args.Handled = true;
+        };
+        sustainBendPoint.PointerEntered += (sender, args) =>
+        {
+            sustainBendPoint.Stroke = Brushes.White;
+            args.Handled = true;
+        };
+        releaseBendPoint.PointerEntered += (sender, args) =>
+        {
+            releaseBendPoint.Stroke = Brushes.White;
+            args.Handled = true;
+        };
+        attackBendPoint.PointerExited += (sender, args) =>
+        {
+            attackBendPoint.Stroke = DataStateService.MuekColorBrush;
+            args.Handled = true;
+        };
+        sustainBendPoint.PointerExited += (sender, args) =>
+        {
+            sustainBendPoint.Stroke = DataStateService.MuekColorBrush;
+            args.Handled = true;
+        };
+        releaseBendPoint.PointerExited += (sender, args) =>
+        {
+            releaseBendPoint.Stroke = DataStateService.MuekColorBrush;
+            args.Handled = true;
+        };
+        
+
         UpdateAdsr();
         attack.ValueChanged += (sender, args) =>
         {
@@ -531,6 +667,7 @@ public partial class MuekPlugin : UserControl
         decayBend.ValueChanged += (sender, args) => { UpdateAdsr(); };
         releaseBend.ValueChanged += (sender, args) => { UpdateAdsr(); };
 
+
         void UpdateAdsr()
         {
             Point[] points = 
@@ -542,6 +679,37 @@ public partial class MuekPlugin : UserControl
             ];
 
             var bendCount = 20;
+
+            var attackPoints = Enumerable.Range(1, bendCount).Select(i =>
+            {
+                var index = (double)i /  bendCount;
+                var x = index * attack.Value / 50;
+                var value = -attackBend.Value * 10;
+                var y = value == 0 ? index
+                    :(double.Exp(value * index) - 1) / (double.Exp(value) - 1);
+                var point = new Point(x, waveHeight - waveHeight * y);
+                return point;
+            }).ToList();
+            var decayPoints = Enumerable.Range(1, bendCount).Select(i =>
+            {
+                var index = (double)i /  bendCount;
+                var x = attack.Value / 50 + index * decay.Value / 50;
+                var value = decayBend.Value * 10;
+                var y = value == 0 ? index
+                    :(double.Exp(value * index) - 1) / (double.Exp(value) - 1);
+                var point = new Point(x, (1 - sustain.Value) * waveHeight * y);
+                return point;
+            }).ToList();
+            var releasePoints = Enumerable.Range(1, bendCount).Select(i =>
+            {
+                var index = (double)i /  bendCount;
+                var x = (attack.Value + decay.Value) / 50 + index * release.Value / 50;
+                var value = releaseBend.Value * 10;
+                var y = value == 0 ? index
+                    :(double.Exp(value * index) - 1) / (double.Exp(value) - 1);
+                var point = new Point(x, (1 - sustain.Value) * waveHeight + sustain.Value * waveHeight * y);
+                return point;
+            }).ToList();
             
             adsrWave.Points =
                 new List<Point>()
@@ -549,58 +717,60 @@ public partial class MuekPlugin : UserControl
                     points[0]
                 }
                 .Concat(
-                    Enumerable.Range(1, bendCount).Select(i =>
-                    {
-                        var index = (double)i /  bendCount;
-                        var x = index * attack.Value / 50;
-                        var value = -attackBend.Value * 10;
-                        var y = value == 0 ? index
-                            :(double.Exp(value * index) - 1) / (double.Exp(value) - 1);
-                        var point = new Point(x, waveHeight - waveHeight * y);
-                        return point;
-                    }).ToList())
+                    attackPoints)
                 .Concat(new List<Point>()
                 {
                     points[1]
                 })
                 .Concat(
-                    Enumerable.Range(1, bendCount).Select(i =>
-                    {
-                        var index = (double)i /  bendCount;
-                        var x = attack.Value / 50 + index * decay.Value / 50;
-                        var value = decayBend.Value * 10;
-                        var y = value == 0 ? index
-                            :(double.Exp(value * index) - 1) / (double.Exp(value) - 1);
-                        var point = new Point(x, (1 - sustain.Value) * waveHeight * y);
-                        return point;
-                    }).ToList())
+                    decayPoints)
                 .Concat(new List<Point>() 
                 {
                     points[2] 
                 })
                 .Concat(
-                    Enumerable.Range(1, bendCount).Select(i =>
-                    {
-                        var index = (double)i /  bendCount;
-                        var x = (attack.Value + decay.Value) / 50 + index * release.Value / 50;
-                        var value = releaseBend.Value * 10;
-                        var y = value == 0 ? index
-                            :(double.Exp(value * index) - 1) / (double.Exp(value) - 1);
-                        var point = new Point(x, (1 - sustain.Value) * waveHeight + sustain.Value * waveHeight * y);
-                        return point;
-                    }).ToList())
+                    releasePoints)
                 .Concat(new List<Point>() 
                 {
                     points[3] 
                 }).ToList();
             adsrFill.Points = adsrWave.Points;
+            
             attackPoint.Margin = new Thickness(attack.Value / 50 - radius / 2d, -radius / 2d, 0, 0);
             sustainPoint.Margin = new Thickness((attack.Value + decay.Value) / 50 - radius / 2d,
                 waveHeight - waveHeight * sustain.Value - radius/2d, 0, 0);
             releasePoint.Margin =
                 new Thickness((attack.Value + decay.Value + release.Value) / 50 - radius / 2d, 0, 0, -radius/2d);
+
+            var attackBendPointPos = attackPoints[attackPoints.Count / 2];
+            var sustainBendPointPos = decayPoints[decayPoints.Count / 2];
+            var releaseBendPointPos = releasePoints[releasePoints.Count / 2];
+            attackBendPoint.Margin =
+                new Thickness(attackBendPointPos.X - radius / 2d, attackBendPointPos.Y - radius / 2d, 0, 0);
+            sustainBendPoint.Margin = new Thickness(sustainBendPointPos.X - radius / 2d,
+                sustainBendPointPos.Y - radius / 2d, 0, 0);
+            releaseBendPoint.Margin = new Thickness(releaseBendPointPos.X - radius / 2d,
+                releaseBendPointPos.Y - radius / 2d, 0, 0);
         }
 
+
+        var adsrWaveBorder =
+            new Grid()
+            {
+                Children =
+                {
+                    adsrWave,
+                    adsrFill,
+                    
+                    attackBendPoint,
+                    sustainBendPoint,
+                    releaseBendPoint,
+
+                    attackPoint,
+                    sustainPoint,
+                    releasePoint
+                }
+            };
 
         var adsrBorder = new Border()
         {
@@ -623,19 +793,9 @@ public partial class MuekPlugin : UserControl
                         {
                             VerticalAlignment = VerticalAlignment.Bottom,
                             HorizontalAlignment = HorizontalAlignment.Left,
-                            Margin = new Thickness(0,0,0,radius/2d),
+                            Margin = new Thickness(0, 0, 0, radius / 2d),
                             ClipToBounds = false,
-                            Child = new Grid()
-                            {
-                                Children =
-                                {
-                                    adsrWave,
-                                    adsrFill,
-                                    attackPoint,
-                                    sustainPoint,
-                                    releasePoint
-                                }
-                            }
+                            Child = adsrWaveBorder
                         }
                     },
                 }
