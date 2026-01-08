@@ -86,6 +86,38 @@ public partial class MuekValuer : Slider
         set => SetValue(LayoutProperty, value);
     }
     
+    
+    public double LogMaximum
+    {
+        get => double.Exp(Maximum);
+        set
+        {
+            ArgumentOutOfRangeException.ThrowIfNegative(value);
+            Maximum = Math.Log(value);
+        }
+    }
+
+    public double LogMinimum
+    {
+        get => double.Exp(Minimum);
+        set
+        {
+            ArgumentOutOfRangeException.ThrowIfNegative(value);
+            Minimum = Math.Log(value);
+        }
+    }
+
+    public double LogValue
+    {
+        get => double.Exp(Value);
+        set
+        {
+            ArgumentOutOfRangeException.ThrowIfNegative(value);
+            value = Math.Clamp(value, LogMinimum, LogMaximum);
+            Value = double.Log(value);
+        }
+    }
+    
 
     private bool _hover;
     private bool _pressed;
@@ -244,7 +276,7 @@ public partial class MuekValuer : Slider
                 position,2,2);
         }
 
-        Console.WriteLine($"pressed: {_pressed}\nhover: {_hover}");
+        // Console.WriteLine($"pressed: {_pressed}\nhover: {_hover}");
     }
 
     protected override void OnPointerEntered(PointerEventArgs e)
