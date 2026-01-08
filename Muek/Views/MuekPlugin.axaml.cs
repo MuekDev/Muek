@@ -742,9 +742,9 @@ public partial class MuekPlugin : UserControl
             releasePoint.Margin =
                 new Thickness((attack.Value + decay.Value + release.Value) / 50 - radius / 2d, 0, 0, -radius/2d);
 
-            var attackBendPointPos = attackPoints[attackPoints.Count / 2];
-            var sustainBendPointPos = decayPoints[decayPoints.Count / 2];
-            var releaseBendPointPos = releasePoints[releasePoints.Count / 2];
+            var attackBendPointPos = attackPoints[attackPoints.Count / 2 - 1];
+            var sustainBendPointPos = decayPoints[decayPoints.Count / 2 - 1];
+            var releaseBendPointPos = releasePoints[releasePoints.Count / 2 - 1];
             attackBendPoint.Margin =
                 new Thickness(attackBendPointPos.X - radius / 2d, attackBendPointPos.Y - radius / 2d, 0, 0);
             sustainBendPoint.Margin = new Thickness(sustainBendPointPos.X - radius / 2d,
