@@ -47,7 +47,7 @@ public partial class MuekPlugin : UserControl
         Meter
     }
 
-    private MuekPluginType PluginType { get; } = MuekPluginType.Oscillator;
+    private MuekPluginType PluginType { get; } = MuekPluginType.Equalizer;
 
     private readonly BoxShadows _boxShadows = BoxShadows.Parse("0 0 10 #000000");
     private readonly BoxShadows _insetBoxShadow = BoxShadows.Parse("inset 0 0 10 #88000000");
@@ -1229,74 +1229,77 @@ public partial class MuekPlugin : UserControl
         PluginColor.Background = Brushes.DeepSkyBlue;
         var maximum = 48;
         var minimum = -maximum;
+        var sliderHeight = 100;
+        var sliderWidth = 5;
         var point1Level = new MuekValuer()
         {
             ValuerColor = Brushes.DeepSkyBlue,
             Layout = MuekValuer.LayoutEnum.Slider,
-            Height = 100,
+            Height = sliderHeight,
             Minimum = minimum,
             Maximum = maximum,
             DefaultValue = 0,
-            Width = 5,
+            Width = sliderWidth,
         };
         var point2Level = new MuekValuer()
         {
             ValuerColor = Brushes.DeepSkyBlue,
             Layout = MuekValuer.LayoutEnum.Slider,
-            Height = 100,
+            Height = sliderHeight,
             Minimum = minimum,
             Maximum = maximum,
             DefaultValue = 0,
-            Width = 5,
+            Width = sliderWidth,
         };
         var point3Level = new MuekValuer()
         {
             ValuerColor = Brushes.DeepSkyBlue,
             Layout = MuekValuer.LayoutEnum.Slider,
-            Height = 100,
+            Height = sliderHeight,
             Minimum = minimum,
             Maximum = maximum,
             DefaultValue = 0,
-            Width = 5,
+            Width = sliderWidth,
         };
         var point4Level = new MuekValuer()
         {
             ValuerColor = Brushes.DeepSkyBlue,
             Layout = MuekValuer.LayoutEnum.Slider,
-            Height = 100,
+            Height = sliderHeight,
             Minimum = minimum,
             Maximum = maximum,
             DefaultValue = 0,
-            Width = 5,
+            Width = sliderWidth,
         };
         var point5Level = new MuekValuer()
         {
             ValuerColor = Brushes.DeepSkyBlue,
             Layout = MuekValuer.LayoutEnum.Slider,
-            Height = 100,
+            Height = sliderHeight,
             Minimum = minimum,
             Maximum = maximum,
             DefaultValue = 0,
-            Width = 5,
+            Width = sliderWidth,
         };
         var point6Level = new MuekValuer()
         {
             ValuerColor = Brushes.DeepSkyBlue,
             Layout = MuekValuer.LayoutEnum.Slider,
-            Height = 100,
+            Height = sliderHeight,
             Minimum = minimum,
             Maximum = maximum,
             DefaultValue = 0,
-            Width = 5,
+            Width = sliderWidth,
         };
+        var knobRadius = 10;
         var point1Freq = new MuekValuer()
         {
             ValuerColor = Brushes.DeepSkyBlue,
             Layout = MuekValuer.LayoutEnum.Knob,
             Minimum = 0,
             Maximum = 700,
-            Width = 15,
-            Height = 15,
+            Width = knobRadius,
+            Height = knobRadius,
             DefaultValue = 100,
         };
         var point2Freq = new MuekValuer()
@@ -1305,8 +1308,8 @@ public partial class MuekPlugin : UserControl
             Layout = MuekValuer.LayoutEnum.Knob,
             Minimum = 0,
             Maximum = 700,
-            Width = 15,
-            Height = 15,
+            Width = knobRadius,
+            Height = knobRadius,
             DefaultValue = 200,
         };
         var point3Freq = new MuekValuer()
@@ -1315,8 +1318,8 @@ public partial class MuekPlugin : UserControl
             Layout = MuekValuer.LayoutEnum.Knob,
             Minimum = 0,
             Maximum = 700,
-            Width = 15,
-            Height = 15,
+            Width = knobRadius,
+            Height = knobRadius,
             DefaultValue = 300,
         };
         var point4Freq = new MuekValuer()
@@ -1325,8 +1328,8 @@ public partial class MuekPlugin : UserControl
             Layout = MuekValuer.LayoutEnum.Knob,
             Minimum = 0,
             Maximum = 700,
-            Width = 15,
-            Height = 15,
+            Width = knobRadius,
+            Height = knobRadius,
             DefaultValue = 400,
         };
         var point5Freq = new MuekValuer()
@@ -1335,8 +1338,8 @@ public partial class MuekPlugin : UserControl
             Layout = MuekValuer.LayoutEnum.Knob,
             Minimum = 0,
             Maximum = 700,
-            Width = 15,
-            Height = 15,
+            Width = knobRadius,
+            Height = knobRadius,
             DefaultValue = 500,
         };
         var point6Freq = new MuekValuer()
@@ -1345,11 +1348,11 @@ public partial class MuekPlugin : UserControl
             Layout = MuekValuer.LayoutEnum.Knob,
             Minimum = 0,
             Maximum = 700,
-            Width = 15,
-            Height = 15,
+            Width = knobRadius,
+            Height = knobRadius,
             DefaultValue = 600,
         };
-        var parameters = new Border()
+        var bands = new Border()
         {
             Padding = Thickness.Parse("8"),
             Background = Brush.Parse("#232323"),
@@ -1479,6 +1482,18 @@ public partial class MuekPlugin : UserControl
             HorizontalAlignment = HorizontalAlignment.Left,
             VerticalAlignment = VerticalAlignment.Top,
         };
+        
+        var mainGain = new MuekValuer()
+        {
+            ValuerColor = Brushes.DeepSkyBlue,
+            Layout = MuekValuer.LayoutEnum.Slider,
+            Width = sliderWidth,
+            Height = sliderHeight + knobRadius * 2,
+            Minimum = minimum,
+            Maximum = maximum,
+            Margin = Thickness.Parse("10 0"),
+            DefaultValue = 0,
+        };
 
         UpdateCurve();
         point1Level.ValueChanged += (sender, args) => { UpdateCurve(); };
@@ -1493,6 +1508,7 @@ public partial class MuekPlugin : UserControl
         point4Freq.ValueChanged += (sender, args) => { UpdateCurve(); };
         point5Freq.ValueChanged += (sender, args) => { UpdateCurve(); };
         point6Freq.ValueChanged += (sender, args) => { UpdateCurve(); };
+        mainGain.ValueChanged += (sender, args) => { UpdateCurve(); };
 
         var point1Pressed = false;
         var point2Pressed = false;
@@ -1511,54 +1527,48 @@ public partial class MuekPlugin : UserControl
         {
             if(!point1Pressed) return;
             var position = args.GetPosition(curve);
-            position = new Point(double.Min(position.X,700-10), double.Min(position.Y,100-10));
             point1Freq.Value = position.X;
-            point1Level.Value = -position.Y + 50;
+            point1Level.Value = -position.Y + 50 - mainGain.Value;
             args.Handled = true;
         };
         point2.PointerMoved += (sender, args) =>
         {
             if (!point2Pressed) return;
             var position = args.GetPosition(curve);
-            position = new Point(double.Min(position.X,700-10), double.Min(position.Y,100-10));
             point2Freq.Value = position.X;
-            point2Level.Value = -position.Y + 50;
+            point2Level.Value = -position.Y + 50 - mainGain.Value;
             args.Handled = true;
         };
         point3.PointerMoved += (sender, args) =>
         {
             if (!point3Pressed) return;
             var position = args.GetPosition(curve);
-            position = new Point(double.Min(position.X,700-10), double.Min(position.Y,100-10));
             point3Freq.Value = position.X;
-            point3Level.Value = -position.Y + 50;
+            point3Level.Value = -position.Y + 50 - mainGain.Value;
             args.Handled = true;
         };
         point4.PointerMoved += (sender, args) =>
         {
             if (!point4Pressed) return;
             var position = args.GetPosition(curve);
-            position = new Point(double.Min(position.X,700-10), double.Min(position.Y,100-10));
             point4Freq.Value = position.X;
-            point4Level.Value = -position.Y + 50;
+            point4Level.Value = -position.Y + 50 - mainGain.Value;
             args.Handled = true;
         };
         point5.PointerMoved += (sender, args) =>
         {
             if (!point5Pressed) return;
             var position = args.GetPosition(curve);
-            position = new Point(double.Min(position.X,700-10), double.Min(position.Y,100-10));
             point5Freq.Value = position.X;
-            point5Level.Value = -position.Y + 50;
+            point5Level.Value = -position.Y + 50 - mainGain.Value;
             args.Handled = true;
         };
         point6.PointerMoved += (sender, args) =>
         {
             if (!point6Pressed) return;
             var position = args.GetPosition(curve);
-            position = new Point(double.Min(position.X,700-10), double.Min(position.Y,100-10));
             point6Freq.Value = position.X;
-            point6Level.Value = -position.Y + 50;
+            point6Level.Value = -position.Y + 50 - mainGain.Value;
             args.Handled = true;
         };
         
@@ -1602,6 +1612,8 @@ public partial class MuekPlugin : UserControl
             
         };
         
+        
+        
         void UpdateCurve()
         {
             var q = 100;
@@ -1623,14 +1635,44 @@ public partial class MuekPlugin : UserControl
                         pos -= point6Level.Value * (q - Math.Abs(i - point6Freq.Value)) / q;
                     return new Point(i, pos);
                 }).ToList();
-            point1.Margin = new Thickness(point1Freq.Value-10, -point1Level.Value+40, 0, 0);
-            point2.Margin = new Thickness(point2Freq.Value-10, -point2Level.Value+40, 0, 0);
-            point3.Margin = new Thickness(point3Freq.Value-10, -point3Level.Value+40, 0, 0);
-            point4.Margin = new Thickness(point4Freq.Value-10, -point4Level.Value+40, 0, 0);
-            point5.Margin = new Thickness(point5Freq.Value-10, -point5Level.Value+40, 0, 0);
-            point6.Margin = new Thickness(point6Freq.Value-10, -point6Level.Value+40, 0, 0);
+            for (int i = 0; i < points.Count; i++)
+            {
+                points[i] = new Point(points[i].X, points[i].Y - mainGain.Value);
+            }
+            
+            point1.Margin = new Thickness(point1Freq.Value-10, -point1Level.Value+40 - mainGain.Value, 0, 0);
+            point2.Margin = new Thickness(point2Freq.Value-10, -point2Level.Value+40 - mainGain.Value, 0, 0);
+            point3.Margin = new Thickness(point3Freq.Value-10, -point3Level.Value+40 - mainGain.Value, 0, 0);
+            point4.Margin = new Thickness(point4Freq.Value-10, -point4Level.Value+40 - mainGain.Value, 0, 0);
+            point5.Margin = new Thickness(point5Freq.Value-10, -point5Level.Value+40 - mainGain.Value, 0, 0);
+            point6.Margin = new Thickness(point6Freq.Value-10, -point6Level.Value+40 - mainGain.Value, 0, 0);
             curve.Points = points;
         }
+        
+        var misc = new Border()
+        {
+            Padding = Thickness.Parse("8"),
+            Background = Brush.Parse("#232323"),
+            CornerRadius = _cornerRadius,
+            BoxShadow = _boxShadows,
+            Child = new StackPanel()
+            {
+                Children =
+                {
+                    mainGain
+                }
+            }
+        };
+        var parameters = new Grid()
+        {
+            ColumnDefinitions = ColumnDefinitions.Parse("*,auto"),
+            ColumnSpacing = 8,
+            Children =
+            {
+                bands,
+                misc,
+            }
+        };
         PluginContent.Child = new Grid()
         {
             RowDefinitions = RowDefinitions.Parse("*,auto"),
@@ -1641,6 +1683,7 @@ public partial class MuekPlugin : UserControl
                 parameters
             }
         };
+        Grid.SetColumn(misc,1);
         Grid.SetRow(parameters, 1);
     }
 
