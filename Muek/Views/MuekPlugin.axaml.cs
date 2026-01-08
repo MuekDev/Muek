@@ -757,18 +757,26 @@ public partial class MuekPlugin : UserControl
         var adsrWaveBorder =
             new Grid()
             {
+                Height = 150,
                 Children =
                 {
-                    adsrWave,
-                    adsrFill,
+                    new Grid()
+                    {
+                        VerticalAlignment = VerticalAlignment.Top,
+                        Children =
+                        {
+                            adsrWave,
+                            adsrFill,
                     
-                    attackBendPoint,
-                    sustainBendPoint,
-                    releaseBendPoint,
+                            attackBendPoint,
+                            sustainBendPoint,
+                            releaseBendPoint,
 
-                    attackPoint,
-                    sustainPoint,
-                    releasePoint
+                            attackPoint,
+                            sustainPoint,
+                            releasePoint
+                        }
+                    }
                 }
             };
 
