@@ -985,7 +985,7 @@ public partial class MuekPlugin : UserControl
             Height = 100,
             Width = 100,
             Stroke = DataStateService.MuekColorBrush,
-            StrokeThickness = 1,
+            StrokeThickness = 0.7,
         };
         var waveFill = new Polygon()
         {
