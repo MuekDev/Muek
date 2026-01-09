@@ -1389,11 +1389,22 @@ public partial class MuekPlugin : UserControl
         void AddNewPoint()
         {
             bandCount++;
+            var color = Brushes.DarkOrange;
+
+            var removeButton = new Button()
+            {
+                Background = Brushes.Transparent,
+                Content = new Icon()
+                {
+                    Value = "mdi-close"
+                }
+            };
+            
             pointLevels.Add(new MuekValuer()
             {
-                ValuerColor = Brushes.DeepSkyBlue,
+                ValuerColor = color,
                 Layout = MuekValuer.LayoutEnum.Slider,
-                Height = sliderHeight,
+                Height = sliderHeight / 1.3d,
                 Minimum = minimum,
                 Maximum = maximum,
                 DefaultValue = 0,
@@ -1404,7 +1415,7 @@ public partial class MuekPlugin : UserControl
 
             pointFreqs.Add(new MuekValuer()
             {
-                ValuerColor = Brushes.DeepSkyBlue,
+                ValuerColor = color,
                 Layout = MuekValuer.LayoutEnum.Knob,
                 Minimum = FreqMapping(minimumFreq),
                 Maximum = FreqMapping(maximumFreq),
@@ -1415,7 +1426,7 @@ public partial class MuekPlugin : UserControl
             
             qs.Add(new MuekValuer()
             {
-                ValuerColor = Brushes.DeepSkyBlue,
+                ValuerColor = color,
                 Layout = MuekValuer.LayoutEnum.Knob,
                 Height = knobRadius,
                 Width = knobRadius,
@@ -1424,64 +1435,85 @@ public partial class MuekPlugin : UserControl
                 DefaultValue = double.Log(1),
             });
             
-                bandParams.Add(new StackPanel()
+            bandParams.Add(new StackPanel()
+            {
+                Spacing = 12,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                Children =
                 {
-                    Spacing = 12,
-                    HorizontalAlignment = HorizontalAlignment.Center,
-                    Children =
-                    {
-                        pointLevels[^1],
-                        pointFreqs[^1],
-                        qs[^1],
-                    }
+                    pointLevels[^1],
+                    pointFreqs[^1],
+                    qs[^1],
+                    removeButton,
                 }
+            }
             );
                 
             points.Add(new Ellipse()
             {
-                Fill = Brushes.DeepSkyBlue,
+                Fill = color,
                 Width = radius,
                 Height = radius,
                 HorizontalAlignment = HorizontalAlignment.Left,
                 VerticalAlignment = VerticalAlignment.Top,
             });
+            
+            
+            removeButton.Click += (sender, args) =>
+            {
+                bandCount--;
+                var param = (sender as Visual)!.Parent as StackPanel;
+                var border = param!.Parent as WrapPanel;
+                var i = bandParams.IndexOf(param);
+                var point = points[i];
+                var grid = point.Parent as Grid;
+                border!.Children.Remove(param);
+                grid!.Children.Remove(point);
+                bandParams.Remove(param);
+                points.Remove(point);
+                pointLevels.RemoveAt(i);
+                pointFreqs.RemoveAt(i);
+                qs.RemoveAt(i);
+                UpdateCurve();
+            };
+            
             pointPressed.Add(false);
             pointHovered.Add(false);
             
-                pointLevels[^1].ValueChanged += (sender, args) => { UpdateCurve(); };
-                
-                pointFreqs[^1].ValueChanged += (sender, args) => { UpdateCurve(); };
+            pointLevels[^1].ValueChanged += (sender, args) => { UpdateCurve(); };
             
-                qs[^1].ValueChanged += (sender, args) => { UpdateCurve(); };
+            pointFreqs[^1].ValueChanged += (sender, args) => { UpdateCurve(); };
+        
+            qs[^1].ValueChanged += (sender, args) => { UpdateCurve(); };
                 
-            
-                var index = ^1;
-                points[index].PointerPressed += (sender, args) =>
-                {
-                    pointPressed[index] = true; args.Handled = true;
-                };
-                points[index].PointerMoved += (sender, args) =>
-                {
-                    ShowInfo(args.GetPosition((sender as Visual)!.Parent as Visual).X,
-                        args.GetPosition((sender as Visual)!.Parent as Visual).Y);
-                    if(!pointPressed[index]) return;
-                    var position = args.GetPosition(curve);
-                    pointFreqs[index].Value = position.X / scale;
-                    pointLevels[index].Value = (-position.Y + height / 2d) / height * maximum * 2;
-                    args.Handled = true;
-                };
-                points[index].PointerReleased += (sender, args) => { pointPressed[index] = false; args.Handled = true; };
-                points[index].PointerEntered += (sender, args) => { points[index].Fill = Brushes.White; pointHovered[index] = true; args.Handled = true; };
-                points[index].PointerExited += (sender, args) => { points[index].Fill = Brushes.DeepSkyBlue; pointHovered[index] = false; args.Handled = true; };
-                points[index].PointerWheelChanged += (sender, args) =>
-                {
-                    ShowInfo(args.GetPosition((sender as Visual)!.Parent as Visual).X,
-                        args.GetPosition((sender as Visual)!.Parent as Visual).Y);
-                    if(!pointHovered[index]) return;
-                    var offset = args.Delta.Y * 0.2;
-                    qs[index].Value  += offset;
-                    args.Handled = true;
-                };
+            // var index = bandCount-1;
+                
+            points[^1].PointerPressed += (sender, args) =>
+            {
+                pointPressed[points.IndexOf((sender as Ellipse)!)] = true; args.Handled = true;
+            };
+            points[^1].PointerMoved += (sender, args) =>
+            {
+                ShowInfo(args.GetPosition((sender as Visual)!.Parent as Visual).X,
+                    args.GetPosition((sender as Visual)!.Parent as Visual).Y);
+                if(!pointPressed[points.IndexOf((sender as Ellipse)!)]) return;
+                var position = args.GetPosition(curve);
+                pointFreqs[points.IndexOf((sender as Ellipse)!)].Value = position.X / scale;
+                pointLevels[points.IndexOf((sender as Ellipse)!)].Value = (-position.Y + height / 2d) / height * maximum * 2;
+                args.Handled = true;
+            };
+            points[^1].PointerReleased += (sender, args) => { pointPressed[points.IndexOf((sender as Ellipse)!)] = false; args.Handled = true; };
+            points[^1].PointerEntered += (sender, args) => { (sender as Ellipse)!.Fill = Brushes.White; pointHovered[points.IndexOf((sender as Ellipse)!)] = true; args.Handled = true; };
+            points[^1].PointerExited += (sender, args) => { (sender as Ellipse)!.Fill = color; pointHovered[points.IndexOf((sender as Ellipse)!)] = false; args.Handled = true; };
+            points[^1].PointerWheelChanged += (sender, args) =>
+            {
+                ShowInfo(args.GetPosition((sender as Visual)!.Parent as Visual).X,
+                    args.GetPosition((sender as Visual)!.Parent as Visual).Y);
+                if(!pointHovered[points.IndexOf((sender as Ellipse)!)]) return;
+                var offset = args.Delta.Y * 0.2;
+                qs[points.IndexOf((sender as Ellipse)!)].Value += offset;
+                args.Handled = true;
+            };
         }
 
         var wrapPanel = new WrapPanel()
