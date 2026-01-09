@@ -1476,7 +1476,6 @@ public partial class MuekPlugin : UserControl
         void ShowInfo(double x,double y)
         {
             info.IsVisible = false;
-            var offset = 50;
             for (int i = 0; i < points.Count; i++)
             {
                 if(!pointHovered[i] && !pointPressed[i]) continue;
@@ -1570,10 +1569,11 @@ public partial class MuekPlugin : UserControl
 
             for (int i = 0; i < qs.Count; i++)
             {
-                
                 for (int p = 0; p < curvePoints.Count; p++)
                 {
-                    var omega = curvePoints[p].X / scale / pointFreqs[i].Value;
+                    var omega = 
+                        double.Exp((curvePoints[p].X / scale) * (double.Log(maximumFreq) - double.Log(minimumFreq)) / 20 + double.Log(minimumFreq)) /
+                                double.Exp(pointFreqs[i].Value * (double.Log(maximumFreq) - double.Log(minimumFreq)) / 20 + double.Log(minimumFreq));
                     var q = qs[i].LogValue;
                     var a = double.Pow(10,pointLevels[i].Value / 40);
                     var gain = 20 * double.Log10(
