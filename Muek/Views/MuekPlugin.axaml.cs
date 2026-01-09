@@ -1623,6 +1623,7 @@ public partial class MuekPlugin : UserControl
                     HorizontalAlignment = HorizontalAlignment.Center,
                     ClipToBounds = true,
                     Height = height,
+                    Width = (FreqMapping(maximumFreq) - FreqMapping(minimumFreq))*scale,
                     Child = viewBorder
                 }
             },
