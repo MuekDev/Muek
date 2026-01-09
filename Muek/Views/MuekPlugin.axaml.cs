@@ -1236,6 +1236,8 @@ public partial class MuekPlugin : UserControl
         var minimumFreq = 10;
         var scale = 20;
 
+        var height = 150;
+
         double FreqMapping(double freq)
         {
             if(freq < 0) throw new ArgumentOutOfRangeException(nameof(freq));
@@ -1299,10 +1301,13 @@ public partial class MuekPlugin : UserControl
         
         var bands = new Border()
         {
-            Padding = Thickness.Parse("8"),
+            
             Background = Brush.Parse("#232323"),
             CornerRadius = _cornerRadius,
             BoxShadow = _boxShadows,
+            Child = new Border(){
+                Padding = Thickness.Parse("15"),
+                ClipToBounds = true,
             Child = new StackPanel()
             {
                 Children =
@@ -1378,12 +1383,13 @@ public partial class MuekPlugin : UserControl
                     }
                 }
             }
+            }
         };
         
         var curve = new Polyline()
         {
             Stroke = Brushes.DeepSkyBlue,
-            Height = 100,
+            Height = height,
         };
 
         var radius = 8;
@@ -1442,7 +1448,7 @@ public partial class MuekPlugin : UserControl
                 if(!pointPressed[index]) return;
                 var position = args.GetPosition(curve);
                 pointFreqs[index].Value = position.X / scale;
-                pointLevels[index].Value = -position.Y + 50;
+                pointLevels[index].Value = (-position.Y + height / 2d) / height * maximum * 2;
                 args.Handled = true;
             };
             points[index].PointerReleased += (sender, args) => { pointPressed[index] = false; args.Handled = true; };
@@ -1469,7 +1475,7 @@ public partial class MuekPlugin : UserControl
             line.Add(new Line()
             {
                 StartPoint = new Point(FreqMapping(lineArray[i]) * scale, 0),
-                EndPoint = new Point(FreqMapping(lineArray[i]) * scale, 100),
+                EndPoint = new Point(FreqMapping(lineArray[i]) * scale, height),
                 Stroke = new SolidColorBrush(Colors.White,0.1),
                 StrokeThickness = 0.5,
             });
@@ -1490,12 +1496,15 @@ public partial class MuekPlugin : UserControl
                 Background = Brush.Parse("#23000000"),
                 CornerRadius = _cornerRadius,
                 BoxShadow = _insetBoxShadow,
+                Height = height + 20,
                 Child = new Border()
                 {
                     HorizontalAlignment = HorizontalAlignment.Center,
-                    ClipToBounds = false,
+                    ClipToBounds = true,
+                    Height = height,
                     Child = new Grid()
                     {
+                        VerticalAlignment = VerticalAlignment.Center,
                         Children =
                         {
                             // new Border()
@@ -1524,7 +1533,7 @@ public partial class MuekPlugin : UserControl
         {
             var curvePoints = Enumerable.Range((int)(FreqMapping(minimumFreq) * scale), 
                     (int)(FreqMapping(maximumFreq) * scale) - (int)(FreqMapping(minimumFreq) * scale))
-                .Select(i => new Point(i, 50)).ToList();
+                .Select(i => new Point(i, height/2d)).ToList();
 
             for (int i = 0; i < qs.Count; i++)
             {
@@ -1539,7 +1548,8 @@ public partial class MuekPlugin : UserControl
                             (double.Pow(1 - double.Pow(omega, 2), 2) + double.Pow(a * omega / q, 2)) /
                             (double.Pow(1 - double.Pow(omega, 2), 2) + double.Pow(omega / q / a, 2))
                         ));
-                    curvePoints[p] = new Point(curvePoints[p].X, curvePoints[p].Y - gain);
+                    var offset = gain / maximum / 2 * height;
+                    curvePoints[p] = new Point(curvePoints[p].X, curvePoints[p].Y - offset);
                 }
             }
             
@@ -1550,7 +1560,7 @@ public partial class MuekPlugin : UserControl
 
             for (int i = 0; i < points.Count; i++)
                 points[i].Margin = new Thickness(pointFreqs[i].Value * scale - radius / 2d,
-                    -pointLevels[i].Value + 50 - radius / 2d, 0, 0);
+                    -pointLevels[i].Value / maximum / 2 * height + height/2d - radius / 2d, 0, 0);
             curve.Points = curvePoints;
         }
         
