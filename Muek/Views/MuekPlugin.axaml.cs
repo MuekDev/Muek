@@ -1254,11 +1254,13 @@ public partial class MuekPlugin : UserControl
                 (double.Log(maximumFreq) - double.Log(minimumFreq));
             return freqMapping;
         }
+
+        var bandCount = 7;
         
         
         var knobRadius = 10;
         
-        List<MuekValuer> pointLevels = Enumerable.Range(0, 6).Select(_ => new MuekValuer()
+        List<MuekValuer> pointLevels = Enumerable.Range(0, bandCount).Select(_ => new MuekValuer()
         {
             ValuerColor = Brushes.DeepSkyBlue,
             Layout = MuekValuer.LayoutEnum.Slider,
@@ -1269,12 +1271,13 @@ public partial class MuekPlugin : UserControl
             Width = sliderWidth,
         }).ToList();
 
-        int[] defaultFreqs =
-        [
-            20,100,200,1000,2000,10000
-        ];
+        double[] defaultFreqs = Enumerable.Range(1, bandCount).Select(i =>
+            double.Exp(
+                ((FreqMapping(maximumFreq) - FreqMapping(minimumFreq)) / (bandCount + 1) * i + FreqMapping(minimumFreq))
+                * (double.Log(maximumFreq) - double.Log(minimumFreq)) / 20 + double.Log(minimumFreq))
+            ).ToArray();
         
-        List<MuekValuer> pointFreqs = Enumerable.Range(0, 6).Select(i => new MuekValuer()
+        List<MuekValuer> pointFreqs = Enumerable.Range(0, bandCount).Select(i => new MuekValuer()
         {
             ValuerColor = Brushes.DeepSkyBlue,
             Layout = MuekValuer.LayoutEnum.Knob,
@@ -1288,7 +1291,7 @@ public partial class MuekPlugin : UserControl
         var qMaximum = 40;
         var qMinimum = 0.025;
         
-        List<MuekValuer> qs = Enumerable.Range(0, 6).Select(_ => new MuekValuer()
+        List<MuekValuer> qs = Enumerable.Range(0, bandCount).Select(_ => new MuekValuer()
         {
             ValuerColor = Brushes.DeepSkyBlue,
             Layout = MuekValuer.LayoutEnum.Knob,
@@ -1298,8 +1301,28 @@ public partial class MuekPlugin : UserControl
             LogMinimum = qMinimum,
             DefaultValue = double.Log(1),
         }).ToList();
+
+        var bandParams = Enumerable.Range(0, bandCount).Select(i => new StackPanel()
+            {
+                Spacing = 12,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                Children =
+                {
+                    pointLevels[i],
+                    pointFreqs[i],
+                    qs[i],
+                }
+            }
+        ).ToList();
+
+        var stackPanel = new StackPanel()
+        {
+            Orientation = Orientation.Horizontal,
+            Spacing = 40,
+            HorizontalAlignment = HorizontalAlignment.Center,
+        };
         
-        
+        stackPanel.Children.AddRange(bandParams);
         
         var bands = new Border()
         {
@@ -1314,75 +1337,7 @@ public partial class MuekPlugin : UserControl
             {
                 Children =
                 {
-                    new StackPanel()
-                    {
-                        Orientation = Orientation.Horizontal,
-                        Spacing = 40,
-                        HorizontalAlignment = HorizontalAlignment.Center,
-                        Children =
-                        {
-                            new StackPanel()
-                            { 
-                                Spacing = 12,
-                                HorizontalAlignment = HorizontalAlignment.Center,
-                                Children = { 
-                                       pointLevels[0],
-                                       pointFreqs[0],
-                                       qs[0],
-                                   }
-                            },
-                            new StackPanel()
-                            { 
-                                Spacing = 12,
-                                HorizontalAlignment = HorizontalAlignment.Center,
-                                Children = { 
-                                    pointLevels[1],
-                                    pointFreqs[1],
-                                    qs[1],
-                                }
-                            },
-                            new StackPanel()
-                            { 
-                                Spacing = 12,
-                                HorizontalAlignment = HorizontalAlignment.Center,
-                                Children = { 
-                                    pointLevels[2],
-                                    pointFreqs[2],
-                                    qs[2],
-                                }
-                            },
-                            new StackPanel()
-                            { 
-                                Spacing = 12,
-                                HorizontalAlignment = HorizontalAlignment.Center,
-                                Children = { 
-                                    pointLevels[3],
-                                    pointFreqs[3],
-                                    qs[3],
-                                }
-                            },
-                            new StackPanel()
-                            { 
-                                Spacing = 12,
-                                HorizontalAlignment = HorizontalAlignment.Center,
-                                Children = { 
-                                    pointLevels[4],
-                                    pointFreqs[4],
-                                    qs[4],
-                                }
-                            },
-                            new StackPanel()
-                            { 
-                                Spacing = 12,
-                                HorizontalAlignment = HorizontalAlignment.Center,
-                                Children = { 
-                                    pointLevels[5],
-                                    pointFreqs[5],
-                                    qs[5],
-                                }
-                            },
-                        }
-                    }
+                    stackPanel
                 }
             }
             }
@@ -1396,7 +1351,7 @@ public partial class MuekPlugin : UserControl
 
         var radius = 8;
 
-        var points = Enumerable.Range(0, 6).Select(_ => new Ellipse()
+        var points = Enumerable.Range(0, bandCount).Select(_ => new Ellipse()
         {
             Fill = Brushes.DeepSkyBlue,
             Width = radius,
@@ -1435,8 +1390,8 @@ public partial class MuekPlugin : UserControl
         mainGain.ValueChanged += (sender, args) => { UpdateCurve(); };
         
 
-        bool[] pointPressed = [false, false, false, false, false, false,];
-        bool[] pointHovered = [false, false, false, false, false, false,];
+        bool[] pointPressed = Enumerable.Range(0,bandCount).Select(_ =>false).ToArray();
+        bool[] pointHovered = Enumerable.Range(0,bandCount).Select(_ =>false).ToArray();
         
         var info = new Label()
         {
@@ -1521,15 +1476,11 @@ public partial class MuekPlugin : UserControl
                 // },
                 lineGrid,
                 curve,
-                points[0],
-                points[1],
-                points[2],
-                points[3],
-                points[4],
-                points[5],
-                info
+                info,
             }
         };
+        
+        viewBorder.Children.AddRange(points);
         
         viewBorder.PointerMoved += (sender, args) =>
         {
