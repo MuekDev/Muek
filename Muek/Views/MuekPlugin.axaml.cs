@@ -1267,8 +1267,8 @@ public partial class MuekPlugin : UserControl
         List<double> defaultFreqs;
         List<MuekValuer> qs;
         List<StackPanel> bandParams;
-        bool[] pointPressed;
-        bool[] pointHovered;
+        List<bool> pointPressed;
+        List<bool> pointHovered;
         var radius = 8;
         List<Ellipse> points;
         var curve = new Polyline()
@@ -1339,8 +1339,8 @@ public partial class MuekPlugin : UserControl
                 HorizontalAlignment = HorizontalAlignment.Left,
                 VerticalAlignment = VerticalAlignment.Top,
             }).ToList();
-            pointPressed = Enumerable.Range(0,bandCount).Select(_ =>false).ToArray();
-            pointHovered = Enumerable.Range(0,bandCount).Select(_ =>false).ToArray();
+            pointPressed = Enumerable.Range(0, bandCount).Select(_ => false).ToList();
+            pointHovered = Enumerable.Range(0, bandCount).Select(_ => false).ToList();
             for (int i = 0; i < pointLevels.Count; i++)
             {
                 pointLevels[i].ValueChanged += (sender, args) => { UpdateCurve(); };
@@ -1387,6 +1387,7 @@ public partial class MuekPlugin : UserControl
 
         void AddNewPoint()
         {
+            bandCount++;
             pointLevels.Add(new MuekValuer()
             {
                 ValuerColor = Brushes.DeepSkyBlue,
@@ -1435,16 +1436,16 @@ public partial class MuekPlugin : UserControl
                 }
             );
                 
-            points = Enumerable.Range(0, bandCount).Select(_ => new Ellipse()
+            points.Add(new Ellipse()
             {
                 Fill = Brushes.DeepSkyBlue,
                 Width = radius,
                 Height = radius,
                 HorizontalAlignment = HorizontalAlignment.Left,
                 VerticalAlignment = VerticalAlignment.Top,
-            }).ToList();
-            pointPressed = Enumerable.Range(0,bandCount).Select(_ =>false).ToArray();
-            pointHovered = Enumerable.Range(0,bandCount).Select(_ =>false).ToArray();
+            });
+            pointPressed.Add(false);
+            pointHovered.Add(false);
             
                 pointLevels[^1].ValueChanged += (sender, args) => { UpdateCurve(); };
                 
@@ -1628,13 +1629,10 @@ public partial class MuekPlugin : UserControl
 
         addButton.Click += (sender, args) =>
         {
-            wrapPanel.Children.Clear();
-            viewBorder.Children.RemoveRange(
-                viewBorder.Children.IndexOf(points[0]),bandCount);
-            bandCount++;
             AddNewPoint();
-            wrapPanel.Children.AddRange(bandParams);
-            viewBorder.Children.AddRange(points);
+            wrapPanel.Children.Add(bandParams[^1]);
+            viewBorder.Children.Add(points[^1]);
+            args.Handled = true;
         };
         
         void UpdateCurve()
