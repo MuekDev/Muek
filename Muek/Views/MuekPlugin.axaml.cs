@@ -1383,7 +1383,7 @@ public partial class MuekPlugin : UserControl
             Height = 100,
         };
 
-        var radius = 5;
+        var radius = 8;
         
         var point1 = new Ellipse()
         {
@@ -1532,6 +1532,19 @@ public partial class MuekPlugin : UserControl
         point4.PointerReleased += (sender, args) => { point4Pressed = false; args.Handled = true; };
         point5.PointerReleased += (sender, args) => { point5Pressed = false; args.Handled = true; };
         point6.PointerReleased += (sender, args) => { point6Pressed = false; args.Handled = true; };
+
+        point1.PointerEntered += (sender, args) => { point1.Fill = Brushes.White; };
+        point2.PointerEntered += (sender, args) => { point2.Fill = Brushes.White; };
+        point3.PointerEntered += (sender, args) => { point3.Fill = Brushes.White; };
+        point4.PointerEntered += (sender, args) => { point4.Fill = Brushes.White; };
+        point5.PointerEntered += (sender, args) => { point5.Fill = Brushes.White; };
+        point6.PointerEntered += (sender, args) => { point6.Fill = Brushes.White; };
+        point1.PointerExited += (sender, args) => { point1.Fill = Brushes.DeepSkyBlue; };
+        point2.PointerExited += (sender, args) => { point2.Fill = Brushes.DeepSkyBlue; };
+        point3.PointerExited += (sender, args) => { point3.Fill = Brushes.DeepSkyBlue; };
+        point4.PointerExited += (sender, args) => { point4.Fill = Brushes.DeepSkyBlue; };
+        point5.PointerExited += (sender, args) => { point5.Fill = Brushes.DeepSkyBlue; };
+        point6.PointerExited += (sender, args) => { point6.Fill = Brushes.DeepSkyBlue; };
 
         int[] lineArray = [10,20,30,40,50,60,70,80,90,
             100,200,300,400,500,600,700,800,900,
