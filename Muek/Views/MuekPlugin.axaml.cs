@@ -1280,6 +1280,9 @@ public partial class MuekPlugin : UserControl
             Height = knobRadius,
             DefaultValue = FreqMapping(defaultFreqs[i]),
         }).ToList();
+
+        var qMaximum = 40;
+        var qMinimum = 0.025;
         
         List<MuekValuer> qs = Enumerable.Range(0, 6).Select(_ => new MuekValuer()
         {
@@ -1287,8 +1290,8 @@ public partial class MuekPlugin : UserControl
             Layout = MuekValuer.LayoutEnum.Knob,
             Height = knobRadius,
             Width = knobRadius,
-            LogMaximum = 40,
-            LogMinimum = 0.025,
+            LogMaximum = qMaximum,
+            LogMinimum = qMinimum,
             DefaultValue = 1,
         }).ToList();
         
@@ -1384,55 +1387,15 @@ public partial class MuekPlugin : UserControl
         };
 
         var radius = 8;
-        
-        var point1 = new Ellipse()
+
+        var points = Enumerable.Range(0, 6).Select(_ => new Ellipse()
         {
             Fill = Brushes.DeepSkyBlue,
             Width = radius,
             Height = radius,
             HorizontalAlignment = HorizontalAlignment.Left,
             VerticalAlignment = VerticalAlignment.Top,
-        };
-        var point2 = new Ellipse()
-        {
-            Fill = Brushes.DeepSkyBlue,
-            Width = radius,
-            Height = radius,
-            HorizontalAlignment = HorizontalAlignment.Left,
-            VerticalAlignment = VerticalAlignment.Top,
-        };
-        var point3 = new Ellipse()
-        {
-            Fill = Brushes.DeepSkyBlue,
-            Width = radius,
-            Height = radius,
-            HorizontalAlignment = HorizontalAlignment.Left,
-            VerticalAlignment = VerticalAlignment.Top,
-        };
-        var point4 = new Ellipse()
-        {
-            Fill = Brushes.DeepSkyBlue,
-            Width = radius,
-            Height = radius,
-            HorizontalAlignment = HorizontalAlignment.Left,
-            VerticalAlignment = VerticalAlignment.Top,
-        };
-        var point5 = new Ellipse()
-        {
-            Fill = Brushes.DeepSkyBlue,
-            Width = radius,
-            Height = radius,
-            HorizontalAlignment = HorizontalAlignment.Left,
-            VerticalAlignment = VerticalAlignment.Top,
-        };
-        var point6 = new Ellipse()
-        {
-            Fill = Brushes.DeepSkyBlue,
-            Width = radius,
-            Height = radius,
-            HorizontalAlignment = HorizontalAlignment.Left,
-            VerticalAlignment = VerticalAlignment.Top,
-        };
+        }).ToList();
         
         var mainGain = new MuekValuer()
         {
@@ -1463,89 +1426,37 @@ public partial class MuekPlugin : UserControl
         }
         mainGain.ValueChanged += (sender, args) => { UpdateCurve(); };
         
-        var point1Pressed = false;
-        var point2Pressed = false;
-        var point3Pressed = false;
-        var point4Pressed = false;
-        var point5Pressed = false;
-        var point6Pressed = false;
-        point1.PointerPressed += (sender, args) => { point1Pressed = true; args.Handled = true; };
-        point2.PointerPressed += (sender, args) => { point2Pressed = true; args.Handled = true; };
-        point3.PointerPressed += (sender, args) => { point3Pressed = true; args.Handled = true; };
-        point4.PointerPressed += (sender, args) => { point4Pressed = true; args.Handled = true; };
-        point5.PointerPressed += (sender, args) => { point5Pressed = true; args.Handled = true; };
-        point6.PointerPressed += (sender, args) => { point6Pressed = true; args.Handled = true; };
-        
-        point1.PointerMoved += (sender, args) =>
-        {
-            if(!point1Pressed) return;
-            var position = args.GetPosition(curve);
-            pointFreqs[0].Value = position.X / scale;
-            pointLevels[0].Value = -position.Y + 50 - mainGain.Value;
-            args.Handled = true;
-        };
-        point2.PointerMoved += (sender, args) =>
-        {
-            if (!point2Pressed) return;
-            var position = args.GetPosition(curve);
-            pointFreqs[1].Value = position.X / scale;
-            pointLevels[1].Value = -position.Y + 50 - mainGain.Value;
-            args.Handled = true;
-        };
-        point3.PointerMoved += (sender, args) =>
-        {
-            if (!point3Pressed) return;
-            var position = args.GetPosition(curve);
-            pointFreqs[2].Value = position.X / scale;
-            pointLevels[2].Value = -position.Y + 50 - mainGain.Value;
-            args.Handled = true;
-        };
-        point4.PointerMoved += (sender, args) =>
-        {
-            if (!point4Pressed) return;
-            var position = args.GetPosition(curve);
-            pointFreqs[3].Value = position.X / scale;
-            pointLevels[3].Value = -position.Y + 50 - mainGain.Value;
-            args.Handled = true;
-        };
-        point5.PointerMoved += (sender, args) =>
-        {
-            if (!point5Pressed) return;
-            var position = args.GetPosition(curve);
-            pointFreqs[4].Value = position.X / scale;
-            pointLevels[4].Value = -position.Y + 50 - mainGain.Value;
-            args.Handled = true;
-        };
-        point6.PointerMoved += (sender, args) =>
-        {
-            if (!point6Pressed) return;
-            var position = args.GetPosition(curve);
-            pointFreqs[5].Value = position.X / scale;
-            pointLevels[5].Value = -position.Y + 50 - mainGain.Value;
-            args.Handled = true;
-        };
-        
-        
-        point1.PointerReleased += (sender, args) => { point1Pressed = false; args.Handled = true; };
-        point2.PointerReleased += (sender, args) => { point2Pressed = false; args.Handled = true; };
-        point3.PointerReleased += (sender, args) => { point3Pressed = false; args.Handled = true; };
-        point4.PointerReleased += (sender, args) => { point4Pressed = false; args.Handled = true; };
-        point5.PointerReleased += (sender, args) => { point5Pressed = false; args.Handled = true; };
-        point6.PointerReleased += (sender, args) => { point6Pressed = false; args.Handled = true; };
 
-        point1.PointerEntered += (sender, args) => { point1.Fill = Brushes.White; };
-        point2.PointerEntered += (sender, args) => { point2.Fill = Brushes.White; };
-        point3.PointerEntered += (sender, args) => { point3.Fill = Brushes.White; };
-        point4.PointerEntered += (sender, args) => { point4.Fill = Brushes.White; };
-        point5.PointerEntered += (sender, args) => { point5.Fill = Brushes.White; };
-        point6.PointerEntered += (sender, args) => { point6.Fill = Brushes.White; };
-        point1.PointerExited += (sender, args) => { point1.Fill = Brushes.DeepSkyBlue; };
-        point2.PointerExited += (sender, args) => { point2.Fill = Brushes.DeepSkyBlue; };
-        point3.PointerExited += (sender, args) => { point3.Fill = Brushes.DeepSkyBlue; };
-        point4.PointerExited += (sender, args) => { point4.Fill = Brushes.DeepSkyBlue; };
-        point5.PointerExited += (sender, args) => { point5.Fill = Brushes.DeepSkyBlue; };
-        point6.PointerExited += (sender, args) => { point6.Fill = Brushes.DeepSkyBlue; };
-
+        bool[] pointPressed = [false, false, false, false, false, false,];
+        bool[] pointHovered = [false, false, false, false, false, false,];
+        
+        for (int i = 0; i < points.Count; i++)
+        {
+            var index = i;
+            points[index].PointerPressed += (sender, args) =>
+            {
+                pointPressed[index] = true; args.Handled = true;
+            };
+            points[index].PointerMoved += (sender, args) =>
+            {
+                if(!pointPressed[index]) return;
+                var position = args.GetPosition(curve);
+                pointFreqs[index].Value = position.X / scale;
+                pointLevels[index].Value = -position.Y + 50;
+                args.Handled = true;
+            };
+            points[index].PointerReleased += (sender, args) => { pointPressed[index] = false; args.Handled = true; };
+            points[index].PointerEntered += (sender, args) => { points[index].Fill = Brushes.White; pointHovered[index] = true; args.Handled = true; };
+            points[index].PointerExited += (sender, args) => { points[index].Fill = Brushes.DeepSkyBlue; pointHovered[index] = false; args.Handled = true; };
+            points[index].PointerWheelChanged += (sender, args) =>
+            {
+                if(!pointHovered[index]) return;
+                var offset = args.Delta.Y * 0.2;
+                qs[index].Value  += offset;
+            };
+        }
+        
+        
         int[] lineArray = [10,20,30,40,50,60,70,80,90,
             100,200,300,400,500,600,700,800,900,
             1000,2000,3000,4000,5000,6000,7000,8000,9000,
@@ -1594,12 +1505,12 @@ public partial class MuekPlugin : UserControl
                             // },
                             lineGrid,
                             curve,
-                            point1,
-                            point2,
-                            point3,
-                            point4,
-                            point5,
-                            point6,
+                            points[0],
+                            points[1],
+                            points[2],
+                            points[3],
+                            points[4],
+                            points[5],
                         }
                     }
                 }
@@ -1611,16 +1522,16 @@ public partial class MuekPlugin : UserControl
         
         void UpdateCurve()
         {
-            var points = Enumerable.Range((int)(FreqMapping(minimumFreq) * scale), 
+            var curvePoints = Enumerable.Range((int)(FreqMapping(minimumFreq) * scale), 
                     (int)(FreqMapping(maximumFreq) * scale) - (int)(FreqMapping(minimumFreq) * scale))
                 .Select(i => new Point(i, 50)).ToList();
 
             for (int i = 0; i < qs.Count; i++)
             {
                 
-                for (int p = 0; p < points.Count; p++)
+                for (int p = 0; p < curvePoints.Count; p++)
                 {
-                    var omega = points[p].X / scale / pointFreqs[i].Value;
+                    var omega = curvePoints[p].X / scale / pointFreqs[i].Value;
                     var q = qs[i].LogValue;
                     var a = double.Pow(10,pointLevels[i].Value / 40);
                     var gain = 20 * double.Log10(
@@ -1628,22 +1539,19 @@ public partial class MuekPlugin : UserControl
                             (double.Pow(1 - double.Pow(omega, 2), 2) + double.Pow(a * omega / q, 2)) /
                             (double.Pow(1 - double.Pow(omega, 2), 2) + double.Pow(omega / q / a, 2))
                         ));
-                    points[p] = new Point(points[p].X, points[p].Y - gain);
+                    curvePoints[p] = new Point(curvePoints[p].X, curvePoints[p].Y - gain);
                 }
             }
             
-            for (int i = 0; i < points.Count; i++)
+            for (int i = 0; i < curvePoints.Count; i++)
             {
-                points[i] = new Point(points[i].X, points[i].Y - mainGain.Value);
+                curvePoints[i] = new Point(curvePoints[i].X, curvePoints[i].Y - mainGain.Value);
             }
-            
-            point1.Margin = new Thickness(pointFreqs[0].Value * scale - radius / 2d, -pointLevels[0].Value+50 - radius / 2d - mainGain.Value, 0, 0);
-            point2.Margin = new Thickness(pointFreqs[1].Value * scale - radius / 2d, -pointLevels[1].Value+50 - radius / 2d - mainGain.Value, 0, 0);
-            point3.Margin = new Thickness(pointFreqs[2].Value * scale - radius / 2d, -pointLevels[2].Value+50 - radius / 2d - mainGain.Value, 0, 0);
-            point4.Margin = new Thickness(pointFreqs[3].Value * scale - radius / 2d, -pointLevels[3].Value+50 - radius / 2d - mainGain.Value, 0, 0);
-            point5.Margin = new Thickness(pointFreqs[4].Value * scale - radius / 2d, -pointLevels[4].Value+50 - radius / 2d - mainGain.Value, 0, 0);
-            point6.Margin = new Thickness(pointFreqs[5].Value * scale - radius / 2d, -pointLevels[5].Value+50 - radius / 2d - mainGain.Value, 0, 0);
-            curve.Points = points;
+
+            for (int i = 0; i < points.Count; i++)
+                points[i].Margin = new Thickness(pointFreqs[i].Value * scale - radius / 2d,
+                    -pointLevels[i].Value + 50 - radius / 2d, 0, 0);
+            curve.Points = curvePoints;
         }
         
         var misc = new Border()
