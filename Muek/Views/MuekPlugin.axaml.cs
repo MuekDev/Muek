@@ -7,10 +7,12 @@ using Avalonia.Controls.Shapes;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
+using Avalonia.Remote.Protocol.Input;
 using Avalonia.Themes.Neumorphism;
 using Avalonia.Themes.Simple;
 using DynamicData;
 using Muek.Services;
+using NAudio.Midi;
 using Projektanker.Icons.Avalonia;
 
 namespace Muek.Views;
@@ -1294,7 +1296,7 @@ public partial class MuekPlugin : UserControl
             Width = knobRadius,
             LogMaximum = qMaximum,
             LogMinimum = qMinimum,
-            DefaultValue = 1,
+            DefaultValue = double.Log(1),
         }).ToList();
         
         
@@ -1436,6 +1438,11 @@ public partial class MuekPlugin : UserControl
         bool[] pointPressed = [false, false, false, false, false, false,];
         bool[] pointHovered = [false, false, false, false, false, false,];
         
+        var info = new Label()
+        {
+
+        };
+
         for (int i = 0; i < points.Count; i++)
         {
             var index = i;
@@ -1445,6 +1452,8 @@ public partial class MuekPlugin : UserControl
             };
             points[index].PointerMoved += (sender, args) =>
             {
+                ShowInfo(args.GetPosition((sender as Visual)!.Parent as Visual).X,
+                    args.GetPosition((sender as Visual)!.Parent as Visual).Y);
                 if(!pointPressed[index]) return;
                 var position = args.GetPosition(curve);
                 pointFreqs[index].Value = position.X / scale;
@@ -1456,13 +1465,28 @@ public partial class MuekPlugin : UserControl
             points[index].PointerExited += (sender, args) => { points[index].Fill = Brushes.DeepSkyBlue; pointHovered[index] = false; args.Handled = true; };
             points[index].PointerWheelChanged += (sender, args) =>
             {
+                ShowInfo(args.GetPosition((sender as Visual)!.Parent as Visual).X,
+                    args.GetPosition((sender as Visual)!.Parent as Visual).Y);
                 if(!pointHovered[index]) return;
                 var offset = args.Delta.Y * 0.2;
                 qs[index].Value  += offset;
             };
         }
-        
-        
+
+        void ShowInfo(double x,double y)
+        {
+            info.IsVisible = false;
+            var offset = 50;
+            for (int i = 0; i < points.Count; i++)
+            {
+                if(!pointHovered[i] && !pointPressed[i]) continue;
+                info.Content =
+                    $"Freq: {double.Exp(pointFreqs[i].Value * (double.Log(maximumFreq) - double.Log(minimumFreq)) / 20 + double.Log(minimumFreq)):F2}Hz, Gain: {pointLevels[i].Value:F2}dB, Q: {qs[i].LogValue:F2}";
+                info.IsVisible = true;
+            }
+        }
+
+
         int[] lineArray = [10,20,30,40,50,60,70,80,90,
             100,200,300,400,500,600,700,800,900,
             1000,2000,3000,4000,5000,6000,7000,8000,9000,
@@ -1485,6 +1509,34 @@ public partial class MuekPlugin : UserControl
         {
         };
         lineGrid.Children.AddRange(line);
+
+        var viewBorder = new Grid()
+        {
+            VerticalAlignment = VerticalAlignment.Center,
+            Children =
+            {
+                // new Border()
+                // {
+                //     BorderBrush = Brushes.White,
+                //     BorderThickness = Thickness.Parse("1")
+                // },
+                lineGrid,
+                curve,
+                points[0],
+                points[1],
+                points[2],
+                points[3],
+                points[4],
+                points[5],
+                info
+            }
+        };
+        
+        viewBorder.PointerMoved += (sender, args) =>
+        {
+            ShowInfo(args.GetPosition(sender as Visual).X,
+                args.GetPosition(sender as Visual).Y);
+        };
         
         var view = new Border()
         {
@@ -1502,26 +1554,7 @@ public partial class MuekPlugin : UserControl
                     HorizontalAlignment = HorizontalAlignment.Center,
                     ClipToBounds = true,
                     Height = height,
-                    Child = new Grid()
-                    {
-                        VerticalAlignment = VerticalAlignment.Center,
-                        Children =
-                        {
-                            // new Border()
-                            // {
-                            //     BorderBrush = Brushes.White,
-                            //     BorderThickness = Thickness.Parse("1")
-                            // },
-                            lineGrid,
-                            curve,
-                            points[0],
-                            points[1],
-                            points[2],
-                            points[3],
-                            points[4],
-                            points[5],
-                        }
-                    }
+                    Child = viewBorder
                 }
             },
             
