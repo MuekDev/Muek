@@ -1264,7 +1264,7 @@ public partial class MuekPlugin : UserControl
 
         List<MuekValuer> pointLevels;
         List<MuekValuer> pointFreqs;
-        double[] defaultFreqs;
+        List<double> defaultFreqs;
         List<MuekValuer> qs;
         List<StackPanel> bandParams;
         bool[] pointPressed;
@@ -1276,7 +1276,7 @@ public partial class MuekPlugin : UserControl
             Stroke = Brushes.DeepSkyBlue,
             Height = height,
         };
-        void Refresh()
+        void InitPoints()
         {
             pointLevels = Enumerable.Range(0, bandCount).Select(_ => new MuekValuer()
             {
@@ -1294,7 +1294,7 @@ public partial class MuekPlugin : UserControl
                     ((FreqMapping(maximumFreq) - FreqMapping(minimumFreq)) / (bandCount + 1) * i +
                      FreqMapping(minimumFreq))
                     * (double.Log(maximumFreq) - double.Log(minimumFreq)) / 20 + double.Log(minimumFreq))
-            ).ToArray();
+            ).ToList();
 
             pointFreqs = Enumerable.Range(0, bandCount).Select(i => new MuekValuer()
             {
@@ -1384,8 +1384,102 @@ public partial class MuekPlugin : UserControl
                 };
             }
         }
-        
-        
+
+        void AddNewPoint()
+        {
+            pointLevels.Add(new MuekValuer()
+            {
+                ValuerColor = Brushes.DeepSkyBlue,
+                Layout = MuekValuer.LayoutEnum.Slider,
+                Height = sliderHeight,
+                Minimum = minimum,
+                Maximum = maximum,
+                DefaultValue = 0,
+                Width = sliderWidth,
+            });
+
+            defaultFreqs.Add(100d);
+
+            pointFreqs.Add(new MuekValuer()
+            {
+                ValuerColor = Brushes.DeepSkyBlue,
+                Layout = MuekValuer.LayoutEnum.Knob,
+                Minimum = FreqMapping(minimumFreq),
+                Maximum = FreqMapping(maximumFreq),
+                Width = knobRadius,
+                Height = knobRadius,
+                DefaultValue = FreqMapping(defaultFreqs[^1]),
+            });
+            
+            qs.Add(new MuekValuer()
+            {
+                ValuerColor = Brushes.DeepSkyBlue,
+                Layout = MuekValuer.LayoutEnum.Knob,
+                Height = knobRadius,
+                Width = knobRadius,
+                LogMaximum = qMaximum,
+                LogMinimum = qMinimum,
+                DefaultValue = double.Log(1),
+            });
+            
+                bandParams.Add(new StackPanel()
+                {
+                    Spacing = 12,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    Children =
+                    {
+                        pointLevels[^1],
+                        pointFreqs[^1],
+                        qs[^1],
+                    }
+                }
+            );
+                
+            points = Enumerable.Range(0, bandCount).Select(_ => new Ellipse()
+            {
+                Fill = Brushes.DeepSkyBlue,
+                Width = radius,
+                Height = radius,
+                HorizontalAlignment = HorizontalAlignment.Left,
+                VerticalAlignment = VerticalAlignment.Top,
+            }).ToList();
+            pointPressed = Enumerable.Range(0,bandCount).Select(_ =>false).ToArray();
+            pointHovered = Enumerable.Range(0,bandCount).Select(_ =>false).ToArray();
+            
+                pointLevels[^1].ValueChanged += (sender, args) => { UpdateCurve(); };
+                
+                pointFreqs[^1].ValueChanged += (sender, args) => { UpdateCurve(); };
+            
+                qs[^1].ValueChanged += (sender, args) => { UpdateCurve(); };
+                
+            
+                var index = ^1;
+                points[index].PointerPressed += (sender, args) =>
+                {
+                    pointPressed[index] = true; args.Handled = true;
+                };
+                points[index].PointerMoved += (sender, args) =>
+                {
+                    ShowInfo(args.GetPosition((sender as Visual)!.Parent as Visual).X,
+                        args.GetPosition((sender as Visual)!.Parent as Visual).Y);
+                    if(!pointPressed[index]) return;
+                    var position = args.GetPosition(curve);
+                    pointFreqs[index].Value = position.X / scale;
+                    pointLevels[index].Value = (-position.Y + height / 2d) / height * maximum * 2;
+                    args.Handled = true;
+                };
+                points[index].PointerReleased += (sender, args) => { pointPressed[index] = false; args.Handled = true; };
+                points[index].PointerEntered += (sender, args) => { points[index].Fill = Brushes.White; pointHovered[index] = true; args.Handled = true; };
+                points[index].PointerExited += (sender, args) => { points[index].Fill = Brushes.DeepSkyBlue; pointHovered[index] = false; args.Handled = true; };
+                points[index].PointerWheelChanged += (sender, args) =>
+                {
+                    ShowInfo(args.GetPosition((sender as Visual)!.Parent as Visual).X,
+                        args.GetPosition((sender as Visual)!.Parent as Visual).Y);
+                    if(!pointHovered[index]) return;
+                    var offset = args.Delta.Y * 0.2;
+                    qs[index].Value  += offset;
+                };
+        }
 
         var wrapPanel = new WrapPanel()
         {
@@ -1442,7 +1536,7 @@ public partial class MuekPlugin : UserControl
         
         var info = new Label();
         
-        Refresh();
+        InitPoints();
         UpdateCurve();
         
         wrapPanel.Children.AddRange(bandParams);
@@ -1538,10 +1632,9 @@ public partial class MuekPlugin : UserControl
             viewBorder.Children.RemoveRange(
                 viewBorder.Children.IndexOf(points[0]),bandCount);
             bandCount++;
-            Refresh();
+            AddNewPoint();
             wrapPanel.Children.AddRange(bandParams);
             viewBorder.Children.AddRange(points);
-            InvalidateVisual();
         };
         
         void UpdateCurve()
