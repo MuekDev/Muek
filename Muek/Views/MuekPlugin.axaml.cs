@@ -9,6 +9,7 @@ using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Themes.Neumorphism;
 using Avalonia.Themes.Simple;
+using DynamicData;
 using Muek.Services;
 using Projektanker.Icons.Avalonia;
 
@@ -1231,127 +1232,68 @@ public partial class MuekPlugin : UserControl
         var minimum = -maximum;
         var sliderHeight = 100;
         var sliderWidth = 5;
-        var point1Level = new MuekValuer()
+        var maximumFreq = 30000;
+        var minimumFreq = 10;
+        var scale = 20;
+
+        double FreqMapping(double freq)
         {
-            ValuerColor = Brushes.DeepSkyBlue,
-            Layout = MuekValuer.LayoutEnum.Slider,
-            Height = sliderHeight,
-            Minimum = minimum,
-            Maximum = maximum,
-            DefaultValue = 0,
-            Width = sliderWidth,
-        };
-        var point2Level = new MuekValuer()
-        {
-            ValuerColor = Brushes.DeepSkyBlue,
-            Layout = MuekValuer.LayoutEnum.Slider,
-            Height = sliderHeight,
-            Minimum = minimum,
-            Maximum = maximum,
-            DefaultValue = 0,
-            Width = sliderWidth,
-        };
-        var point3Level = new MuekValuer()
-        {
-            ValuerColor = Brushes.DeepSkyBlue,
-            Layout = MuekValuer.LayoutEnum.Slider,
-            Height = sliderHeight,
-            Minimum = minimum,
-            Maximum = maximum,
-            DefaultValue = 0,
-            Width = sliderWidth,
-        };
-        var point4Level = new MuekValuer()
-        {
-            ValuerColor = Brushes.DeepSkyBlue,
-            Layout = MuekValuer.LayoutEnum.Slider,
-            Height = sliderHeight,
-            Minimum = minimum,
-            Maximum = maximum,
-            DefaultValue = 0,
-            Width = sliderWidth,
-        };
-        var point5Level = new MuekValuer()
-        {
-            ValuerColor = Brushes.DeepSkyBlue,
-            Layout = MuekValuer.LayoutEnum.Slider,
-            Height = sliderHeight,
-            Minimum = minimum,
-            Maximum = maximum,
-            DefaultValue = 0,
-            Width = sliderWidth,
-        };
-        var point6Level = new MuekValuer()
-        {
-            ValuerColor = Brushes.DeepSkyBlue,
-            Layout = MuekValuer.LayoutEnum.Slider,
-            Height = sliderHeight,
-            Minimum = minimum,
-            Maximum = maximum,
-            DefaultValue = 0,
-            Width = sliderWidth,
-        };
+            if(freq < 0) throw new ArgumentOutOfRangeException(nameof(freq));
+            // var freqMapping = freq <= 10 ? double.Log(freq) - double.Log(minimumFreq)
+            //     : freq <= 100 ? double.Log(freq-10) + double.Log(10) - double.Log(minimumFreq)
+            //     : freq <= 1000 ? double.Log(freq-100) + double.Log(100) - double.Log(minimumFreq)
+            //     : freq <= 10000 ? double.Log(freq-1000) + double.Log(1000) - double.Log(minimumFreq)
+            //     : freq <= 100000 ? double.Log(freq-10000) + double.Log(10000) - double.Log(minimumFreq)
+            //     : double.NaN;
+            var freqMapping = 20 *
+                (double.Log(freq) - double.Log(minimumFreq)) / 
+                (double.Log(maximumFreq) - double.Log(minimumFreq));
+            return freqMapping;
+        }
+        
+        
         var knobRadius = 10;
-        var point1Freq = new MuekValuer()
+        
+        List<MuekValuer> pointLevels = Enumerable.Range(0, 6).Select(_ => new MuekValuer()
+        {
+            ValuerColor = Brushes.DeepSkyBlue,
+            Layout = MuekValuer.LayoutEnum.Slider,
+            Height = sliderHeight,
+            Minimum = minimum,
+            Maximum = maximum,
+            DefaultValue = 0,
+            Width = sliderWidth,
+        }).ToList();
+
+        int[] defaultFreqs =
+        [
+            20,100,200,1000,2000,10000
+        ];
+        
+        List<MuekValuer> pointFreqs = Enumerable.Range(0, 6).Select(i => new MuekValuer()
         {
             ValuerColor = Brushes.DeepSkyBlue,
             Layout = MuekValuer.LayoutEnum.Knob,
-            Minimum = 0,
-            Maximum = 700,
+            Minimum = FreqMapping(minimumFreq),
+            Maximum = FreqMapping(maximumFreq),
             Width = knobRadius,
             Height = knobRadius,
-            DefaultValue = 100,
-        };
-        var point2Freq = new MuekValuer()
+            DefaultValue = FreqMapping(defaultFreqs[i]),
+        }).ToList();
+        
+        List<MuekValuer> qs = Enumerable.Range(0, 6).Select(_ => new MuekValuer()
         {
             ValuerColor = Brushes.DeepSkyBlue,
             Layout = MuekValuer.LayoutEnum.Knob,
-            Minimum = 0,
-            Maximum = 700,
-            Width = knobRadius,
             Height = knobRadius,
-            DefaultValue = 200,
-        };
-        var point3Freq = new MuekValuer()
-        {
-            ValuerColor = Brushes.DeepSkyBlue,
-            Layout = MuekValuer.LayoutEnum.Knob,
-            Minimum = 0,
-            Maximum = 700,
             Width = knobRadius,
-            Height = knobRadius,
-            DefaultValue = 300,
-        };
-        var point4Freq = new MuekValuer()
-        {
-            ValuerColor = Brushes.DeepSkyBlue,
-            Layout = MuekValuer.LayoutEnum.Knob,
-            Minimum = 0,
-            Maximum = 700,
-            Width = knobRadius,
-            Height = knobRadius,
-            DefaultValue = 400,
-        };
-        var point5Freq = new MuekValuer()
-        {
-            ValuerColor = Brushes.DeepSkyBlue,
-            Layout = MuekValuer.LayoutEnum.Knob,
-            Minimum = 0,
-            Maximum = 700,
-            Width = knobRadius,
-            Height = knobRadius,
-            DefaultValue = 500,
-        };
-        var point6Freq = new MuekValuer()
-        {
-            ValuerColor = Brushes.DeepSkyBlue,
-            Layout = MuekValuer.LayoutEnum.Knob,
-            Minimum = 0,
-            Maximum = 700,
-            Width = knobRadius,
-            Height = knobRadius,
-            DefaultValue = 600,
-        };
+            LogMaximum = 40,
+            LogMinimum = 0.025,
+            DefaultValue = 1,
+        }).ToList();
+        
+        
+        
         var bands = new Border()
         {
             Padding = Thickness.Parse("8"),
@@ -1374,8 +1316,9 @@ public partial class MuekPlugin : UserControl
                                 Spacing = 12,
                                 HorizontalAlignment = HorizontalAlignment.Center,
                                 Children = { 
-                                       point1Level,
-                                       point1Freq
+                                       pointLevels[0],
+                                       pointFreqs[0],
+                                       qs[0],
                                    }
                             },
                             new StackPanel()
@@ -1383,8 +1326,9 @@ public partial class MuekPlugin : UserControl
                                 Spacing = 12,
                                 HorizontalAlignment = HorizontalAlignment.Center,
                                 Children = { 
-                                    point2Level,
-                                    point2Freq
+                                    pointLevels[1],
+                                    pointFreqs[1],
+                                    qs[1],
                                 }
                             },
                             new StackPanel()
@@ -1392,8 +1336,9 @@ public partial class MuekPlugin : UserControl
                                 Spacing = 12,
                                 HorizontalAlignment = HorizontalAlignment.Center,
                                 Children = { 
-                                    point3Level,
-                                    point3Freq
+                                    pointLevels[2],
+                                    pointFreqs[2],
+                                    qs[2],
                                 }
                             },
                             new StackPanel()
@@ -1401,8 +1346,9 @@ public partial class MuekPlugin : UserControl
                                 Spacing = 12,
                                 HorizontalAlignment = HorizontalAlignment.Center,
                                 Children = { 
-                                    point4Level,
-                                    point4Freq
+                                    pointLevels[3],
+                                    pointFreqs[3],
+                                    qs[3],
                                 }
                             },
                             new StackPanel()
@@ -1410,8 +1356,9 @@ public partial class MuekPlugin : UserControl
                                 Spacing = 12,
                                 HorizontalAlignment = HorizontalAlignment.Center,
                                 Children = { 
-                                    point5Level,
-                                    point5Freq
+                                    pointLevels[4],
+                                    pointFreqs[4],
+                                    qs[4],
                                 }
                             },
                             new StackPanel()
@@ -1419,8 +1366,9 @@ public partial class MuekPlugin : UserControl
                                 Spacing = 12,
                                 HorizontalAlignment = HorizontalAlignment.Center,
                                 Children = { 
-                                    point6Level,
-                                    point6Freq
+                                    pointLevels[5],
+                                    pointFreqs[5],
+                                    qs[5],
                                 }
                             },
                         }
@@ -1434,51 +1382,54 @@ public partial class MuekPlugin : UserControl
             Stroke = Brushes.DeepSkyBlue,
             Height = 100,
         };
+
+        var radius = 5;
+        
         var point1 = new Ellipse()
         {
             Fill = Brushes.DeepSkyBlue,
-            Width = 20,
-            Height = 20,
+            Width = radius,
+            Height = radius,
             HorizontalAlignment = HorizontalAlignment.Left,
             VerticalAlignment = VerticalAlignment.Top,
         };
         var point2 = new Ellipse()
         {
             Fill = Brushes.DeepSkyBlue,
-            Width = 20,
-            Height = 20,
+            Width = radius,
+            Height = radius,
             HorizontalAlignment = HorizontalAlignment.Left,
             VerticalAlignment = VerticalAlignment.Top,
         };
         var point3 = new Ellipse()
         {
             Fill = Brushes.DeepSkyBlue,
-            Width = 20,
-            Height = 20,
+            Width = radius,
+            Height = radius,
             HorizontalAlignment = HorizontalAlignment.Left,
             VerticalAlignment = VerticalAlignment.Top,
         };
         var point4 = new Ellipse()
         {
             Fill = Brushes.DeepSkyBlue,
-            Width = 20,
-            Height = 20,
+            Width = radius,
+            Height = radius,
             HorizontalAlignment = HorizontalAlignment.Left,
             VerticalAlignment = VerticalAlignment.Top,
         };
         var point5 = new Ellipse()
         {
             Fill = Brushes.DeepSkyBlue,
-            Width = 20,
-            Height = 20,
+            Width = radius,
+            Height = radius,
             HorizontalAlignment = HorizontalAlignment.Left,
             VerticalAlignment = VerticalAlignment.Top,
         };
         var point6 = new Ellipse()
         {
             Fill = Brushes.DeepSkyBlue,
-            Width = 20,
-            Height = 20,
+            Width = radius,
+            Height = radius,
             HorizontalAlignment = HorizontalAlignment.Left,
             VerticalAlignment = VerticalAlignment.Top,
         };
@@ -1494,22 +1445,24 @@ public partial class MuekPlugin : UserControl
             Margin = Thickness.Parse("10 0"),
             DefaultValue = 0,
         };
+        
 
         UpdateCurve();
-        point1Level.ValueChanged += (sender, args) => { UpdateCurve(); };
-        point2Level.ValueChanged += (sender, args) => { UpdateCurve(); };
-        point3Level.ValueChanged += (sender, args) => { UpdateCurve(); };
-        point4Level.ValueChanged += (sender, args) => { UpdateCurve(); };
-        point5Level.ValueChanged += (sender, args) => { UpdateCurve(); };
-        point6Level.ValueChanged += (sender, args) => { UpdateCurve(); };
-        point1Freq.ValueChanged += (sender, args) => { UpdateCurve(); };
-        point2Freq.ValueChanged += (sender, args) => { UpdateCurve(); };
-        point3Freq.ValueChanged += (sender, args) => { UpdateCurve(); };
-        point4Freq.ValueChanged += (sender, args) => { UpdateCurve(); };
-        point5Freq.ValueChanged += (sender, args) => { UpdateCurve(); };
-        point6Freq.ValueChanged += (sender, args) => { UpdateCurve(); };
-        mainGain.ValueChanged += (sender, args) => { UpdateCurve(); };
+        for (int i = 0; i < pointLevels.Count; i++)
+        {
+            pointLevels[i].ValueChanged += (sender, args) => { UpdateCurve(); };
+        }
+        for (int i = 0; i < pointFreqs.Count; i++)
+        {
+            pointFreqs[i].ValueChanged += (sender, args) => { UpdateCurve(); };
+        }
 
+        for (int i = 0; i < qs.Count; i++)
+        {
+            qs[i].ValueChanged += (sender, args) => { UpdateCurve(); };
+        }
+        mainGain.ValueChanged += (sender, args) => { UpdateCurve(); };
+        
         var point1Pressed = false;
         var point2Pressed = false;
         var point3Pressed = false;
@@ -1527,48 +1480,48 @@ public partial class MuekPlugin : UserControl
         {
             if(!point1Pressed) return;
             var position = args.GetPosition(curve);
-            point1Freq.Value = position.X;
-            point1Level.Value = -position.Y + 50 - mainGain.Value;
+            pointFreqs[0].Value = position.X / scale;
+            pointLevels[0].Value = -position.Y + 50 - mainGain.Value;
             args.Handled = true;
         };
         point2.PointerMoved += (sender, args) =>
         {
             if (!point2Pressed) return;
             var position = args.GetPosition(curve);
-            point2Freq.Value = position.X;
-            point2Level.Value = -position.Y + 50 - mainGain.Value;
+            pointFreqs[1].Value = position.X / scale;
+            pointLevels[1].Value = -position.Y + 50 - mainGain.Value;
             args.Handled = true;
         };
         point3.PointerMoved += (sender, args) =>
         {
             if (!point3Pressed) return;
             var position = args.GetPosition(curve);
-            point3Freq.Value = position.X;
-            point3Level.Value = -position.Y + 50 - mainGain.Value;
+            pointFreqs[2].Value = position.X / scale;
+            pointLevels[2].Value = -position.Y + 50 - mainGain.Value;
             args.Handled = true;
         };
         point4.PointerMoved += (sender, args) =>
         {
             if (!point4Pressed) return;
             var position = args.GetPosition(curve);
-            point4Freq.Value = position.X;
-            point4Level.Value = -position.Y + 50 - mainGain.Value;
+            pointFreqs[3].Value = position.X / scale;
+            pointLevels[3].Value = -position.Y + 50 - mainGain.Value;
             args.Handled = true;
         };
         point5.PointerMoved += (sender, args) =>
         {
             if (!point5Pressed) return;
             var position = args.GetPosition(curve);
-            point5Freq.Value = position.X;
-            point5Level.Value = -position.Y + 50 - mainGain.Value;
+            pointFreqs[4].Value = position.X / scale;
+            pointLevels[4].Value = -position.Y + 50 - mainGain.Value;
             args.Handled = true;
         };
         point6.PointerMoved += (sender, args) =>
         {
             if (!point6Pressed) return;
             var position = args.GetPosition(curve);
-            point6Freq.Value = position.X;
-            point6Level.Value = -position.Y + 50 - mainGain.Value;
+            pointFreqs[5].Value = position.X / scale;
+            pointLevels[5].Value = -position.Y + 50 - mainGain.Value;
             args.Handled = true;
         };
         
@@ -1580,9 +1533,31 @@ public partial class MuekPlugin : UserControl
         point5.PointerReleased += (sender, args) => { point5Pressed = false; args.Handled = true; };
         point6.PointerReleased += (sender, args) => { point6Pressed = false; args.Handled = true; };
 
+        int[] lineArray = [10,20,30,40,50,60,70,80,90,
+            100,200,300,400,500,600,700,800,900,
+            1000,2000,3000,4000,5000,6000,7000,8000,9000,
+            10000,20000,30000,
+        ];
+
+        List<Line> line = [];
+        for (int i = 0; i < lineArray.Length; i++)
+        {
+            line.Add(new Line()
+            {
+                StartPoint = new Point(FreqMapping(lineArray[i]) * scale, 0),
+                EndPoint = new Point(FreqMapping(lineArray[i]) * scale, 100),
+                Stroke = new SolidColorBrush(Colors.White,0.1),
+                StrokeThickness = 0.5,
+            });
+        }
+
+        var lineGrid = new Grid()
+        {
+        };
+        lineGrid.Children.AddRange(line);
+        
         var view = new Border()
         {
-            Height = 150,
             Background = Brush.Parse("#232323"),
             Padding = _thickness,
             CornerRadius = _cornerRadius,
@@ -1598,6 +1573,12 @@ public partial class MuekPlugin : UserControl
                     {
                         Children =
                         {
+                            // new Border()
+                            // {
+                            //     BorderBrush = Brushes.White,
+                            //     BorderThickness = Thickness.Parse("1")
+                            // },
+                            lineGrid,
                             curve,
                             point1,
                             point2,
@@ -1611,41 +1592,43 @@ public partial class MuekPlugin : UserControl
             },
             
         };
-        
+
         
         
         void UpdateCurve()
         {
-            var q = 100;
-            var points = Enumerable.Range(0, 700)
-                .Select(i =>
+            var points = Enumerable.Range((int)(FreqMapping(minimumFreq) * scale), 
+                    (int)(FreqMapping(maximumFreq) * scale) - (int)(FreqMapping(minimumFreq) * scale))
+                .Select(i => new Point(i, 50)).ToList();
+
+            for (int i = 0; i < qs.Count; i++)
+            {
+                
+                for (int p = 0; p < points.Count; p++)
                 {
-                    var pos = 50d;
-                    if(Math.Abs(i - point1Freq.Value) < q)
-                        pos -= point1Level.Value * (q - Math.Abs(i - point1Freq.Value)) / q;
-                    if (Math.Abs(i - point2Freq.Value) < q)
-                        pos -=  point2Level.Value * (q - Math.Abs(i - point2Freq.Value)) / q;
-                    if (Math.Abs(i - point3Freq.Value) < q)
-                        pos -=  point3Level.Value * (q - Math.Abs(i - point3Freq.Value)) / q;
-                    if (Math.Abs(i - point4Freq.Value) < q)
-                        pos -= point4Level.Value * (q - Math.Abs(i - point4Freq.Value)) / q;
-                    if (Math.Abs(i - point5Freq.Value) < q)
-                        pos -= point5Level.Value * (q - Math.Abs(i - point5Freq.Value)) / q;
-                    if (Math.Abs(i - point6Freq.Value) < q)
-                        pos -= point6Level.Value * (q - Math.Abs(i - point6Freq.Value)) / q;
-                    return new Point(i, pos);
-                }).ToList();
+                    var omega = points[p].X / scale / pointFreqs[i].Value;
+                    var q = qs[i].LogValue;
+                    var a = double.Pow(10,pointLevels[i].Value / 40);
+                    var gain = 20 * double.Log10(
+                        double.Sqrt(
+                            (double.Pow(1 - double.Pow(omega, 2), 2) + double.Pow(a * omega / q, 2)) /
+                            (double.Pow(1 - double.Pow(omega, 2), 2) + double.Pow(omega / q / a, 2))
+                        ));
+                    points[p] = new Point(points[p].X, points[p].Y - gain);
+                }
+            }
+            
             for (int i = 0; i < points.Count; i++)
             {
                 points[i] = new Point(points[i].X, points[i].Y - mainGain.Value);
             }
             
-            point1.Margin = new Thickness(point1Freq.Value-10, -point1Level.Value+40 - mainGain.Value, 0, 0);
-            point2.Margin = new Thickness(point2Freq.Value-10, -point2Level.Value+40 - mainGain.Value, 0, 0);
-            point3.Margin = new Thickness(point3Freq.Value-10, -point3Level.Value+40 - mainGain.Value, 0, 0);
-            point4.Margin = new Thickness(point4Freq.Value-10, -point4Level.Value+40 - mainGain.Value, 0, 0);
-            point5.Margin = new Thickness(point5Freq.Value-10, -point5Level.Value+40 - mainGain.Value, 0, 0);
-            point6.Margin = new Thickness(point6Freq.Value-10, -point6Level.Value+40 - mainGain.Value, 0, 0);
+            point1.Margin = new Thickness(pointFreqs[0].Value * scale - radius / 2d, -pointLevels[0].Value+50 - radius / 2d - mainGain.Value, 0, 0);
+            point2.Margin = new Thickness(pointFreqs[1].Value * scale - radius / 2d, -pointLevels[1].Value+50 - radius / 2d - mainGain.Value, 0, 0);
+            point3.Margin = new Thickness(pointFreqs[2].Value * scale - radius / 2d, -pointLevels[2].Value+50 - radius / 2d - mainGain.Value, 0, 0);
+            point4.Margin = new Thickness(pointFreqs[3].Value * scale - radius / 2d, -pointLevels[3].Value+50 - radius / 2d - mainGain.Value, 0, 0);
+            point5.Margin = new Thickness(pointFreqs[4].Value * scale - radius / 2d, -pointLevels[4].Value+50 - radius / 2d - mainGain.Value, 0, 0);
+            point6.Margin = new Thickness(pointFreqs[5].Value * scale - radius / 2d, -pointLevels[5].Value+50 - radius / 2d - mainGain.Value, 0, 0);
             curve.Points = points;
         }
         
