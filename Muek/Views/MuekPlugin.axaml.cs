@@ -1381,6 +1381,7 @@ public partial class MuekPlugin : UserControl
                     if(!pointHovered[index]) return;
                     var offset = args.Delta.Y * 0.2;
                     qs[index].Value  += offset;
+                    args.Handled = true;
                 };
             }
         }
@@ -1479,6 +1480,7 @@ public partial class MuekPlugin : UserControl
                     if(!pointHovered[index]) return;
                     var offset = args.Delta.Y * 0.2;
                     qs[index].Value  += offset;
+                    args.Handled = true;
                 };
         }
 
