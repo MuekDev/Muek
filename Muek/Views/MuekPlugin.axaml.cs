@@ -1394,6 +1394,10 @@ public partial class MuekPlugin : UserControl
             var removeButton = new Button()
             {
                 Background = Brushes.Transparent,
+                Padding = Thickness.Parse("0"),
+                Margin = Thickness.Parse("-5"),
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center,
                 Content = new Icon()
                 {
                     Value = "mdi-close"
@@ -1404,7 +1408,7 @@ public partial class MuekPlugin : UserControl
             {
                 ValuerColor = color,
                 Layout = MuekValuer.LayoutEnum.Slider,
-                Height = sliderHeight / 1.3d,
+                Height = sliderHeight / 1.2d,
                 Minimum = minimum,
                 Maximum = maximum,
                 DefaultValue = 0,
@@ -1650,6 +1654,7 @@ public partial class MuekPlugin : UserControl
                 CornerRadius = _cornerRadius,
                 BoxShadow = _insetBoxShadow,
                 Height = height + 20,
+                ClipToBounds = true,
                 Child = new Border()
                 {
                     HorizontalAlignment = HorizontalAlignment.Center,
