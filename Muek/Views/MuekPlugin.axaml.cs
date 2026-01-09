@@ -1566,8 +1566,9 @@ public partial class MuekPlugin : UserControl
                 Background = Brush.Parse("#23000000"),
                 CornerRadius = _cornerRadius,
                 BoxShadow = _insetBoxShadow,
-                Child = new Viewbox()
+                Child = new Border()
                 {
+                    HorizontalAlignment = HorizontalAlignment.Center,
                     ClipToBounds = false,
                     Child = new Grid()
                     {
